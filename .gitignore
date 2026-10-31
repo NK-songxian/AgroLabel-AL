@@ -1,0 +1,33 @@
+# ===== 依赖与环境 =====
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.DS_Store
+
+# ===== 大文件 / 数据（不进仓库）=====
+out/
+runs/
+*.pt
+*.pth
+*.onnx
+*.engine
+*.bin
+# 权重目录保留，仅忽略其中的模型文件
+weights/*.pt
+weights/*.pth
+weights/*.onnx
+weights/*.engine
+weights/*.bin
+
+
+# ===== 数据集原始文件（只留脚本与说明）=====
+data/raw/
+doxc/
+
+# ===== 产物 / 日志 =====
+*.log
+build/
+.workbuddy/
+wandb/

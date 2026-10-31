@@ -1,0 +1,18 @@
+# smart-agri-annot 依赖（基于 sam_gpu 环境导出，2026-10）
+# 安装前请确认已激活含 CUDA 的 Python 3.11 环境
+torch==2.9.1
+ultralytics==8.4.38
+numpy==2.2.0
+scipy==1.14.1
+opencv-python==4.12.0
+scikit-image==0.26.0
+Pillow==12.0.0
+matplotlib==3.10.1
+pandas==2.3.3
+pyyaml==6.0.3
+tqdm==4.70.0
+
+# 可选（离线伪标注 / SAM2 推理）：
+#  - segment-anything-2（SAM2.1）权重 sam2.1_t.pt，需单独下载，不通过 pip 安装
+#  - GroundingDINO / YOLO-World 仅用于零样本对照实验，见 docs/ARCHITECTURE.md
+# 注意：本机 transformers 与 huggingface-hub 版本存在冲突，未列入核心依赖
