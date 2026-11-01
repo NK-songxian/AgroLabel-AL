@@ -1,0 +1,41 @@
+{
+  "weights": "F:\\AgroLabel-AL\\runs\\baseline5\\weights\\best.pt",
+  "data": "configs/dataset_plantseg34.local.yaml",
+  "splits": {
+    "val": {
+      "box": {
+        "precision": 0.27076384893743805,
+        "recall": 0.11370512852606733,
+        "map50": 0.060312325218934044,
+        "map50_95": 0.03305924900088458,
+        "map75": 0.03219675893363944
+      },
+      "seg": {
+        "precision": 0.26304492642101795,
+        "recall": 0.10813119693565995,
+        "map50": 0.05676564303798944,
+        "map50_95": 0.027867503288503154,
+        "map75": 0.024110439491866496
+      },
+      "save_dir": "F:\\AgroLabel-AL\\runs\\baseline_eval_val"
+    },
+    "test": {
+      "box": {
+        "precision": 0.212817519273519,
+        "recall": 0.11177049377363094,
+        "map50": 0.05797484456600888,
+        "map50_95": 0.03200723033443411,
+        "map75": 0.030957756181745323
+      },
+      "seg": {
+        "precision": 0.20983742118630877,
+        "recall": 0.10883857621462656,
+        "map50": 0.055616223454708166,
+        "map50_95": 0.02740137814757958,
+        "map75": 0.023186555707151862
+      },
+      "save_dir": "F:\\AgroLabel-AL\\runs\\baseline_eval_test"
+    }
+  },
+  "vis_dir": "F:\\AgroLabel-AL\\experiments\\baseline_vis\\pred"
+}

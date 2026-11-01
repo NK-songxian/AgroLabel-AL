@@ -1,0 +1,517 @@
+{
+  "task": "Task-002A PlantSeg 34类数据正式审计",
+  "constraint": "只读审计，未修改任何数据/标签/划分",
+  "paths": {
+    "data_root": "F:\\_plantseg",
+    "dataset_dir": "F:\\_plantseg\\dataset_plantseg_34",
+    "data_yaml": "F:\\_plantseg\\dataset_plantseg_34\\data.yaml",
+    "classes_json": "F:\\_plantseg\\dataset_plantseg_34\\classes.json",
+    "al_dir": "F:\\_plantseg\\_al\\al34_random",
+    "al_labeled_txt": "F:\\_plantseg\\_al\\al34_random\\labeled.txt"
+  },
+  "config_check": {
+    "classes_json": {
+      "exists": true,
+      "n_classes": 34,
+      "mode": "host",
+      "source": "PlantSeg Metadata.csv (Plant/Disease/Index)",
+      "note": "官方 COCO JSON 三划分 image_id 不唯一，实例由 PNG 掩码连通域重建"
+    },
+    "data_yaml": {
+      "exists": true,
+      "path_field": "F:/_plantseg/dataset_plantseg_34",
+      "nc": 34,
+      "names_count": 34,
+      "names_match_classes_json": true
+    }
+  },
+  "n_classes": 34,
+  "split_totals": {
+    "train": {
+      "n_images": 5367,
+      "n_labels": 5367
+    },
+    "val": {
+      "n_images": 846,
+      "n_labels": 846
+    },
+    "test": {
+      "n_images": 1560,
+      "n_labels": 1560
+    }
+  },
+  "empty_label_images": {
+    "train": 0,
+    "val": 0,
+    "test": 0
+  },
+  "missing_classes": {
+    "train": [],
+    "val": [],
+    "test": []
+  },
+  "all_classes_present": true,
+  "class_distribution": [
+    {
+      "class_id": 0,
+      "class_name": "Apple",
+      "train_imgs": 274,
+      "train_inst": 2176,
+      "val_imgs": 46,
+      "val_inst": 414,
+      "test_imgs": 81,
+      "test_inst": 509,
+      "total_imgs": 401,
+      "total_inst": 3099
+    },
+    {
+      "class_id": 1,
+      "class_name": "Banana",
+      "train_imgs": 244,
+      "train_inst": 1446,
+      "val_imgs": 36,
+      "val_inst": 205,
+      "test_imgs": 74,
+      "test_inst": 327,
+      "total_imgs": 354,
+      "total_inst": 1978
+    },
+    {
+      "class_id": 2,
+      "class_name": "Basil",
+      "train_imgs": 28,
+      "train_inst": 114,
+      "val_imgs": 3,
+      "val_inst": 8,
+      "test_imgs": 10,
+      "test_inst": 50,
+      "total_imgs": 41,
+      "total_inst": 172
+    },
+    {
+      "class_id": 3,
+      "class_name": "Bean",
+      "train_imgs": 98,
+      "train_inst": 427,
+      "val_imgs": 16,
+      "val_inst": 69,
+      "test_imgs": 30,
+      "test_inst": 112,
+      "total_imgs": 144,
+      "total_inst": 608
+    },
+    {
+      "class_id": 4,
+      "class_name": "Bell pepper",
+      "train_imgs": 116,
+      "train_inst": 1026,
+      "val_imgs": 24,
+      "val_inst": 275,
+      "test_imgs": 36,
+      "test_inst": 406,
+      "total_imgs": 176,
+      "total_inst": 1707
+    },
+    {
+      "class_id": 5,
+      "class_name": "Blueberry",
+      "train_imgs": 97,
+      "train_inst": 487,
+      "val_imgs": 18,
+      "val_inst": 70,
+      "test_imgs": 27,
+      "test_inst": 237,
+      "total_imgs": 142,
+      "total_inst": 794
+    },
+    {
+      "class_id": 6,
+      "class_name": "Broccoli",
+      "train_imgs": 64,
+      "train_inst": 1042,
+      "val_imgs": 10,
+      "val_inst": 148,
+      "test_imgs": 17,
+      "test_inst": 293,
+      "total_imgs": 91,
+      "total_inst": 1483
+    },
+    {
+      "class_id": 7,
+      "class_name": "Cabbage",
+      "train_imgs": 121,
+      "train_inst": 1000,
+      "val_imgs": 22,
+      "val_inst": 223,
+      "test_imgs": 38,
+      "test_inst": 361,
+      "total_imgs": 181,
+      "total_inst": 1584
+    },
+    {
+      "class_id": 8,
+      "class_name": "Carrot",
+      "train_imgs": 74,
+      "train_inst": 798,
+      "val_imgs": 11,
+      "val_inst": 87,
+      "test_imgs": 20,
+      "test_inst": 285,
+      "total_imgs": 105,
+      "total_inst": 1170
+    },
+    {
+      "class_id": 9,
+      "class_name": "Cauliflower",
+      "train_imgs": 39,
+      "train_inst": 279,
+      "val_imgs": 6,
+      "val_inst": 54,
+      "test_imgs": 8,
+      "test_inst": 39,
+      "total_imgs": 53,
+      "total_inst": 372
+    },
+    {
+      "class_id": 10,
+      "class_name": "Celery",
+      "train_imgs": 29,
+      "train_inst": 498,
+      "val_imgs": 3,
+      "val_inst": 35,
+      "test_imgs": 8,
+      "test_inst": 97,
+      "total_imgs": 40,
+      "total_inst": 630
+    },
+    {
+      "class_id": 11,
+      "class_name": "Cherry",
+      "train_imgs": 62,
+      "train_inst": 1399,
+      "val_imgs": 11,
+      "val_inst": 139,
+      "test_imgs": 18,
+      "test_inst": 284,
+      "total_imgs": 91,
+      "total_inst": 1822
+    },
+    {
+      "class_id": 12,
+      "class_name": "Citrus",
+      "train_imgs": 291,
+      "train_inst": 2938,
+      "val_imgs": 42,
+      "val_inst": 536,
+      "test_imgs": 83,
+      "test_inst": 878,
+      "total_imgs": 416,
+      "total_inst": 4352
+    },
+    {
+      "class_id": 13,
+      "class_name": "Coffee",
+      "train_imgs": 135,
+      "train_inst": 1418,
+      "val_imgs": 21,
+      "val_inst": 225,
+      "test_imgs": 40,
+      "test_inst": 444,
+      "total_imgs": 196,
+      "total_inst": 2087
+    },
+    {
+      "class_id": 14,
+      "class_name": "Corn",
+      "train_imgs": 289,
+      "train_inst": 1640,
+      "val_imgs": 46,
+      "val_inst": 247,
+      "test_imgs": 84,
+      "test_inst": 419,
+      "total_imgs": 419,
+      "total_inst": 2306
+    },
+    {
+      "class_id": 15,
+      "class_name": "Cucumber",
+      "train_imgs": 265,
+      "train_inst": 1951,
+      "val_imgs": 40,
+      "val_inst": 296,
+      "test_imgs": 78,
+      "test_inst": 726,
+      "total_imgs": 383,
+      "total_inst": 2973
+    },
+    {
+      "class_id": 16,
+      "class_name": "Eggplant",
+      "train_imgs": 60,
+      "train_inst": 679,
+      "val_imgs": 12,
+      "val_inst": 115,
+      "test_imgs": 20,
+      "test_inst": 151,
+      "total_imgs": 92,
+      "total_inst": 945
+    },
+    {
+      "class_id": 17,
+      "class_name": "Garlic",
+      "train_imgs": 111,
+      "train_inst": 809,
+      "val_imgs": 17,
+      "val_inst": 119,
+      "test_imgs": 31,
+      "test_inst": 207,
+      "total_imgs": 159,
+      "total_inst": 1135
+    },
+    {
+      "class_id": 18,
+      "class_name": "Ginger",
+      "train_imgs": 54,
+      "train_inst": 509,
+      "val_imgs": 9,
+      "val_inst": 84,
+      "test_imgs": 18,
+      "test_inst": 162,
+      "total_imgs": 81,
+      "total_inst": 755
+    },
+    {
+      "class_id": 19,
+      "class_name": "Grape",
+      "train_imgs": 280,
+      "train_inst": 1437,
+      "val_imgs": 44,
+      "val_inst": 223,
+      "test_imgs": 76,
+      "test_inst": 488,
+      "total_imgs": 400,
+      "total_inst": 2148
+    },
+    {
+      "class_id": 20,
+      "class_name": "Lettuce",
+      "train_imgs": 49,
+      "train_inst": 176,
+      "val_imgs": 8,
+      "val_inst": 15,
+      "test_imgs": 19,
+      "test_inst": 56,
+      "total_imgs": 76,
+      "total_inst": 247
+    },
+    {
+      "class_id": 21,
+      "class_name": "Maple",
+      "train_imgs": 40,
+      "train_inst": 623,
+      "val_imgs": 7,
+      "val_inst": 92,
+      "test_imgs": 11,
+      "test_inst": 76,
+      "total_imgs": 58,
+      "total_inst": 791
+    },
+    {
+      "class_id": 22,
+      "class_name": "Peach",
+      "train_imgs": 195,
+      "train_inst": 747,
+      "val_imgs": 32,
+      "val_inst": 104,
+      "test_imgs": 60,
+      "test_inst": 146,
+      "total_imgs": 287,
+      "total_inst": 997
+    },
+    {
+      "class_id": 23,
+      "class_name": "Plum",
+      "train_imgs": 84,
+      "train_inst": 257,
+      "val_imgs": 11,
+      "val_inst": 47,
+      "test_imgs": 25,
+      "test_inst": 82,
+      "total_imgs": 120,
+      "total_inst": 386
+    },
+    {
+      "class_id": 24,
+      "class_name": "Potato",
+      "train_imgs": 103,
+      "train_inst": 602,
+      "val_imgs": 16,
+      "val_inst": 55,
+      "test_imgs": 27,
+      "test_inst": 197,
+      "total_imgs": 146,
+      "total_inst": 854
+    },
+    {
+      "class_id": 25,
+      "class_name": "Raspberry",
+      "train_imgs": 55,
+      "train_inst": 383,
+      "val_imgs": 10,
+      "val_inst": 73,
+      "test_imgs": 12,
+      "test_inst": 20,
+      "total_imgs": 77,
+      "total_inst": 476
+    },
+    {
+      "class_id": 26,
+      "class_name": "Rice",
+      "train_imgs": 78,
+      "train_inst": 654,
+      "val_imgs": 6,
+      "val_inst": 77,
+      "test_imgs": 21,
+      "test_inst": 216,
+      "total_imgs": 105,
+      "total_inst": 947
+    },
+    {
+      "class_id": 27,
+      "class_name": "Soybean",
+      "train_imgs": 356,
+      "train_inst": 1766,
+      "val_imgs": 46,
+      "val_inst": 374,
+      "test_imgs": 98,
+      "test_inst": 497,
+      "total_imgs": 500,
+      "total_inst": 2637
+    },
+    {
+      "class_id": 28,
+      "class_name": "Squash",
+      "train_imgs": 96,
+      "train_inst": 170,
+      "val_imgs": 13,
+      "val_inst": 22,
+      "test_imgs": 35,
+      "test_inst": 63,
+      "total_imgs": 144,
+      "total_inst": 255
+    },
+    {
+      "class_id": 29,
+      "class_name": "Strawberry",
+      "train_imgs": 33,
+      "train_inst": 315,
+      "val_imgs": 6,
+      "val_inst": 64,
+      "test_imgs": 10,
+      "test_inst": 97,
+      "total_imgs": 49,
+      "total_inst": 476
+    },
+    {
+      "class_id": 30,
+      "class_name": "Tobacco",
+      "train_imgs": 97,
+      "train_inst": 1062,
+      "val_imgs": 11,
+      "val_inst": 231,
+      "test_imgs": 26,
+      "test_inst": 364,
+      "total_imgs": 134,
+      "total_inst": 1657
+    },
+    {
+      "class_id": 31,
+      "class_name": "Tomato",
+      "train_imgs": 460,
+      "train_inst": 4231,
+      "val_imgs": 74,
+      "val_inst": 766,
+      "test_imgs": 133,
+      "test_inst": 1336,
+      "total_imgs": 667,
+      "total_inst": 6333
+    },
+    {
+      "class_id": 32,
+      "class_name": "Wheat",
+      "train_imgs": 798,
+      "train_inst": 3552,
+      "val_imgs": 137,
+      "val_inst": 583,
+      "test_imgs": 231,
+      "test_inst": 1080,
+      "total_imgs": 1166,
+      "total_inst": 5215
+    },
+    {
+      "class_id": 33,
+      "class_name": "Zucchini",
+      "train_imgs": 192,
+      "train_inst": 1885,
+      "val_imgs": 32,
+      "val_inst": 379,
+      "test_imgs": 55,
+      "test_inst": 344,
+      "total_imgs": 279,
+      "total_inst": 2608
+    }
+  ],
+  "total_instances": {
+    "train": 38496,
+    "val": 6454,
+    "test": 11049
+  },
+  "total_images": 7773,
+  "al_subset": {
+    "n_images": 1443,
+    "n_labels": 1443,
+    "train_total": 5367,
+    "proportion_of_train": 0.2689,
+    "is_subset_of_train": true,
+    "not_in_train": [],
+    "labeled_txt_unique": 1443,
+    "in_al_not_in_labeled": [],
+    "in_labeled_not_in_al": []
+  },
+  "al_overlap": {
+    "with_val": [],
+    "with_test": [],
+    "no_overlap_with_val_test": true
+  },
+  "unlabeled_pool_U0": {
+    "size": 3924,
+    "formula": "U0 = |train| - |al34_random| = 5367 - 1443 = 3924"
+  },
+  "class_imbalance": {
+    "by_total_instance": {
+      "min": 172,
+      "max": 6333,
+      "median": 1152.5,
+      "mean": 1647.0,
+      "std": 1411.7,
+      "cv": 0.857,
+      "max_min_ratio": 36.82
+    },
+    "by_train_instance": {
+      "min": 114,
+      "max": 4231,
+      "median": 803.5,
+      "mean": 1132.2,
+      "std": 950.8,
+      "cv": 0.84,
+      "max_min_ratio": 37.11
+    },
+    "rare_classes_total_inst_lt_30": [],
+    "very_low_share_lt_0.5pct": [
+      "Basil",
+      "Lettuce",
+      "Squash"
+    ],
+    "extreme_imbalance_flag": true
+  }
+}

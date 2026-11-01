@@ -1,41 +1,55 @@
-# 数据集配置：路径、类别映射与划分
-# 约定：所有路径相对仓库根目录；大数据放在仓库外时可用环境变量覆盖。
+# AgroLabel-AL · PlantSeg 34 类数据集配置（主实验）
+# ============================================================
+# 来源（原始数据，未复制，直接引用以避免重复存储）:
+#   data.yaml    : F:/_plantseg/dataset_plantseg_34/data.yaml
+#   classes.json : F:/_plantseg/dataset_plantseg_34/classes.json
+# 说明:
+#   - 本文件按教程「第三步：正式配置 dataset.yaml」的 Ultralytics 标准格式编写，
+#     可由 YOLOv8 训练代码直接读取。
+#   - names 从原始 data.yaml / classes.json 原文读取，未手动猜测（教程硬性要求）。
+#   - 数据物理位置在 F:/_plantseg/dataset_plantseg_34，未在仓库内复制。
+# ============================================================
 
-datasets:
-  root: "datasets"                # 数据根目录
+path: F:/_plantseg/dataset_plantseg_34
 
-  plantvillage:
-    enabled: true
-    type: classification          # 仅用于分类预训练
-    images: "PlantVillage/images"
-    labels: "PlantVillage/classification_labels.csv"
-    note: "受控环境图像，无病斑掩码，只用于分类预训练"
+train: images/train
+val: images/val
+test: images/test
 
-  plantseg:
-    enabled: true
-    type: instance_segmentation
-    images: "PlantSeg/images"
-    masks: "PlantSeg/masks"
-    detection_labels: "PlantSeg/detection_labels"   # YOLO 格式 txt
-    splits: "PlantSeg/splits"
-    note: "连通区域≠真实病斑实例，作为伪实例标签，需抽样人工核验"
+nc: 34
 
-  plantdoc:
-    enabled: true
-    type: detection
-    images: "PlantDoc/images"
-    detection_labels: "PlantDoc/detection_labels"
-    note: "更接近自然复杂场景，用于泛化评估"
-
-# 统一类别映射（必须全项目一致）
-classes:
-  separator: "___"                # PlantVillage 类名分隔符
-  mapping_file: "configs/class_mapping.csv"   # 多数据集类别对齐表（待建立）
-  background: "Background_without_leaves"
-
-split:
-  train: 0.70
-  val: 0.15
-  test: 0.15
-  seed: 42
-  min_for_split: 10               # 少于该数的小类全部进训练集
+names:
+  0: Apple
+  1: Banana
+  2: Basil
+  3: Bean
+  4: Bell pepper
+  5: Blueberry
+  6: Broccoli
+  7: Cabbage
+  8: Carrot
+  9: Cauliflower
+  10: Celery
+  11: Cherry
+  12: Citrus
+  13: Coffee
+  14: Corn
+  15: Cucumber
+  16: Eggplant
+  17: Garlic
+  18: Ginger
+  19: Grape
+  20: Lettuce
+  21: Maple
+  22: Peach
+  23: Plum
+  24: Potato
+  25: Raspberry
+  26: Rice
+  27: Soybean
+  28: Squash
+  29: Strawberry
+  30: Tobacco
+  31: Tomato
+  32: Wheat
+  33: Zucchini

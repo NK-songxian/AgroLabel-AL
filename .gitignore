@@ -44,3 +44,32 @@ workbuddy/
 .workbuddy/
 wandb/
 .ipynb_checkpoints/
+
+# ===== 明确禁止提交（Task-003 约束）=====
+# 1) PlantSeg 原始数据（含标签、掩码；图片与标签一律不入库）
+datasets/**/images/*
+datasets/**/labels/*
+datasets/**/masks/*
+datasets/**/detection_labels/*
+!datasets/**/images/.gitkeep
+!datasets/**/labels/.gitkeep
+!datasets/**/masks/.gitkeep
+!datasets/**/detection_labels/.gitkeep
+# 2) YOLO 训练缓存
+*.cache
+**/*.cache
+# 3) 大型模型权重
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.engine
+*.bin
+*.safetensors
+# 4) 临时训练文件
+runs/
+out/
+*.tmp
+*.npy
+*.npz
+*.csv.tmp

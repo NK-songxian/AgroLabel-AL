@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroLabel-AL · 前后端交接说明</title>
+<style>
+  :root{
+    --bg:#f6f8fb;
+    --card:#ffffff;
+    --text:#0f172a;
+    --text-2:#475569;
+    --text-3:#94a3b8;
+    --line:#e2e8f0;
+    --blue:#2563eb;
+    --blue-bg:#eff6ff;
+    --green:#16a34a;
+    --green-bg:#f0fdf4;
+    --red:#dc2626;
+    --red-bg:#fef2f2;
+    --amber:#d97706;
+    --amber-bg:#fffbeb;
+    --purple:#7c3aed;
+    --purple-bg:#f5f3ff;
+    --radius:16px;
+    --shadow:0 1px 2px rgba(15,23,42,.04), 0 8px 24px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    background:linear-gradient(135deg,#0f172a 0%,#1e293b 55%,#1e3a8a 100%);
+    color:#fff;padding:56px 0 44px;position:relative;overflow:hidden;
+  }
+  .hero::after{
+    content:"";position:absolute;right:-80px;top:-80px;width:320px;height:320px;
+    background:radial-gradient(circle,rgba(59,130,246,.35),transparent 70%);border-radius:50%;
+  }
+  .hero .wrap{position:relative;z-index:1}
+  .kicker{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#93c5fd;font-weight:600}
+  .hero h1{font-size:34px;line-height:1.3;margin:12px 0 10px;font-weight:700}
+  .hero p{color:#cbd5e1;font-size:15px;max-width:760px}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .chip{
+    font-size:13px;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.18);color:#e2e8f0;display:flex;align-items:center;gap:7px;
+  }
+  .chip b{color:#fff;font-weight:600}
+
+  /* ---------- Nav ---------- */
+  .nav{
+    position:sticky;top:0;z-index:20;background:rgba(255,255,255,.88);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+  }
+  .nav .wrap{display:flex;gap:8px;overflow-x:auto;padding-top:10px;padding-bottom:10px}
+  .nav a{
+    font-size:13px;color:var(--text-2);text-decoration:none;padding:6px 12px;border-radius:999px;
+    white-space:nowrap;border:1px solid transparent;transition:.15s;
+  }
+  .nav a:hover{background:var(--blue-bg);color:var(--blue);border-color:#dbeafe}
+
+  /* ---------- Sections ---------- */
+  section{padding:44px 0 8px;scroll-margin-top:58px}
+  .sec-head{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+  .sec-num{
+    width:34px;height:34px;border-radius:10px;background:var(--blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none;
+  }
+  .sec-head h2{font-size:22px;font-weight:700}
+  .sec-desc{color:var(--text-2);font-size:14px;margin:0 0 22px 48px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+
+  /* ---------- One-liner ---------- */
+  .oneliner{
+    background:var(--blue-bg);border:1px solid #dbeafe;border-left:5px solid var(--blue);
+    border-radius:12px;padding:20px 24px;font-size:16px;color:#1e3a8a;
+  }
+  .oneliner b{color:var(--blue)}
+
+  /* ---------- Role cards ---------- */
+  .roles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:26px}
+  .role{border-radius:14px;padding:18px 18px 16px;border:1px solid}
+  .role h3{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .role ul{list-style:none;font-size:13.5px;line-height:1.9}
+  .role li{padding-left:16px;position:relative}
+  .role li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:50%}
+  .role.green{background:var(--green-bg);border-color:#bbf7d0}
+  .role.green h3{color:#166534}.role.green li::before{background:var(--green)}
+  .role.amber{background:var(--amber-bg);border-color:#fde68a}
+  .role.amber h3{color:#92400e}.role.amber li::before{background:var(--amber)}
+  .role.red{background:var(--red-bg);border-color:#fecaca}
+  .role.red h3{color:#991b1b}.role.red li::before{background:var(--red)}
+  .role code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;
+    background:rgba(15,23,42,.06);padding:1px 6px;border-radius:5px}
+
+  /* ---------- Tree ---------- */
+  .tree{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 22px;box-shadow:var(--shadow);font-size:13.5px}
+  .tree-row{display:flex;align-items:center;gap:12px;padding:3px 0}
+  .tree-path{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#334155;white-space:pre}
+  .lvl0 .tree-path{font-weight:700;color:#0f172a}
+  .lvl1{padding-left:24px}
+  .lvl2{padding-left:48px}
+  .badge{font-size:11.5px;padding:2px 9px;border-radius:999px;font-weight:600;letter-spacing:.02em}
+  .b-main{background:#dcfce7;color:#166534}
+  .b-read{background:#e0e7ff;color:#3730a3}
+  .b-lite{background:#fef3c7;color:#92400e}
+  .b-forbid{background:#fee2e2;color:#991b1b}
+
+  /* ---------- Flow SVG ---------- */
+  .flow-box{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px 10px 6px;box-shadow:var(--shadow);margin-bottom:22px}
+  .flow-box svg{width:100%;height:auto;display:block}
+
+  /* ---------- API table ---------- */
+  .table-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    overflow:hidden;box-shadow:var(--shadow)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{background:#f8fafc;text-align:left;padding:13px 16px;font-weight:600;color:#334155;
+    border-bottom:1px solid var(--line);font-size:12.5px;letter-spacing:.03em}
+  td{padding:13px 16px;border-bottom:1px solid #f1f5f9;vertical-align:top;color:var(--text-2)}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fafcff}
+  td code,th code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:#0f172a}
+  .method{font-family:ui-monospace,monospace;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:6px}
+  .m-post{background:#dbeafe;color:#1e40af}
+  .m-get{background:#dcfce7;color:#166534}
+  .path{font-family:ui-monospace,monospace;font-size:12.5px;color:#0f172a;font-weight:600}
+  .note-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+  .note{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--text-2);flex:1;min-width:220px}
+  .note b{color:var(--text)}
+
+  /* ---------- Phases ---------- */
+  .phases{display:flex;align-items:stretch;gap:0;margin-bottom:8px}
+  .phase{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .phase-arrow{display:flex;align-items:center;justify-content:center;width:34px;flex:none;
+    color:#cbd5e1;font-size:20px}
+  .p-tag{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;
+    border-radius:11px;font-weight:700;font-size:13px;color:#fff;margin-bottom:12px}
+  .p0 .p-tag{background:#64748b}.p1 .p-tag{background:#2563eb}
+  .p2 .p-tag{background:#7c3aed}.p3 .p-tag{background:#16a34a}
+  .phase h4{font-size:14.5px;font-weight:700;margin-bottom:10px}
+  .phase ul{list-style:none;font-size:12.8px;color:var(--text-2);line-height:1.85;flex:1}
+  .phase li{padding-left:18px;position:relative}
+  .phase li::before{content:"○";position:absolute;left:0;color:#cbd5e1;font-size:12px}
+  .accept{margin-top:12px;font-size:12px;background:#f0fdf4;color:#166534;
+    border:1px solid #bbf7d0;border-radius:8px;padding:7px 10px;font-weight:600}
+
+  /* ---------- Rules ---------- */
+  .rules{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .rule{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+  .rule .rn{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:.06em}
+  .rule h4{font-size:14px;margin:5px 0 6px;font-weight:700}
+  .rule p{font-size:12.8px;color:var(--text-2);line-height:1.75}
+
+  /* ---------- Score ---------- */
+  .score{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:24px;box-shadow:var(--shadow)}
+  .bar-row{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+  .bar-label{width:170px;font-size:13.5px;flex:none;color:var(--text)}
+  .bar-label b{font-size:15px}
+  .bar-track{flex:1;height:26px;background:#f1f5f9;border-radius:8px;overflow:hidden;position:relative}
+  .bar-fill{height:100%;border-radius:8px;display:flex;align-items:center;padding-left:10px;
+    color:#fff;font-size:12px;font-weight:600}
+  .bar-a{background:linear-gradient(90deg,#2563eb,#3b82f6)}
+  .bar-b{background:linear-gradient(90deg,#7c3aed,#8b5cf6)}
+  .bar-rest{background:#e2e8f0;color:#64748b}
+  .total{display:flex;align-items:baseline;gap:10px;margin-top:6px;padding-top:16px;border-top:1px dashed var(--line)}
+  .total .big{font-size:30px;font-weight:800;color:var(--blue)}
+  .total span{color:var(--text-2);font-size:13.5px}
+
+  footer{padding:40px 0 60px;color:var(--text-3);font-size:12.5px;text-align:center}
+
+  @media (max-width:820px){
+    .roles{grid-template-columns:1fr}
+    .rules{grid-template-columns:1fr}
+    .phases{flex-direction:column;gap:12px}
+    .phase-arrow{width:auto;height:26px;transform:rotate(90deg)}
+    .bar-label{width:110px;font-size:12px}
+    .hero h1{font-size:26px}
+  }
+  @media print{
+    .nav{display:none}
+    body{background:#fff}
+    .card,.role,.tree,.table-wrap,.score,.phase,.rule,.flow-box{box-shadow:none}
+    section{page-break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">AgroLabel-AL · Team Handoff</div>
+    <h1>前后端交接说明</h1>
+    <p>面向智慧农业的多模态数据智能预标注与主动学习原型系统 —— 把"模型能力"变成"能演示的标注工具"。</p>
+    <div class="chips">
+      <div class="chip"><b>你负责</b> backend/ + frontend/</div>
+      <div class="chip"><b>契约</b> docs/INTERFACE.md</div>
+      <div class="chip"><b>目标</b> 可演示的预标—修正—回流闭环</div>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="wrap">
+    <a href="#s1">① 你的战场</a>
+    <a href="#s2">② 接口契约</a>
+    <a href="#s3">③ 分阶段任务</a>
+    <a href="#s4">④ 协作约定</a>
+    <a href="#s5">⑤ 模型侧提供</a>
+    <a href="#s6">⑥ 你值多少分</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <section style="padding-top:34px">
+    <div class="oneliner">
+      <b>一句话：</b>你负责 <b>backend/</b>（HTTP 服务）+ <b>frontend/</b>（标注界面），严格按 <b>docs/INTERFACE.md</b> 冻结的契约实现。先用 <b>mock 假数据</b>把流程跑通，再接真模型。模型、数据、训练都不用你碰。
+    </div>
+  </section>
+
+  <!-- 1 -->
+  <section id="s1">
+    <div class="sec-head"><div class="sec-num">1</div><h2>你的战场（职责边界）</h2></div>
+    <p class="sec-desc">结论先行：队友只碰两个文件夹。下面按"能碰 / 只读 / 严禁"三档标色。</p>
+
+    <div class="roles">
+      <div class="role green">
+        <h3>✅ 主战场 · 你写代码</h3>
+        <ul>
+          <li><code>backend/</code> —— FastAPI 服务，实现 4 个接口</li>
+          <li><code>frontend/</code> —— 标注界面（画布 / 修正 / 选样）</li>
+        </ul>
+      </div>
+      <div class="role amber">
+        <h3>⚠ 只读 / 少量</h3>
+        <ul>
+          <li><code>docs/INTERFACE.md</code> —— 只读，要改先商量</li>
+          <li><code>configs/</code> —— 可加端口 / 路径</li>
+        </ul>
+      </div>
+      <div class="role red">
+        <h3>✕ 严禁碰</h3>
+        <ul>
+          <li><code>datasets/</code> <code>weights/</code> <code>*.pt</code></li>
+          <li><code>training/</code> <code>active_learning/</code> <code>src/</code></li>
+          <li><code>datasets_tools/</code> <code>experiments/</code> <code>runs/</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tree">
+      <div class="tree-row lvl0"><span class="tree-path">AgroLabel-AL/</span></div>
+      <div class="tree-row lvl1"><span class="tree-path">├─ backend/</span><span class="badge b-main">主战场</span></div>
+      <div class="tree-row lvl1"><span class="tree-path">├─ frontend/</span><span class="badge b-main">主战场</span></div>
+      <div class="tree-row lvl1"><span class="tree-path">├─ docs/</span></div>
+      <div class="tree-row lvl2"><span class="tree-path">└─ INTERFACE.md</span><span class="badge b-read">只读契约</span></div>
+      <div class="tree-row lvl1"><span class="tree-path">├─ configs/</span><span class="badge b-lite">少量</span></div>
+      <div class="tree-row lvl1"><span class="tree-path">├─ datasets/</span><span class="badge b-forbid">严禁</span></div>
+      <div class="tree-row lvl1"><span class="tree-path">├─ weights/</span><span class="badge b-forbid">严禁</span></div>
+      <div class="tree-row lvl1"><span class="tree-path">├─ training/</span><span class="badge b-forbid">严禁</span></div>
+      <div class="tree-row lvl1"><span class="tree-path">├─ active_learning/</span><span class="badge b-forbid">严禁</span></div>
+      <div class="tree-row lvl1"><span class="tree-path">├─ src/ · datasets_tools/</span><span class="badge b-forbid">严禁</span></div>
+      <div class="tree-row lvl1"><span class="tree-path">└─ experiments/ · runs/</span><span class="badge b-forbid">严禁</span></div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="s2">
+    <div class="sec-head"><div class="sec-num">2</div><h2>接口契约（先冻结，再写代码）</h2></div>
+    <p class="sec-desc">来源 <code>docs/INTERFACE.md</code>，字段名一字不能改。先看清调用链路，再看四个接口。</p>
+
+    <div class="flow-box">
+      <svg viewBox="0 0 900 210" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
+        <defs>
+          <marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1L8 5L1 9" fill="none" stroke="#64748b" stroke-width="1.6" stroke-linecap="round"/></marker>
+          <marker id="arR" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1 1L8 5L1 9" fill="none" stroke="#2563eb" stroke-width="1.6" stroke-linecap="round"/></marker>
+        </defs>
+
+        <rect x="30" y="52" width="190" height="84" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+        <text x="125" y="82" font-size="15" font-weight="700" fill="#1e3a8a" text-anchor="middle">前端</text>
+        <text x="125" y="104" font-size="12" fill="#3b82f6" text-anchor="middle">标注界面</text>
+        <text x="125" y="122" font-size="11" fill="#64748b" text-anchor="middle">画布 / 修正 / 选样</text>
+
+        <line x1="222" y1="94" x2="286" y2="94" stroke="#64748b" stroke-width="1.6" marker-end="url(#ar)"/>
+        <text x="254" y="84" font-size="11" fill="#475569" text-anchor="middle">HTTP</text>
+
+        <rect x="290" y="52" width="190" height="84" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+        <text x="385" y="82" font-size="15" font-weight="700" fill="#166534" text-anchor="middle">后端</text>
+        <text x="385" y="104" font-size="12" fill="#16a34a" text-anchor="middle">FastAPI</text>
+        <text x="385" y="122" font-size="11" fill="#64748b" text-anchor="middle">4 个接口</text>
+
+        <line x1="482" y1="94" x2="546" y2="94" stroke="#64748b" stroke-width="1.6" marker-end="url(#ar)"/>
+        <text x="514" y="84" font-size="11" fill="#475569" text-anchor="middle">进程内</text>
+
+        <rect x="550" y="52" width="190" height="84" rx="12" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+        <text x="645" y="82" font-size="15" font-weight="700" fill="#4c1d95" text-anchor="middle">模型</text>
+        <text x="645" y="104" font-size="12" fill="#7c3aed" text-anchor="middle">YOLO-seg · 选样器</text>
+        <text x="645" y="122" font-size="11" fill="#64748b" text-anchor="middle">模型侧提供入口</text>
+
+        <path d="M645 138 L645 176 L125 176 L125 140" fill="none" stroke="#2563eb" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arR)"/>
+        <text x="385" y="196" font-size="11.5" fill="#2563eb" text-anchor="middle">返回 instances 实例列表（响应）</text>
+      </svg>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th style="width:80px">方法</th><th style="width:150px">路径</th><th>入参</th><th>出参</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="method m-post">POST</span></td>
+            <td><span class="path">/api/predict</span></td>
+            <td><code>{image_base64 或 image_id}</code></td>
+            <td><code>{instances:[{class_id, class_name, score, polygon, bbox}], latency_ms}</code></td>
+          </tr>
+          <tr>
+            <td><span class="method m-post">POST</span></td>
+            <td><span class="path">/api/sample</span></td>
+            <td><code>{pool:[image_id...], k, strategy}</code><br><span style="font-size:12px;color:#94a3b8">strategy: random | entropy | tta | coreset</span></td>
+            <td><code>{selected:[image_id...], reasons}</code></td>
+          </tr>
+          <tr>
+            <td><span class="method m-post">POST</span></td>
+            <td><span class="path">/api/edit-cost</span></td>
+            <td><code>{pred_instances, gt_instances}</code></td>
+            <td><code>{edit_count, breakdown:{新画,删实例,改类别,拖边界,标为无目标}}</code></td>
+          </tr>
+          <tr>
+            <td><span class="method m-get">GET</span></td>
+            <td><span class="path">/api/health</span></td>
+            <td>—</td>
+            <td><code>{status:"ok", model:"...", classes:34}</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note-row">
+      <div class="note"><b>数据格式</b><br>分割标注为 YOLO seg txt：每行 <code>class_id x1 y1 x2 y2 ...</code>（归一化多边形）；实例字段 <code>{class_id, class_name, score, polygon, bbox}</code>。</div>
+      <div class="note"><b>时延预算</b><br>单张 <code>/api/predict</code> ≤ <b>300 ms</b>；模型侧实测 23–24 ms，服务层余量充足。</div>
+      <div class="note"><b>加载策略</b><br>模型在进程启动时加载一次，不要每次请求重复加载权重。</div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="s3">
+    <div class="sec-head"><div class="sec-num">3</div><h2>分阶段任务（P0 → P3）</h2></div>
+    <p class="sec-desc">按顺序做，每个阶段都能独立验收。不要等模型——先用 mock 把链路跑通。</p>
+
+    <div class="phases">
+      <div class="phase p0">
+        <div class="p-tag">P0</div>
+        <h4>Mock 跑通</h4>
+        <ul>
+          <li>起 FastAPI，实现 4 个接口</li>
+          <li>全部返回假数据</li>
+          <li>假数据形状严格符合契约</li>
+        </ul>
+        <div class="accept">验收：curl 四个接口都返回合法 JSON</div>
+      </div>
+      <div class="phase-arrow">→</div>
+      <div class="phase p1">
+        <div class="p-tag">P1</div>
+        <h4>前端画布</h4>
+        <ul>
+          <li>加载图 + 叠加预标注</li>
+          <li>画 / 拖 / 删 / 改类</li>
+          <li>操作日志埋点</li>
+        </ul>
+        <div class="accept">验收：完成一次完整修正，日志可导出</div>
+      </div>
+      <div class="phase-arrow">→</div>
+      <div class="phase p2">
+        <div class="p-tag">P2</div>
+        <h4>接真模型</h4>
+        <ul>
+          <li>替换 mock，接推理入口</li>
+          <li>predict / sample 走真模型</li>
+          <li>启动时加载一次</li>
+        </ul>
+        <div class="accept">验收：前端看到的是模型真输出</div>
+      </div>
+      <div class="phase-arrow">→</div>
+      <div class="phase p3">
+        <div class="p-tag">P3</div>
+        <h4>联调 + 统计</h4>
+        <ul>
+          <li>智能选样按钮接通</li>
+          <li>提效统计面板</li>
+          <li>异常处理兜底</li>
+        </ul>
+        <div class="accept">验收：完整演示闭环</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section id="s4">
+    <div class="sec-head"><div class="sec-num">4</div><h2>协作约定</h2></div>
+    <p class="sec-desc">六条规则，减少返工。</p>
+
+    <div class="rules">
+      <div class="rule"><div class="rn">RULE 01</div><h4>契约先行</h4><p>字段名 / 路径不改；要改先发群里确认，双方同意再动。</p></div>
+      <div class="rule"><div class="rn">RULE 02</div><h4>Mock 先行</h4><p>不要等模型，先用假 JSON 把前后端联调通，模型好了直接换。</p></div>
+      <div class="rule"><div class="rn">RULE 03</div><h4>分支开发</h4><p><code>feature/backend</code>、<code>feature/frontend</code>，PR 合并到 main，不直接推 main。</p></div>
+      <div class="rule"><div class="rn">RULE 04</div><h4>别提交垃圾</h4><p><code>node_modules/</code>、<code>dist/</code>、<code>.env</code>、<code>*.pt</code>、数据集一律不提交。</p></div>
+      <div class="rule"><div class="rn">RULE 05</div><h4>每天同步</h4><p>当前进度 + 卡点，一句话即可，别闷头做。</p></div>
+      <div class="rule"><div class="rn">RULE 06</div><h4>控时延</h4><p>服务层自身开销要小，别把 300ms 预算花在序列化 / base64 上。</p></div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section id="s5">
+    <div class="sec-head"><div class="sec-num">5</div><h2>模型侧提供什么（你只需要调）</h2></div>
+    <p class="sec-desc">这三样由模型侧封装好，你不用关心模型细节。</p>
+
+    <div class="flow-box">
+      <svg viewBox="0 0 900 168" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
+        <rect x="30" y="40" width="256" height="88" rx="12" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+        <text x="158" y="68" font-size="14" font-weight="700" fill="#4c1d95" text-anchor="middle">推理入口</text>
+        <text x="158" y="90" font-size="11.5" fill="#6d28d9" text-anchor="middle">图片 → instances</text>
+        <text x="158" y="109" font-size="11" fill="#64748b" text-anchor="middle">class_id / score / polygon / bbox</text>
+
+        <rect x="322" y="40" width="256" height="88" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+        <text x="450" y="68" font-size="14" font-weight="700" fill="#1e3a8a" text-anchor="middle">选样入口</text>
+        <text x="450" y="90" font-size="11.5" fill="#2563eb" text-anchor="middle">pool + k + strategy → selected</text>
+        <text x="450" y="109" font-size="11" fill="#64748b" text-anchor="middle">主动学习挑下一批</text>
+
+        <rect x="614" y="40" width="256" height="88" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+        <text x="742" y="68" font-size="14" font-weight="700" fill="#166534" text-anchor="middle">权重路径</text>
+        <text x="742" y="90" font-size="11.5" fill="#16a34a" text-anchor="middle">本地 weights/ 或 runs/.../best.pt</text>
+        <text x="742" y="109" font-size="11" fill="#64748b" text-anchor="middle">不入库（几十 MB）</text>
+
+        <text x="450" y="152" font-size="11.5" fill="#94a3b8" text-anchor="middle">以上均由模型侧提供，你通过 HTTP 或进程内调用即可</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section id="s6">
+    <div class="sec-head"><div class="sec-num">6</div><h2>你的工作值多少分</h2></div>
+    <p class="sec-desc">对照比赛评分表（总分 100）：你直接负责的这两项，合计 40 分。</p>
+
+    <div class="score">
+      <div class="bar-row">
+        <div class="bar-label"><b>25 分</b><br>人机协同原型完整度</div>
+        <div class="bar-track">
+          <div class="bar-fill bar-a" style="width:25%">25</div>
+        </div>
+        <div style="width:230px;font-size:12.5px;color:#64748b;flex:none">闭环可演示 15 + 提效指标量化 10</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><b>15 分</b><br>工程实现与可复现性</div>
+        <div class="bar-track">
+          <div class="bar-fill bar-b" style="width:15%">15</div>
+        </div>
+        <div style="width:230px;font-size:12.5px;color:#64748b;flex:none">代码质量与稳定性 8 + 可复现文档 7</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><b>55 分</b><br>预标注 / 主动学习</div>
+        <div class="bar-track">
+          <div class="bar-fill bar-rest" style="width:55%">55</div>
+        </div>
+        <div style="width:230px;font-size:12.5px;color:#64748b;flex:none">模型侧负责，但靠你的界面"被看见"</div>
+      </div>
+
+      <div class="total">
+        <span class="big">40</span><span>/ 100 分直接由你负责 —— 但剩下 55 分能不能拿到，取决于你的系统能不能把它演示出来。</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    AgroLabel-AL · 前后端交接说明 &nbsp;|&nbsp; 契约来源 docs/INTERFACE.md &nbsp;|&nbsp; 评分依据 附件4 企业命题
+  </footer>
+
+</div>
+</body>
+</html>

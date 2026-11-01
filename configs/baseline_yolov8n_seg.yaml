@@ -1,0 +1,27 @@
+# AgroLabel-AL · YOLOv8n-seg 基线训练超参数（Task-003）
+# ============================================================
+# 说明：
+#   - 本文件为“正式云端训练的初始参数”记录（Task-003B 指定）。
+#   - 本地 5060 冒烟/验证时可用更少 epochs 或 fraction，见 experiments/plantseg34_protocol.md。
+#   - 数据入口：configs/dataset_plantseg34.local.yaml（true names, nc=34）。
+# ============================================================
+
+model: yolov8n-seg.pt
+data: configs/dataset_plantseg34.local.yaml
+
+imgsz: 640
+epochs: 150
+batch: 16
+optimizer: auto
+seed: 42
+patience: 30
+close_mosaic: 10
+amp: true
+cache: false
+
+# ---- 运行时（本地 5060）----
+device: 0
+workers: 8
+project: runs
+name: plantseg34_baseline
+exist_ok: false

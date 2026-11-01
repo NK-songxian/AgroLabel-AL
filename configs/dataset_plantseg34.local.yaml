@@ -1,0 +1,54 @@
+# AgroLabel-AL · PlantSeg 34 类 —— 本地基线数据配置（Task-003B）
+# ============================================================
+# 用途：YOLOv8n-seg 基线训练的数据入口（本地 5060）。
+# 来源（原始数据，未复制）：
+#   F:/_plantseg/dataset_plantseg_34/data.yaml
+#   F:/_plantseg/dataset_plantseg_34/classes.json
+# 说明：
+#   - names 直接来自原始类别映射（classes.json / data.yaml），未手动猜测。
+#   - 不修改原始数据集配置；不重新划分数据。
+# ============================================================
+
+path: F:/_plantseg/dataset_plantseg_34
+
+train: images/train
+val: images/val
+test: images/test
+
+nc: 34
+
+names:
+  0: Apple
+  1: Banana
+  2: Basil
+  3: Bean
+  4: Bell pepper
+  5: Blueberry
+  6: Broccoli
+  7: Cabbage
+  8: Carrot
+  9: Cauliflower
+  10: Celery
+  11: Cherry
+  12: Citrus
+  13: Coffee
+  14: Corn
+  15: Cucumber
+  16: Eggplant
+  17: Garlic
+  18: Ginger
+  19: Grape
+  20: Lettuce
+  21: Maple
+  22: Peach
+  23: Plum
+  24: Potato
+  25: Raspberry
+  26: Rice
+  27: Soybean
+  28: Squash
+  29: Strawberry
+  30: Tobacco
+  31: Tomato
+  32: Wheat
+  33: Zucchini

@@ -1,43 +1,67 @@
-# 主动学习配置：VARD-AL（价值感知的稀有类别主动学习）
+# AgroLabel-AL · 主动学习配置 (VARD-AL 价值感知稀有类别主动学习)
+# ============================================================
+# 数据池设计（教程第二步）：PlantSeg34 的 train 全集拆分为
+#   L0 (已标注初始集) + U0 (未标注候选池 = train - L0)
+# val / test 在全部 AL 轮次中保持固定，不参与查询。
+# ============================================================
 
-active_learning:
-  strategy: vard_al               # random | entropy | coreset | vard_al
-  budget_per_round: 100           # 每轮人工标注预算（张）
-  rounds: 8                       # 主动学习迭代轮数
-  init_ratio: 0.10                # 初始标注集占训练集比例
+data:
+  root: F:/_plantseg/dataset_plantseg_34
+  train_all: images/train     # 全部训练图片 = 5367（来自 Task-002A 审计）
+  val: images/val             # 固定验证集 = 846，全程不变
+  test: images/test           # 固定测试集 = 1560，全程不变
 
-  # 联合采样价值 S_i 的权重（U 不确定性 / D 多样性 / R 稀有类别 / G 模型分歧 / C 标注成本）
-  weights:
-    uncertainty: 1.0              # U
-    diversity: 0.5                # D
-    rarity: 0.8                   # R
-    disagreement: 0.5             # G
-    cost: 0.6                     # C（成本越高，优先级越低）
+# ---- 已标注初始集 L0（教程记作 a134_random；实际目录为 al34_random，属拼写笔误）----
+labeled_initial:
+  name: al34_random
+  images: F:/_plantseg/_al/al34_random/images/train
+  labels: F:/_plantseg/_al/al34_random/labels/train
+  list_file: F:/_plantseg/_al/al34_random/labeled.txt
+  size: 1443                  # 占 train 的 26.89%（1443 / 5367）
 
-  # 各价值分量的计算方式
-  uncertainty:
-    method: entropy               # entropy | margin | mask_entropy
-    tta_views: 4                  # TTA 多视图增强数量
+# ---- 未标注候选池 U0 = train_all - L0 ----
+unlabeled_pool:
+  size: 3924                  # U0 = 5367 - 1443
+  definition: "train_all - labeled_initial"
+  # ⚠️ 关键防泄漏约束：
+  # U0 的图片虽然在磁盘上有真实标签(labels/ 下存在)，但在 VARD-AL 选中某图之前，
+  # 训练程序【严禁读取】U0 的标签，否则构成标签泄漏（label leakage）。
+  # 必须通过 Oracle 标注接口按需提供：仅当 VARD-AL 选中某图，才返回其对应标签给训练。
 
-  diversity:
-    method: feature_distance      # 特征嵌入的 k-center / 余弦距离
-    feature_layer: backbone_pool
+# ---- VARD-AL 联合采样策略 ----
+strategy: vard_al             # random | entropy | coreset | vard_al
+budget_per_round: 100         # 每轮人工标注预算（张）
+rounds: 8                     # 主动学习迭代轮数
 
-  rarity:
-    method: inverse_freq          # 类别频率的倒数
-    smooth: 1.0
+# 联合采样价值 S_i 的权重
+#   U 不确定性 / D 多样性 / R 稀有类别 / G 模型分歧 / C 标注成本
+weights:
+  uncertainty: 1.0            # U
+  diversity: 0.5              # D
+  rarity: 0.8                 # R（稀有类别加权，缓解 Basil/Lettuce/Squash 等低占比类）
+  disagreement: 0.5           # G
+  cost: 0.6                   # C（成本越高，优先级越低）
 
-  disagreement:
-    method: tta_variance          # 多视图预测差异
+# 各价值分量计算方式
+uncertainty:
+  method: entropy             # entropy | margin | mask_entropy
+  tta_views: 4                # TTA 多视图增强数量
+diversity:
+  method: feature_distance    # 特征嵌入的 k-center / 余弦距离
+  feature_layer: backbone_pool
+rarity:
+  method: inverse_freq        # 类别频率的倒数（来自 class_distribution.csv）
+  smooth: 1.0
+disagreement:
+  method: tta_variance        # 多视图预测差异
+cost:
+  method: estimated_edit_cost # 预估人工编辑代价（病斑数 / 遮挡度 / 边界复杂度）
+  normalize: true
 
-  cost:
-    method: estimated_edit_cost   # 预估人工编辑代价（病斑数/遮挡度/边界复杂度）
-    normalize: true
-
-# 对比实验矩阵（必须包含随机采样对照）
+# ---- 对比实验矩阵（必须包含随机采样对照）----
 experiments:
-  - { name: random,  strategy: random }
-  - { name: al_unc,  strategy: entropy }
-  - { name: al_unc_div, strategy: entropy+coreset }
-  - { name: al_unc_rar, strategy: entropy+rarity }
-  - { name: ours,    strategy: vard_al }
+  - { name: random,      strategy: random }
+  - { name: al_unc,      strategy: entropy }
+  - { name: al_unc_div,  strategy: entropy+coreset }
+  - { name: al_unc_rar,  strategy: entropy+rarity }
+  - { name: ours,        strategy: vard_al }
