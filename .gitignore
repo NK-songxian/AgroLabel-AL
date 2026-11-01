@@ -1,12 +1,18 @@
 # ===== 依赖与环境 =====
 __pycache__/
-*.pyc
+*.py[cod]
 .venv/
 venv/
+env/
 .env
 .DS_Store
 
-# ===== 大文件 / 数据（不进仓库）=====
+# ===== IDE =====
+.idea/
+.vscode/
+*.iml
+
+# ===== 大文件 / 模型权重（不进仓库）=====
 out/
 runs/
 *.pt
@@ -14,6 +20,7 @@ runs/
 *.onnx
 *.engine
 *.bin
+*.ckpt
 # 权重目录保留，仅忽略其中的模型文件
 weights/*.pt
 weights/*.pth
@@ -21,13 +28,19 @@ weights/*.onnx
 weights/*.engine
 weights/*.bin
 
-
-# ===== 数据集原始文件（只留脚本与说明）=====
+# ===== 数据集原始文件（只保留目录结构与标签）=====
+datasets/**/images/*
+!datasets/**/images/.gitkeep
+datasets/**/masks/*
+!datasets/**/masks/.gitkeep
 data/raw/
 doxc/
 
 # ===== 产物 / 日志 =====
 *.log
+logs/
 build/
+workbuddy/
 .workbuddy/
 wandb/
+.ipynb_checkpoints/

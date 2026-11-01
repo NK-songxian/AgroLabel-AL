@@ -1,0 +1,41 @@
+# 数据集配置：路径、类别映射与划分
+# 约定：所有路径相对仓库根目录；大数据放在仓库外时可用环境变量覆盖。
+
+datasets:
+  root: "datasets"                # 数据根目录
+
+  plantvillage:
+    enabled: true
+    type: classification          # 仅用于分类预训练
+    images: "PlantVillage/images"
+    labels: "PlantVillage/classification_labels.csv"
+    note: "受控环境图像，无病斑掩码，只用于分类预训练"
+
+  plantseg:
+    enabled: true
+    type: instance_segmentation
+    images: "PlantSeg/images"
+    masks: "PlantSeg/masks"
+    detection_labels: "PlantSeg/detection_labels"   # YOLO 格式 txt
+    splits: "PlantSeg/splits"
+    note: "连通区域≠真实病斑实例，作为伪实例标签，需抽样人工核验"
+
+  plantdoc:
+    enabled: true
+    type: detection
+    images: "PlantDoc/images"
+    detection_labels: "PlantDoc/detection_labels"
+    note: "更接近自然复杂场景，用于泛化评估"
+
+# 统一类别映射（必须全项目一致）
+classes:
+  separator: "___"                # PlantVillage 类名分隔符
+  mapping_file: "configs/class_mapping.csv"   # 多数据集类别对齐表（待建立）
+  background: "Background_without_leaves"
+
+split:
+  train: 0.70
+  val: 0.15
+  test: 0.15
+  seed: 42
+  min_for_split: 10               # 少于该数的小类全部进训练集

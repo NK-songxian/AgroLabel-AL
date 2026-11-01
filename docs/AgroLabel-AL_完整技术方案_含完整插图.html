@@ -1,0 +1,2363 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>AgroLabel-AL 完整技术方案（导师审核稿·完整插图版）</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+
+<style>
+:root{--ink:#202938;--muted:#64748b;--line:#dbe3ec;--accent:#176b55;--paper:#fff;--soft:#f4f7fa}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#eef2f6;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",Arial,sans-serif;line-height:1.78}
+main{max-width:1060px;margin:34px auto;padding:56px 68px;background:var(--paper);box-shadow:0 8px 32px rgba(20,35,55,.08)}
+h1{font-size:2.25rem;line-height:1.3;margin:0 0 1.4rem;color:#173b35}
+h2{font-size:1.65rem;margin:2.8rem 0 1rem;padding-bottom:.45rem;border-bottom:2px solid var(--line);color:#174f43}
+h3{font-size:1.25rem;margin:2rem 0 .75rem;color:#245d51}
+h4{font-size:1.08rem;margin:1.5rem 0 .5rem}
+p,li{font-size:1rem}
+a{color:#176b9a;overflow-wrap:anywhere}
+blockquote{margin:1.2rem 0;padding:1rem 1.25rem;background:#f0f7f4;border-left:4px solid var(--accent);color:#25463d}
+table{width:100%;border-collapse:collapse;margin:1.1rem 0 1.7rem;font-size:.94rem;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:.65rem .75rem;text-align:left;vertical-align:top}
+th{background:#eef4f2;color:#1e4c40}
+tr:nth-child(even) td{background:#fafcfd}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f6f8;padding:1rem;border-radius:8px;border:1px solid var(--line);font-size:.88rem}
+code{background:#f0f3f6;padding:.12rem .3rem;border-radius:4px}
+pre code{background:transparent;padding:0}
+hr{border:0;border-top:1px solid var(--line);margin:2.5rem 0}
+.math{overflow-x:auto}
+#TOC{background:#f5f8fa;border:1px solid var(--line);border-radius:12px;padding:1.25rem 1.5rem;margin:2rem 0}
+#TOC ul{columns:2;column-gap:2rem}
+#TOC li{break-inside:avoid;margin:.25rem 0}
+@media(max-width:760px){main{margin:0;padding:28px 20px}h1{font-size:1.7rem}#TOC ul{columns:1}}
+@media print{body{background:#fff}main{max-width:none;margin:0;padding:12mm;box-shadow:none}a{color:inherit;text-decoration:none}h2,h3{break-after:avoid}table,pre{break-inside:avoid}#TOC{break-after:page}}
+</style>
+
+
+<style>
+.diagram{margin:1.6rem 0 2.1rem;padding:1rem 1.1rem 1.05rem;background:linear-gradient(180deg,#fbfdfc,#f5f8f7);border:1px solid #d8e5df;border-radius:14px;break-inside:avoid}
+.diagram-title{font-weight:750;color:#174f43;font-size:1.06rem;margin:0 0 .7rem}
+.diagram-frame{width:100%;overflow-x:auto;border-radius:9px;background:#fff;border:1px solid #e4ebef}
+.inline-diagram{display:block;width:100%;min-width:760px;height:auto}
+.diagram figcaption{font-size:.88rem;color:#64748b;margin-top:.65rem;line-height:1.6}
+@media print{.diagram{break-inside:avoid}.diagram-frame{overflow:visible}.inline-diagram{min-width:0}}
+</style>
+
+</head>
+<body>
+<main>
+<p style="color:#64748b;font-size:.9rem;letter-spacing:.04em">弘毅杯第三届桂电南宁研究院“AI+”创新实践大赛 · 赛题一</p>
+<header id="title-block-header">
+<p style="color:#64748b">导师审核稿｜完整方案整理版 · 内嵌10幅矢量技术示意图</p>
+<h1 class="title">AgroLabel-AL 完整技术方案（导师审核稿）</h1>
+<nav id="TOC"><strong>目录</strong><ul><li><a href="#一先分析赛题一评委究竟想要什么">一、先分析赛题一：评委究竟想要什么？</a></li><li><a href="#二项目定位选择什么农业场景">二、项目定位：选择什么农业场景？</a></li><li><a href="#三核心方案agrolabel-al">三、核心方案：AgroLabel-AL</a></li><li><a href="#四三个核心算法创新">四、三个核心算法创新</a></li><li><a href="#五原型系统必须做出什么功能">五、原型系统：必须做出什么功能？</a></li><li><a href="#六实验设计怎样证明我们比别人强">六、实验设计：怎样证明我们比别人强？</a></li><li><a href="#七真正冲高奖项还需要增加什么">七、真正冲高奖项，还需要增加什么？</a></li><li><a href="#八实施优先级哪些必须做哪些可以不做">八、实施优先级：哪些必须做，哪些可以不做？</a></li><li><a href="#九时间安排与团队分工">九、时间安排与团队分工</a></li><li><a href="#十最终判断怎样的方案最有可能拿高分">十、最终判断：怎样的方案最有可能拿高分？</a></li><li><a href="#一项目最终定位与创新点">一、项目最终定位与创新点</a></li><li><a href="#二数据集构建与标签处理">二、数据集构建与标签处理</a></li><li><a href="#三核心网络agrohafm-seg">三、核心网络：AgroHAFM-Seg</a></li><li><a href="#四完整损失函数设计">四、完整损失函数设计</a></li><li><a href="#五核心算法vard-al-价值感知主动学习">五、核心算法：VARD-AL
+价值感知主动学习</a></li><li><a href="#六人机协同系统完整工程架构">六、人机协同系统：完整工程架构</a></li><li><a href="#七训练与实验具体怎么做">七、训练与实验：具体怎么做？</a></li><li><a href="#八模型训练参数与工程配置">八、模型训练参数与工程配置</a></li><li><a href="#九12人团队的具体开发计划">九、1—2人团队的具体开发计划</a></li><li><a href="#十评分标准对应的冲奖策略">十、评分标准对应的冲奖策略</a></li><li><a href="#十一项目风险与解决方案">十一、项目风险与解决方案</a></li><li><a href="#十二最终参赛作品应该交付什么">十二、最终参赛作品应该交付什么？</a></li><li><a href="#十三最终确定的技术路线">十三、最终确定的技术路线</a></li><li><a href="#十四最终实施顺序">十四、最终实施顺序</a></li></ul></nav>
+</header>
+<h1 id="agrolabel-al-完整技术方案导师审核稿">AgroLabel-AL
+完整技术方案（导师审核稿）</h1>
+<blockquote>
+<p>本文完整整理前两轮关于赛题一的方案回答，保留原有技术路线、模块设计、公式、实验建议、数据集说明和实施计划。文中的示意性实验数值仅用于说明展示方式，不代表真实实验结果。</p>
+</blockquote>
+<hr />
+<h1
+id="第一部分赛题一分析与高分方案">第一部分：赛题一分析与高分方案</h1>
+<h2
+id="一先分析赛题一评委究竟想要什么">一、先分析赛题一：评委究竟想要什么？</h2>
+<p>赛题一的名称是：</p>
+<p><strong>面向智慧农业场景的多模态数据智能预标注与主动学习原型系统。</strong></p>
+<p>赛题文件第3～6页明确提出了四项核心任务：</p>
+<ol type="1">
+<li>选择具体农业场景，完成问题定义。</li>
+<li>使用本地部署模型进行自动预标注。</li>
+<li>设计主动学习策略，自动筛选最值得人工标注的困难样本。</li>
+<li>实现导入、预标注、人工修改、数据回流和提效统计的完整系统。</li>
+</ol>
+<h3 id="赛题一评分结构">赛题一评分结构</h3>
+<p>总分100分：</p>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 40%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>评分维度</th>
+<th style="text-align: right;">分值</th>
+<th>评分要点</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>预标注质量</td>
+<td style="text-align: right;">30</td>
+<td>目标类别预标注精度与可用性18分；细分类别/小样本表现12分</td>
+</tr>
+<tr class="even">
+<td>主动学习有效性</td>
+<td style="text-align: right;">25</td>
+<td>难例筛选策略合理性12分；同等质量下人工标注量下降的实测消融13分</td>
+</tr>
+<tr class="odd">
+<td>人机协同原型完整度</td>
+<td style="text-align: right;">25</td>
+<td>预标—修正—回流闭环可演示15分；提效指标量化与统计可信度10分</td>
+</tr>
+<tr class="even">
+<td>工程实现与可复现性</td>
+<td style="text-align: right;">15</td>
+<td>代码质量与运行稳定性8分；可复现与文档完备7分</td>
+</tr>
+<tr class="odd">
+<td>展示与合规</td>
+<td style="text-align: right;">5</td>
+<td>报告与演示表达3分；数据脱敏与本地推理合规意识2分</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键判断：95分来自算法、主动学习、系统和工程，而不是单纯的模型精度。</strong></p>
+<p>这意味着：</p>
+<ul>
+<li>只训练一个 YOLO 模型：不够。</li>
+<li>只做一个 SAM 自动分割工具：不够。</li>
+<li>只做一个漂亮的网页：不够。</li>
+<li>有主动学习，但没有随机采样对照实验：不够。</li>
+<li>有模型、有算法、有可交互系统、有真实提效数据：才有竞争力。</li>
+</ul>
+<p>建议按照冲击一等奖甚至特别奖的标准设计，而不是按照完成基本要求设计。</p>
+<h2
+id="二项目定位选择什么农业场景">二、项目定位：选择什么农业场景？</h2>
+<p>推荐优先选择：</p>
+<h3
+id="农作物病害智能检测与病斑实例分割">农作物病害智能检测与病斑实例分割</h3>
+<p><strong>具体任务：</strong>
+对农业图像中的作物病害进行自动检测，识别病害类别，并对不规则病斑区域进行分割。</p>
+<p>选择理由：</p>
+<ul>
+<li>病斑大小差异明显，适合研究小目标识别。</li>
+<li>病害类别存在细粒度差异，适合小样本学习。</li>
+<li>病斑边界不规则，适合设计分割算法。</li>
+<li>不同病害类别样本数量不均衡，适合主动学习。</li>
+<li>能够直观展示 AI 预标注和人工纠错效果。</li>
+</ul>
+<p>注意：这是推荐的研究场景，不是赛题文件已经确认提供的具体数据类别。企业只承诺提供脱敏农业/作物图像及标注规范样例，PlantVillage
+等公开数据可以补充。最终必须先检查企业样本，再确定病害类别和标注形式。</p>
+<p>如果企业提供的主要是分类标签或检测框，而不是病斑掩码，可以将主任务调整为目标检测，不能为了创新强行制造不可靠的分割标签。</p>
+<h2 id="三核心方案agrolabel-al">三、核心方案：AgroLabel-AL</h2>
+<figure class="diagram">
+      <div class="diagram-title">图1  AgroLabel-AL 项目总体技术闭环</div>
+      <div class="diagram-frame"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" role="img" aria-label="AgroLabel-AL技术架构示意图" class="inline-diagram">
+    <defs>
+      <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#54736a"/></marker>
+      <marker id="arrBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#4778a8"/></marker>
+      <linearGradient id="greenGrad" x1="0" x2="1"><stop offset="0" stop-color="#e6f4ed"/><stop offset="1" stop-color="#c9e8d8"/></linearGradient>
+      <linearGradient id="blueGrad" x1="0" x2="1"><stop offset="0" stop-color="#eaf2fb"/><stop offset="1" stop-color="#d7e7f8"/></linearGradient>
+      <linearGradient id="goldGrad" x1="0" x2="1"><stop offset="0" stop-color="#fff5dc"/><stop offset="1" stop-color="#fbe7b7"/></linearGradient>
+    </defs>
+    <rect x="25" y="105" width="210" height="130" rx="16" fill="url(#greenGrad)" stroke="#6b9385" stroke-width="2"/>
+    <text x="130.0" y="165.0" text-anchor="middle" font-size="22" font-weight="700" fill="#203c35">公开数据层</text><text x="130.0" y="194.0" text-anchor="middle" font-size="15" fill="#52636b">PlantVillage · PlantSeg · PlantDoc</text><rect x="285" y="105" width="235" height="130" rx="16" fill="url(#blueGrad)" stroke="#7396bb" stroke-width="2"/>
+    <text x="402.5" y="165.0" text-anchor="middle" font-size="22" font-weight="700" fill="#203c35">AgroHAFM-Seg</text><text x="402.5" y="194.0" text-anchor="middle" font-size="15" fill="#52636b">检测 + 病斑实例分割</text><rect x="570" y="105" width="225" height="130" rx="16" fill="url(#goldGrad)" stroke="#c59a45" stroke-width="2"/>
+    <text x="682.5" y="165.0" text-anchor="middle" font-size="22" font-weight="700" fill="#203c35">VARD-AL</text><text x="682.5" y="194.0" text-anchor="middle" font-size="15" fill="#52636b">价值评分 + 多样性筛选</text><rect x="845" y="105" width="220" height="130" rx="16" fill="url(#greenGrad)" stroke="#6b9385" stroke-width="2"/>
+    <text x="955.0" y="165.0" text-anchor="middle" font-size="22" font-weight="700" fill="#203c35">人工标注工作台</text><text x="955.0" y="194.0" text-anchor="middle" font-size="15" fill="#52636b">复核 · 修框 · 修掩码</text><rect x="1100" y="105" width="90" height="130" rx="16" fill="url(#blueGrad)" stroke="#7396bb" stroke-width="2"/>
+    <text x="1145.0" y="165.0" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">数据回流</text><text x="1145.0" y="194.0" text-anchor="middle" font-size="13" fill="#52636b">再训练</text><path d="M235,170 L285,170" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M520,170 L570,170" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M795,170 L845,170" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M1065,170 L1100,170" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M1145 245 V300 H405 V245" stroke="#4778a8" stroke-width="3" fill="none" marker-end="url(#arrBlue)"/><text x="770" y="292" text-anchor="middle" font-size="17" fill="#4778a8" font-weight="700">高质量人工标签回流，驱动模型持续迭代</text><text x="130" y="70" text-anchor="middle" font-size="17" fill="#52636b">数据与标签</text><text x="400" y="70" text-anchor="middle" font-size="17" fill="#52636b">视觉算法</text><text x="680" y="70" text-anchor="middle" font-size="17" fill="#52636b">主动学习</text><text x="955" y="70" text-anchor="middle" font-size="17" fill="#52636b">人机协同</text>
+    </svg></div>
+      <figcaption>从公开数据和企业数据进入模型预标注，经主动学习挑选高价值样本，再由人工修正并回流训练，形成可量化的持续学习闭环。</figcaption>
+    </figure>
+<h3
+id="面向智慧农业的多模态智能预标注与价值感知主动学习系统">面向智慧农业的多模态智能预标注与价值感知主动学习系统</h3>
+<p>整个系统采用四层架构：</p>
+<ol type="1">
+<li><strong>第一层：多模态农业数据输入</strong>——RGB图像 +
+病害类别语义描述 + 可选农情元数据。</li>
+<li><strong>第二层：智能预标注模型</strong>——视觉特征提取 + 小病斑检测 +
+语义先验融合 + 实例分割。</li>
+<li><strong>第三层：价值感知主动学习</strong>——不确定性 + 多样性 +
+稀有类别 + 标注成本。</li>
+<li><strong>第四层：人机协同标注平台</strong>——人工修正 + 质量检测 +
+数据回流 + 增量训练。</li>
+</ol>
+<p>持续迭代，形成数据闭环。</p>
+<h2 id="四三个核心算法创新">四、三个核心算法创新</h2>
+<h3
+id="创新一语义先验引导的多模态小样本预标注网络">创新一：语义先验引导的多模态小样本预标注网络</h3>
+<p>普通 YOLO 模型主要依赖图像视觉特征。但农业场景存在几个问题：</p>
+<ul>
+<li>同一种病害在不同生长阶段外观不同。</li>
+<li>不同病害可能具有相似的颜色和纹理。</li>
+<li>小样本类别难以学到稳定的特征。</li>
+<li>小病斑容易被背景和叶片纹理干扰。</li>
+</ul>
+<p>建议以轻量级 YOLO 实例分割模型为基础，构建三个创新模块。</p>
+<h4 id="模型结构">1. 模型结构</h4>
+<table>
+<thead>
+<tr class="header">
+<th>模块</th>
+<th>功能</th>
+<th>解决的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MSF-Encoder</td>
+<td>多尺度高分辨率特征提取</td>
+<td>微小病斑漏检</td>
+</tr>
+<tr class="even">
+<td>CSPF Module</td>
+<td>作物语义先验融合</td>
+<td>细粒度类别混淆</td>
+</tr>
+<tr class="odd">
+<td>BBR-Head</td>
+<td>病斑边界感知分割头</td>
+<td>病斑边界不准确</td>
+</tr>
+</tbody>
+</table>
+<h4 id="msf-encoder多尺度病斑特征提取">2.
+MSF-Encoder：多尺度病斑特征提取</h4>
+<p>建议在 YOLO 主干网络中增加 P2
+高分辨率检测分支，同时使用轻量级多尺度特征融合：</p>
+<ul>
+<li>浅层：保留病斑纹理、颜色、边缘。</li>
+<li>中层：识别病斑形态。</li>
+<li>深层：学习病害整体语义。</li>
+</ul>
+<p>重点是提高小病斑的召回率。</p>
+<h4 id="cspf作物语义先验融合模块">3. CSPF：作物语义先验融合模块</h4>
+<p>输入不再只有 RGB 图像，还包括：</p>
+<ul>
+<li>图像视觉特征。</li>
+<li>病害类别名称。</li>
+<li>病害症状描述。</li>
+<li>可用时的作物品种、生长阶段等元数据。</li>
+</ul>
+<p>例如，图像特征为“叶片局部存在褐色不规则斑点”，文本先验为“番茄早疫病：褐色病斑，可能呈同心轮纹”。</p>
+<p>将视觉特征和文本类别原型映射到同一语义空间，利用门控交互进行融合。这样模型不仅观察图像，还可以利用病害类别的语义信息。</p>
+<p>如果企业没有提供生长阶段等元数据，就不依赖这一分支，确保系统能够在纯图像条件下运行。</p>
+<h4 id="bbr-head边界感知分割头">4. BBR-Head：边界感知分割头</h4>
+<p>同时预测：</p>
+<ul>
+<li>病害类别。</li>
+<li>病斑检测框。</li>
+<li>病斑实例掩码。</li>
+<li>病斑边界信息。</li>
+</ul>
+<p>建议损失函数：</p>
+<p>[ L=L_{det}+<em>1L</em>{Dice} +<em>2L</em>{Boundary}
++<em>3L</em>{Proto} ]</p>
+<p>其中：</p>
+<ul>
+<li>(L_{det})：检测分类和定位损失。</li>
+<li>(L_{Dice})：病斑分割损失。</li>
+<li>(L_{Boundary})：边界约束损失。</li>
+<li>(L_{Proto})：小样本类别原型对比损失。</li>
+</ul>
+<p>这一创新的价值：不只是使用现成模型进行预标注，而是针对小病斑、细粒度病害和不规则边界进行专门优化。</p>
+<h3
+id="创新二不确定性多样性稀有类别联合主动学习">创新二：不确定性—多样性—稀有类别联合主动学习</h3>
+<p>这是整个比赛最关键的算法之一。</p>
+<p>赛题明确要求系统能够判断哪些图片最值得人工标注，并与随机采样进行对照验证。</p>
+<p>普通主动学习经常只使用模型置信度。建议设计：</p>
+<p><strong>VARD-AL：价值感知的稀有类别主动学习算法。</strong></p>
+<h4 id="四种样本价值">1. 四种样本价值</h4>
+<p><strong>① 不确定性 U</strong></p>
+<p>模型预测置信度低、类别概率接近、分割边界不稳定。</p>
+<p><strong>② 样本多样性 D</strong></p>
+<p>优先挑选与已有训练样本差异较大的图片，避免重复标注。</p>
+<p><strong>③ 类别稀缺性 R</strong></p>
+<p>对数量少、模型识别困难的病害类别给予更高优先级。</p>
+<p><strong>④ 模型分歧 G</strong></p>
+<p>通过不同增强视图或教师—学生模型预测差异，发现潜在难例。</p>
+<h4 id="联合采样公式">2. 联合采样公式</h4>
+<p>[ S_i= ]</p>
+<p>其中：</p>
+<table>
+<thead>
+<tr class="header">
+<th>符号</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>U</td>
+<td>模型不确定性</td>
+</tr>
+<tr class="even">
+<td>D</td>
+<td>样本特征多样性</td>
+</tr>
+<tr class="odd">
+<td>R</td>
+<td>类别稀缺程度</td>
+</tr>
+<tr class="even">
+<td>G</td>
+<td>模型预测分歧</td>
+</tr>
+<tr class="odd">
+<td>C</td>
+<td>预计人工标注成本</td>
+</tr>
+<tr class="even">
+<td>α、β、γ、δ</td>
+<td>权重参数</td>
+</tr>
+</tbody>
+</table>
+<p>这里最值得强调的是 (C_i)。</p>
+<p>例如，一张图只有一个简单病斑；一张图有十几个不规则病斑；一张图存在严重遮挡，需要大量人工修正。它们的人工成本明显不同。</p>
+<p>因此，不应该只选择最困难的图片，而应该优先选择<strong>单位人工标注成本能够带来最大模型提升的图片</strong>。</p>
+<h4 id="主动学习执行流程">3. 主动学习执行流程</h4>
+<ol type="1">
+<li>模型预测全部未标注图片，输出类别、检测框、分割掩码和置信度。</li>
+<li>计算四维样本价值：不确定性、多样性、稀有类别和模型分歧。</li>
+<li>根据人工标注成本计算最终优先级。</li>
+<li>选择 Top-K 图片，优先进入人工标注工作台。</li>
+<li>人工修正并回流，将修正结果加入训练集，执行增量微调。</li>
+</ol>
+<h4 id="必须做的对比实验">4. 必须做的对比实验</h4>
+<table>
+<thead>
+<tr class="header">
+<th>方法</th>
+<th>采样策略</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Baseline</td>
+<td>随机采样</td>
+</tr>
+<tr class="even">
+<td>AL-1</td>
+<td>仅不确定性</td>
+</tr>
+<tr class="odd">
+<td>AL-2</td>
+<td>不确定性 + 多样性</td>
+</tr>
+<tr class="even">
+<td>AL-3</td>
+<td>不确定性 + 稀有类别</td>
+</tr>
+<tr class="odd">
+<td>Ours</td>
+<td>四维联合 + 标注成本</td>
+</tr>
+</tbody>
+</table>
+<p>重点展示：</p>
+<ul>
+<li>同样标注100张图片，哪种策略模型精度更高？</li>
+<li>达到相同精度，哪种策略需要人工标注的图片更少？</li>
+<li>少数类的识别精度是否提高？</li>
+</ul>
+<p>这部分一定要有实测结果，不能只展示公式。</p>
+<h3
+id="创新三教师学生协同的高效预标注与持续学习">创新三：教师—学生协同的高效预标注与持续学习</h3>
+<p>我不建议直接用大型视觉模型对所有图片进行实时推理。</p>
+<p>原因是赛题要求本地推理、单张图片预标注时延不高于300ms，并推荐 GPU
+显存不低于8GB，但也允许轻量化模型运行。</p>
+<p>建议使用教师—学生结构。</p>
+<p><strong>教师模型：</strong></p>
+<ul>
+<li>GroundingDINO：通过病害文本提示生成候选检测框。</li>
+<li>SAM2 或轻量级 SAM：对候选区域进行掩码细化。</li>
+<li>教师模型主要负责初始伪标签生成和难例辅助修正，可以离线运行。</li>
+</ul>
+<p><strong>学生模型：</strong></p>
+<ul>
+<li>YOLO 轻量实例分割网络。</li>
+<li>蒸馏教师的检测、分类和掩码知识。</li>
+<li>ONNX Runtime 部署。</li>
+<li>INT8 量化优化。</li>
+</ul>
+<p>最终用户日常使用轻量学生模型完成预标注。</p>
+<p><strong>持续学习机制：</strong></p>
+<ol type="1">
+<li>保存人工修正标签。</li>
+<li>记录修改前后的预测差异。</li>
+<li>将高质量样本加入训练集。</li>
+<li>按类别平衡策略抽样。</li>
+<li>定期增量微调。</li>
+<li>新旧模型进行验证后再切换版本。</li>
+</ol>
+<p>这样系统不是一次性训练，而是一个不断进步的农业数据标注系统。</p>
+<h2
+id="五原型系统必须做出什么功能">五、原型系统：必须做出什么功能？</h2>
+<p>建议做成一个本地部署的 Web 标注平台。</p>
+<p>技术栈：</p>
+<ul>
+<li>前端：Vue3 + Canvas/Konva。</li>
+<li>后端：FastAPI。</li>
+<li>模型：PyTorch + ONNX Runtime。</li>
+<li>数据库：SQLite。</li>
+<li>可视化：ECharts。</li>
+<li>模型训练：PyTorch。</li>
+</ul>
+<p>如果开发时间和人手不足，可以用 Gradio
+快速搭建第一版，但正式展示尽量做成完整工作台。</p>
+<h3 id="六个核心页面">六个核心页面</h3>
+<table>
+<thead>
+<tr class="header">
+<th>页面</th>
+<th>核心功能</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1. 数据管理</td>
+<td>图片上传、批量导入、数据集管理</td>
+</tr>
+<tr class="even">
+<td>2. 智能预标注</td>
+<td>自动检测、类别预测、掩码生成</td>
+</tr>
+<tr class="odd">
+<td>3. 人工修正</td>
+<td>拖动框、修改多边形、画笔修正、类别修改</td>
+</tr>
+<tr class="even">
+<td>4. 主动学习</td>
+<td>难例排序、优先级、筛选原因</td>
+</tr>
+<tr class="odd">
+<td>5. 数据质量</td>
+<td>错误检测、重复标签、类别统计</td>
+</tr>
+<tr class="even">
+<td>6. 效率看板</td>
+<td>标注耗时、修改次数、模型精度、节省比例</td>
+</tr>
+</tbody>
+</table>
+<h3 id="最重要的交互设计">最重要的交互设计</h3>
+<p>用户上传一批图片后，系统自动完成预标注。每张图片显示：</p>
+<ul>
+<li>预测类别。</li>
+<li>预测置信度。</li>
+<li>检测框和病斑掩码。</li>
+<li>预测是否需要人工复核。</li>
+</ul>
+<p>用户可以：</p>
+<ul>
+<li>接受全部预测。</li>
+<li>单独修改某个病斑。</li>
+<li>删除错误检测。</li>
+<li>手动画出漏检病斑。</li>
+<li>修改错误类别。</li>
+<li>保存最终标签。</li>
+</ul>
+<p>最后导出 COCO 或 YOLO 格式。</p>
+<p>这才真正满足企业所说的端到端闭环。</p>
+<h2
+id="六实验设计怎样证明我们比别人强">六、实验设计：怎样证明我们比别人强？</h2>
+<p>建议把实验分成四组。</p>
+<h3 id="预标注模型实验">1. 预标注模型实验</h3>
+<p>对比：</p>
+<ul>
+<li>YOLO 基础模型。</li>
+<li>YOLO + P2 小目标分支。</li>
+<li>YOLO + 语义融合。</li>
+<li>YOLO + 边界感知分割。</li>
+<li>完整 AgroLabel-AL。</li>
+</ul>
+<p>评价指标：</p>
+<table>
+<thead>
+<tr class="header">
+<th>指标</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Precision</td>
+<td>预测准确程度</td>
+</tr>
+<tr class="even">
+<td>Recall</td>
+<td>病斑检出能力</td>
+</tr>
+<tr class="odd">
+<td>mAP50</td>
+<td>检测性能</td>
+</tr>
+<tr class="even">
+<td>mAP50-95</td>
+<td>综合检测性能</td>
+</tr>
+<tr class="odd">
+<td>Mask mAP</td>
+<td>实例分割性能</td>
+</tr>
+<tr class="even">
+<td>Dice / IoU</td>
+<td>掩码质量</td>
+</tr>
+<tr class="odd">
+<td>Macro-F1</td>
+<td>少数类别表现</td>
+</tr>
+</tbody>
+</table>
+<p>尤其要单独展示小病斑和稀有病害类别的结果。</p>
+<h3 id="主动学习实验">2. 主动学习实验</h3>
+<p>设定人工标注预算为训练样本的5%、10%、20%、30%。比较随机采样和不同主动学习策略的表现。</p>
+<p>正式参赛时必须用真实实验数据替换任何示意曲线。</p>
+<h3 id="人机协同提效实验">3. 人机协同提效实验</h3>
+<p>设置两种工作方式：</p>
+<ul>
+<li>A组：人工从零开始标注。</li>
+<li>B组：AI预标注后人工修正。</li>
+</ul>
+<p>对比单张标注耗时、人工修改操作次数、标签质量和单位时间标注量。</p>
+<p>要求两组最终达到相同的质检质量。</p>
+<h3 id="工程性能实验">4. 工程性能实验</h3>
+<p>必须测试：</p>
+<ul>
+<li>单张图片推理时间。</li>
+<li>GPU 显存占用。</li>
+<li>CPU 运行能力。</li>
+<li>ONNX 与 PyTorch 精度差异。</li>
+<li>INT8 量化前后速度和精度变化。</li>
+<li>连续批量导入是否稳定。</li>
+</ul>
+<p>建议将比赛要求作为硬指标：人工修改次数下降不低于30%；达到同等质量所需人工标注量下降不低于20%；单张预标注推理时延不高于300毫秒。这些是企业给出的参考指标，不是已经取得的实验成绩。</p>
+<h2
+id="七真正冲高奖项还需要增加什么">七、真正冲高奖项，还需要增加什么？</h2>
+<h3 id="增强方向-a智能标注质量控制">增强方向 A：智能标注质量控制</h3>
+<p>在人工保存标签之前，自动检查：</p>
+<ul>
+<li>掩码是否越界。</li>
+<li>是否存在异常小目标。</li>
+<li>是否出现重复检测。</li>
+<li>是否存在类别冲突。</li>
+<li>掩码与检测框是否匹配。</li>
+<li>同一类别的标签是否符合规范。</li>
+</ul>
+<p>对明显异常标签自动提示，不让错误标签进入训练集。</p>
+<h3 id="增强方向-b标注行为驱动的模型优化">增强方向
+B：标注行为驱动的模型优化</h3>
+<p>记录人工每次修改：</p>
+<ul>
+<li>删除了哪些错误预测？</li>
+<li>哪些位置经常漏检？</li>
+<li>哪些类别经常被改错？</li>
+<li>哪些区域需要反复调整？</li>
+</ul>
+<p>进一步统计模型的系统性错误，形成错误类型分析报告。</p>
+<p>例如，如果模型经常把叶片自然纹理识别为病斑，就增加对应负样本；如果小病斑漏检严重，就提高对应类别和尺度的训练权重。</p>
+<p>这比简单的人工纠错更有创新价值。</p>
+<h2
+id="八实施优先级哪些必须做哪些可以不做">八、实施优先级：哪些必须做，哪些可以不做？</h2>
+<table>
+<thead>
+<tr class="header">
+<th>优先级</th>
+<th>任务</th>
+<th>是否必须</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>P0</td>
+<td>选择具体农业场景</td>
+<td>必须</td>
+</tr>
+<tr class="even">
+<td>P0</td>
+<td>本地预标注模型</td>
+<td>必须</td>
+</tr>
+<tr class="odd">
+<td>P0</td>
+<td>主动学习与随机采样对比</td>
+<td>必须</td>
+</tr>
+<tr class="even">
+<td>P0</td>
+<td>人工修正界面</td>
+<td>必须</td>
+</tr>
+<tr class="odd">
+<td>P0</td>
+<td>标签回流与统计看板</td>
+<td>必须</td>
+</tr>
+<tr class="even">
+<td>P0</td>
+<td>300ms时延测试</td>
+<td>必须</td>
+</tr>
+<tr class="odd">
+<td>P1</td>
+<td>小目标特征增强</td>
+<td>强烈推荐</td>
+</tr>
+<tr class="even">
+<td>P1</td>
+<td>不确定性+多样性+稀有类联合采样</td>
+<td>强烈推荐</td>
+</tr>
+<tr class="odd">
+<td>P1</td>
+<td>语义先验融合</td>
+<td>强烈推荐</td>
+</tr>
+<tr class="even">
+<td>P1</td>
+<td>ONNX INT8量化</td>
+<td>推荐</td>
+</tr>
+<tr class="odd">
+<td>P2</td>
+<td>SAM辅助伪标签</td>
+<td>可选</td>
+</tr>
+<tr class="even">
+<td>P2</td>
+<td>模型分歧采样</td>
+<td>可选增强</td>
+</tr>
+<tr class="odd">
+<td>P2</td>
+<td>人工行为分析与自适应增量学习</td>
+<td>冲奖增强</td>
+</tr>
+</tbody>
+</table>
+<p>建议优先把三个核心创新做扎实，不要为了创新数量牺牲系统稳定性。</p>
+<h2 id="九时间安排与团队分工">九、时间安排与团队分工</h2>
+<p>建议采用六周开发计划：</p>
+<table>
+<thead>
+<tr class="header">
+<th>时间</th>
+<th>核心任务</th>
+<th>交付结果</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>第1周</td>
+<td>企业数据对接、标签规范、数据分析</td>
+<td>数据集与任务定义</td>
+</tr>
+<tr class="even">
+<td>第2周</td>
+<td>基础模型与预标注</td>
+<td>可运行模型</td>
+</tr>
+<tr class="odd">
+<td>第3周</td>
+<td>三个创新模块开发</td>
+<td>改进模型</td>
+</tr>
+<tr class="even">
+<td>第4周</td>
+<td>主动学习与对比实验</td>
+<td>实验数据</td>
+</tr>
+<tr class="odd">
+<td>第5周</td>
+<td>人机协同平台与数据回流</td>
+<td>完整原型</td>
+</tr>
+<tr class="even">
+<td>第6周</td>
+<td>量化、测试、报告、视频</td>
+<td>最终作品</td>
+</tr>
+</tbody>
+</table>
+<p>如果4人组队：</p>
+<ul>
+<li>成员1：模型架构、训练、消融实验。</li>
+<li>成员2：主动学习算法、评估体系。</li>
+<li>成员3：前端、人工标注交互。</li>
+<li>成员4：后端、数据管理、系统集成和答辩材料。</li>
+</ul>
+<h2
+id="十最终判断怎样的方案最有可能拿高分">十、最终判断：怎样的方案最有可能拿高分？</h2>
+<p>三个真正需要向评委讲清楚的创新：</p>
+<ol type="1">
+<li><strong>模型创新：语义先验引导的多模态小样本病斑预标注网络。</strong>
+解决农业图像中微小病斑、细粒度类别和不规则边界识别问题。</li>
+<li><strong>算法创新：不确定性—多样性—稀有类别—标注成本联合主动学习。</strong>
+让系统自动寻找最值得人工标注的图片，降低标注成本。</li>
+<li><strong>系统创新：人工纠错驱动的持续学习与智能质量控制闭环。</strong>
+实现自动标注、人工修改、质量检测、数据回流和模型更新。</li>
+</ol>
+<p>不要向评委展示一个能够识别农作物病害的模型，而要展示一个能够自主发现标注难题、合理分配人工标注资源，并通过人工反馈持续提升标注质量的智能数据生产系统。</p>
+<hr />
+<h1 id="第二部分agrolabel-al-完整可执行技术方案">第二部分：AgroLabel-AL
+完整可执行技术方案</h1>
+<h2 id="一项目最终定位与创新点">一、项目最终定位与创新点</h2>
+<p>参赛条件：公开数据集；病害检测 + 病斑分割；1—2人团队。</p>
+<p>先明确一个重要技术问题：</p>
+<p><strong>不能直接拿 PlantVillage
+的分类标签训练病斑检测与分割模型。</strong></p>
+<p>PlantVillage
+主要提供整张叶片的作物—病害类别标签，并没有原生的病斑级检测框和病斑像素掩码。它适合做病害分类预训练，但不能直接证明病斑定位和分割能力。</p>
+<p>建议调整数据组合：</p>
+<h3 id="三类公开数据集各司其职">三类公开数据集，各司其职</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>数据集</th>
+<th>定位</th>
+<th>标签和用途</th>
+<th>获取地址</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PlantVillage</td>
+<td>分类预训练</td>
+<td>约54,000张图像、38个作物—病害类别；学习病害类别和视觉语义特征</td>
+<td>https://data.mendeley.com/datasets/tywbtsjrjv/1</td>
+</tr>
+<tr class="even">
+<td>PlantSeg</td>
+<td>核心检测与分割数据</td>
+<td>11,458张图像、115种病害、34种寄主植物，包含病害区域掩码；可派生连通区域检测框</td>
+<td>https://doi.org/10.5281/zenodo.17719108</td>
+</tr>
+<tr class="odd">
+<td>PlantDoc</td>
+<td>外部检测验证</td>
+<td>2,346张图像、8,435个检测框、29个类别；用于检测能力和复杂场景泛化验证，不直接作为分割标签来源</td>
+<td>https://huggingface.co/datasets/Project-AgML/plant_doc_detection</td>
+</tr>
+</tbody>
+</table>
+<p>PlantSeg
+原始论文：https://www.nature.com/articles/s41597-025-06513-4</p>
+<p>这三个数据集形成：</p>
+<ul>
+<li>PlantVillage：学会识别病害。</li>
+<li>PlantSeg：学会定位和分割病斑。</li>
+<li>PlantDoc：检验复杂场景下的检测能力。</li>
+</ul>
+<p>PlantSeg
+的优势是拥有真正的病害区域像素级标签，而且包含野外复杂背景；PlantDoc
+可以补充检测任务。</p>
+<p>建议最终项目定位：</p>
+<p><strong>AgroLabel-AL：面向智慧农业的病害多模态智能预标注与价值感知主动学习系统。</strong></p>
+<p>核心目标：自动检测病斑、分割病害区域、筛选最有价值的人工标注样本，并通过人工修正持续优化模型。</p>
+<p>建议保留三个核心创新：</p>
+<table>
+<thead>
+<tr class="header">
+<th>创新</th>
+<th>技术名称</th>
+<th>核心作用</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>创新一</td>
+<td>HAFM 多尺度病斑增强融合</td>
+<td>提高小病斑检测与分割能力</td>
+</tr>
+<tr class="even">
+<td>创新二</td>
+<td>BAGS 边界感知几何监督</td>
+<td>提高不规则病斑轮廓精度</td>
+</tr>
+<tr class="odd">
+<td>创新三</td>
+<td>VARD-AL 价值感知主动学习</td>
+<td>降低人工标注成本</td>
+</tr>
+</tbody>
+</table>
+<p>另外增加一个轻量级语义先验分支，将作物种类、病害类别及症状描述融合进视觉特征，体现多模态特点。</p>
+<p>真正的创新不能只体现在模块名称上，需要通过模块消融、对照实验和标注效率实验验证每个模块的实际贡献。</p>
+<h2 id="二数据集构建与标签处理">二、数据集构建与标签处理</h2>
+<p>这是整个项目的第一项实际工作，也是最容易踩坑的地方。</p>
+<h3 id="数据集分工">2.1 数据集分工</h3>
+<table>
+<thead>
+<tr class="header">
+<th>数据集</th>
+<th>训练用途</th>
+<th>标签形式</th>
+<th>使用方式</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PlantVillage</td>
+<td>病害语义预训练</td>
+<td>图像级类别</td>
+<td>辅助训练</td>
+</tr>
+<tr class="even">
+<td>PlantSeg</td>
+<td>检测、分割主训练</td>
+<td>病害区域掩码</td>
+<td>核心数据</td>
+</tr>
+<tr class="odd">
+<td>PlantDoc</td>
+<td>检测验证</td>
+<td>检测框</td>
+<td>外部测试</td>
+</tr>
+</tbody>
+</table>
+<p>PlantSeg
+原始论文提供的划分是训练70%、验证10%、测试20%。建议遵循其官方划分，不要重新随机划分，以免影响实验可复现性。</p>
+<h3 id="plantseg-标签转换">2.2 PlantSeg 标签转换</h3>
+<p>PlantSeg
+的病害掩码是类别像素标签，不应直接把一张语义掩码当作多个独立实例。</p>
+<p>建议这样处理：</p>
+<p><strong>第一步：生成二值病斑掩码</strong></p>
+<p>对于类别 (c)：</p>
+[ M_c(x,y)=
+<p>]</p>
+<p><strong>第二步：连通区域提取</strong></p>
+<p>使用 OpenCV 的
+<code>connectedComponentsWithStats</code>，按照8邻域提取连通区域。</p>
+<p>每个连通区域得到：</p>
+<ul>
+<li>区域像素掩码。</li>
+<li>区域面积。</li>
+<li>外接矩形。</li>
+<li>区域中心。</li>
+<li>周长。</li>
+</ul>
+<p><strong>第三步：生成检测框</strong></p>
+<p>对第 (j) 个连通区域：</p>
+<p>[ B_j=(x_{},y_{},x_{},y_{}) ]</p>
+<p>由此获得：</p>
+<ul>
+<li>病斑分割标签：原始像素掩码。</li>
+<li>病斑检测标签：连通区域外接框。</li>
+<li>病害类别：原始类别ID。</li>
+</ul>
+<p>注意：连通区域只是伪实例划分。两个相互接触的病斑可能被合并，不能把它们当作经过人工确认的两个独立病斑。报告中应明确说明这一点。</p>
+<p><strong>第四步：标签质量检查</strong></p>
+<p>自动检查：</p>
+<ul>
+<li>空掩码。</li>
+<li>越界检测框。</li>
+<li>极小连通区域。</li>
+<li>类别ID不一致。</li>
+<li>检测框与掩码不匹配。</li>
+<li>重复标签。</li>
+</ul>
+<p>不建议直接删除所有小面积区域，因为小病斑本身就是研究目标。需要通过抽样检查决定过滤阈值。</p>
+<h3 id="plantdoc-标签处理">2.3 PlantDoc 标签处理</h3>
+<p>PlantDoc 提供检测框，可以转换为 YOLO 格式：</p>
+<pre class="text"><code>class_id x_center y_center width height</code></pre>
+<p>它没有对应的病斑像素掩码时：</p>
+<ul>
+<li>参与检测训练。</li>
+<li>不参与分割损失计算。</li>
+<li>不虚构分割标签。</li>
+<li>在独立测试中评价检测能力。</li>
+</ul>
+<h3 id="plantvillage-标签处理">2.4 PlantVillage 标签处理</h3>
+<p>PlantVillage 用于病害图像级分类预训练。</p>
+<p>可以训练一个轻量分类模型，学习：</p>
+<p>[ F_{}=E_{}(I) ]</p>
+<p>再将视觉语义知识迁移到病斑检测模型。</p>
+<p>特别注意：PlantVillage
+中有些版本提供去背景后的叶片图像，但这不等于病斑区域分割标签。</p>
+<h3 id="最终数据组织">2.5 最终数据组织</h3>
+<p>建议统一成以下目录：</p>
+<pre class="text"><code>AgroLabel-AL/
+│
+├── datasets/
+│   ├── PlantVillage/
+│   │   ├── images/
+│   │   └── classification_labels.csv
+│   │
+│   ├── PlantSeg/
+│   │   ├── images/
+│   │   ├── masks/
+│   │   ├── detection_labels/
+│   │   └── splits/
+│   │
+│   └── PlantDoc/
+│       ├── images/
+│       └── detection_labels/
+│
+├── configs/
+│   ├── dataset.yaml
+│   ├── model.yaml
+│   └── active_learning.yaml
+│
+├── models/
+├── datasets_tools/
+├── training/
+├── active_learning/
+├── inference/
+├── backend/
+├── frontend/
+├── evaluation/
+├── experiments/
+└── README.md</code></pre>
+<h3 id="类别映射必须统一">2.6 类别映射必须统一</h3>
+<p>建议建立 <code>class_mapping.csv</code>，包含：</p>
+<table>
+<thead>
+<tr class="header">
+<th>dataset</th>
+<th>crop</th>
+<th>disease</th>
+<th>unified_id</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PlantVillage</td>
+<td>Tomato</td>
+<td>Early blight</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>PlantSeg</td>
+<td>Tomato</td>
+<td>Early blight</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>PlantDoc</td>
+<td>Tomato</td>
+<td>Early blight</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>这里只是示意，必须根据各数据集真实类别定义进行核对。</p>
+<p>只有病害概念、寄主植物和标注语义确实一致时，才允许合并类别。</p>
+<p>对于无法匹配的类别，采用独立类别或仅用于各自数据集的评测，不要强行合并。</p>
+<p>另外，PlantSeg 的公开许可为 CC BY-NC
+4.0，数据记录中还包含来源许可信息；应保留出处、遵守非商业使用要求，并核查具体图像的许可条件。</p>
+<h2 id="三核心网络agrohafm-seg">三、核心网络：AgroHAFM-Seg</h2>
+<figure class="diagram">
+      <div class="diagram-title">图2  AgroHAFM-Seg 完整网络结构示意</div>
+      <div class="diagram-frame"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 470" role="img" aria-label="AgroLabel-AL技术架构示意图" class="inline-diagram">
+    <defs>
+      <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#54736a"/></marker>
+      <marker id="arrBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#4778a8"/></marker>
+      <linearGradient id="greenGrad" x1="0" x2="1"><stop offset="0" stop-color="#e6f4ed"/><stop offset="1" stop-color="#c9e8d8"/></linearGradient>
+      <linearGradient id="blueGrad" x1="0" x2="1"><stop offset="0" stop-color="#eaf2fb"/><stop offset="1" stop-color="#d7e7f8"/></linearGradient>
+      <linearGradient id="goldGrad" x1="0" x2="1"><stop offset="0" stop-color="#fff5dc"/><stop offset="1" stop-color="#fbe7b7"/></linearGradient>
+    </defs>
+    <rect x="25" y="190" width="145" height="105" rx="16" fill="#f2f5f8" stroke="#9aa9b5" stroke-width="2"/>
+    <text x="97.5" y="237.5" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">RGB图像</text><text x="97.5" y="266.5" text-anchor="middle" font-size="14" fill="#52636b">640×640×3</text><path d="M170,242 L210,242" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="210" y="165" width="180" height="155" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="300.0" y="237.5" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">YOLOv8n Backbone</text><text x="300.0" y="266.5" text-anchor="middle" font-size="15" fill="#52636b">C2 / C3 / C4 / C5</text><path d="M390,242 L430,242" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="430" y="145" width="210" height="195" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="535.0" y="237.5" text-anchor="middle" font-size="22" font-weight="700" fill="#203c35">HAFM Neck</text><text x="535.0" y="266.5" text-anchor="middle" font-size="15" fill="#52636b">P2 / P3 / P4 / P5
+高低层自适应融合</text><path d="M640,242 L680,242" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="680" y="90" width="205" height="115" rx="16" fill="#fff4dd" stroke="#c59a45" stroke-width="2"/>
+    <text x="782.5" y="142.5" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">Detection Head</text><text x="782.5" y="171.5" text-anchor="middle" font-size="15" fill="#52636b">类别 + 边界框</text><rect x="680" y="255" width="205" height="115" rx="16" fill="#fff4dd" stroke="#c59a45" stroke-width="2"/>
+    <text x="782.5" y="307.5" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">Segmentation Head</text><text x="782.5" y="336.5" text-anchor="middle" font-size="14" fill="#52636b">Mask Prototypes + Coefficients</text><path d="M885,145 L930,145" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M885,310 L930,310" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="930" y="80" width="235" height="130" rx="16" fill="#f3eafa" stroke="#9b82b7" stroke-width="2"/>
+    <text x="1047.5" y="140.0" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">BAGS 边界监督</text><text x="1047.5" y="169.0" text-anchor="middle" font-size="15" fill="#52636b">Mask + Boundary + Distance</text><rect x="930" y="250" width="235" height="120" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="1047.5" y="305.0" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">语义原型融合</text><text x="1047.5" y="334.0" text-anchor="middle" font-size="15" fill="#52636b">CLIP Text Prototype</text><path d="M1047 210 V230" stroke="#54736a" stroke-width="3" marker-end="url(#arr)"/><path d="M1047 370 V410 H780 V370" stroke="#4778a8" stroke-width="3" fill="none" marker-end="url(#arrBlue)"/><text x="900" y="435" text-anchor="middle" font-size="16" fill="#4778a8">类别语义分数与检测分类分支融合</text><text x="600" y="42" text-anchor="middle" font-size="19" font-weight="700" fill="#203c35">轻量主干 + 高分辨率特征融合 + 检测/分割双任务 + 辅助监督</text>
+    </svg></div>
+      <figcaption>以 YOLOv8n-seg 为基础，增加 P2/HAFM 多尺度特征融合、BAGS 边界几何辅助监督和类别语义原型融合。推理部署时可移除训练期辅助边界分支。</figcaption>
+    </figure>
+<p>建议不要从零设计整个检测网络。</p>
+<p>对于1—2人团队，最优策略是：</p>
+<p><strong>成熟轻量检测分割网络 +
+三个针对农业病斑的改进模块。</strong></p>
+<p>选择 YOLOv8n-seg
+作为基础框架。它同时具有检测框预测和实例掩码预测能力，方便进行改进与部署。</p>
+<h3 id="网络整体结构">3.1 网络整体结构</h3>
+<pre class="text"><code>                  RGB Image
+                640 × 640 × 3
+                       │
+                       ▼
+              Lightweight Backbone
+                  YOLOv8n
+                       │
+             C2     C3    C4    C5
+              │      │     │     │
+              └──────┴─────┴─────┘
+                       │
+                       ▼
+              HAFM Multi-scale Fusion
+                       │
+               P2    P3    P4    P5
+                │     │     │     │
+                └─────┴─────┴─────┘
+                       │
+              ┌────────┴────────┐
+              ▼                 ▼
+        Detection Head     Segmentation Head
+              │                 │
+         Class + Box       Mask Prototypes
+              │                 │
+              └────────┬────────┘
+                       │
+              BAGS Boundary Branch
+                       │
+                       ▼
+              Final Disease Results
+                       │
+                       ▼
+              Semantic Prototype Fusion
+                       │
+                       ▼
+           Class + Bounding Box + Mask</code></pre>
+<p>语义原型分支可以与检测分类分支并行计算，最终进行类别分数融合，而不是放在检测和分割全部完成后才处理。</p>
+<h3 id="模块一hafm-多尺度病斑增强融合">3.2 模块一：HAFM
+多尺度病斑增强融合</h3>
+<figure class="diagram">
+      <div class="diagram-title">图3  HAFM 高低层自适应特征融合</div>
+      <div class="diagram-frame"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" role="img" aria-label="AgroLabel-AL技术架构示意图" class="inline-diagram">
+    <defs>
+      <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#54736a"/></marker>
+      <marker id="arrBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#4778a8"/></marker>
+      <linearGradient id="greenGrad" x1="0" x2="1"><stop offset="0" stop-color="#e6f4ed"/><stop offset="1" stop-color="#c9e8d8"/></linearGradient>
+      <linearGradient id="blueGrad" x1="0" x2="1"><stop offset="0" stop-color="#eaf2fb"/><stop offset="1" stop-color="#d7e7f8"/></linearGradient>
+      <linearGradient id="goldGrad" x1="0" x2="1"><stop offset="0" stop-color="#fff5dc"/><stop offset="1" stop-color="#fbe7b7"/></linearGradient>
+    </defs>
+    <rect x="25" y="110" width="160" height="100" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="105.0" y="155.0" text-anchor="middle" font-size="21" font-weight="700" fill="#203c35">浅层特征 F₂</text><text x="105.0" y="184.0" text-anchor="middle" font-size="15" fill="#52636b">高分辨率纹理</text><rect x="25" y="245" width="160" height="100" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="105.0" y="290.0" text-anchor="middle" font-size="21" font-weight="700" fill="#203c35">深层特征 F₃</text><text x="105.0" y="319.0" text-anchor="middle" font-size="15" fill="#52636b">高层语义</text><path d="M185,160 L235,160" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M185,295 L235,295" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="235" y="110" width="175" height="100" rx="16" fill="#f2f5f8" stroke="#9aa9b5" stroke-width="2"/>
+    <text x="322.5" y="155.0" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">1×1 Conv</text><text x="322.5" y="184.0" text-anchor="middle" font-size="15" fill="#52636b">通道对齐</text><rect x="235" y="245" width="175" height="100" rx="16" fill="#f2f5f8" stroke="#9aa9b5" stroke-width="2"/>
+    <text x="322.5" y="290.0" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">1×1 Conv + Up</text><text x="322.5" y="319.0" text-anchor="middle" font-size="15" fill="#52636b">尺度对齐</text><path d="M410,160 L455,220" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M410,295 L455,235" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="455" y="165" width="190" height="120" rx="16" fill="#fff4dd" stroke="#c59a45" stroke-width="2"/>
+    <text x="550.0" y="220.0" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">Concat + Gate</text><text x="550.0" y="249.0" text-anchor="middle" font-size="16" fill="#52636b">G = σ(Conv([F₂,F₃]))</text><path d="M645,225 L690,225" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="690" y="165" width="195" height="120" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="787.5" y="220.0" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">加权融合</text><text x="787.5" y="249.0" text-anchor="middle" font-size="16" fill="#52636b">G⊙F₂ + (1−G)⊙F₃</text><path d="M885,225 L930,225" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="930" y="165" width="235" height="120" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="1047.5" y="220.0" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">DWConv + PWConv</text><text x="1047.5" y="249.0" text-anchor="middle" font-size="16" fill="#52636b">输出增强特征 F′</text><text x="600" y="65" text-anchor="middle" font-size="19" font-weight="700" fill="#203c35">HAFM：保留微小纹理，同时引入深层病害语义</text>
+    </svg></div>
+      <figcaption>门控权重动态调节浅层细节与深层语义的贡献。P2负责微小病斑，P3/P4/P5覆盖更大尺度目标；必须通过 P2-only 与 P2+HAFM 消融验证收益。</figcaption>
+    </figure>
+<p>全称：<em>High-resolution Adaptive Feature Modulation</em>。</p>
+<h4 id="研究动机">研究动机</h4>
+<p>病斑通常具有以下特点：</p>
+<ul>
+<li>小病斑面积占比低。</li>
+<li>不同病斑尺度差异大。</li>
+<li>病斑边缘与正常叶片纹理相似。</li>
+<li>深层特征可能丢失细小纹理。</li>
+</ul>
+<p>传统检测网络在连续下采样过程中容易丢失小目标信息。</p>
+<h4 id="改进一增加-p2-高分辨率检测分支">改进一：增加 P2
+高分辨率检测分支</h4>
+<p>YOLO 常规检测主要使用 P3、P4、P5。这里增加 P2：</p>
+<table>
+<thead>
+<tr class="header">
+<th>特征层</th>
+<th style="text-align: right;">下采样倍数</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>P2</td>
+<td style="text-align: right;">4</td>
+<td>微小病斑</td>
+</tr>
+<tr class="even">
+<td>P3</td>
+<td style="text-align: right;">8</td>
+<td>小型病斑</td>
+</tr>
+<tr class="odd">
+<td>P4</td>
+<td style="text-align: right;">16</td>
+<td>中型病斑</td>
+</tr>
+<tr class="even">
+<td>P5</td>
+<td style="text-align: right;">32</td>
+<td>大型病斑</td>
+</tr>
+</tbody>
+</table>
+<p>P2 的空间分辨率更高，可以保留更细的局部纹理。</p>
+<h4 id="改进二高低层自适应融合">改进二：高低层自适应融合</h4>
+<p>设浅层特征为 (F_2)，上采样后的深层特征为 (F_3)。</p>
+<p>先通过通道映射：</p>
+<p>[ F_2=Conv_{1}(F_2) ]</p>
+<p>[ F_3=Up(Conv_{1}(F_3)) ]</p>
+<p>计算融合门控：</p>
+<p>[ G=(Conv_{1}([F_2,F_3])) ]</p>
+<p>最终：</p>
+<p>[ F_{HAFM}=GF_2+ (1-G)F_3 ]</p>
+<p>再通过深度可分离卷积进行特征增强：</p>
+<p>[ F’<em>{HAFM}=PWConv(DWConv(F</em>{HAFM})) ]</p>
+<p>这样：</p>
+<ul>
+<li>浅层提供纹理细节。</li>
+<li>深层提供病害语义。</li>
+<li>门控机制自动决定不同特征的融合比例。</li>
+</ul>
+<p>真正的创新点：不是简单增加一个P2检测头，而是设计病斑细节与高层语义之间的自适应融合机制。</p>
+<p>建议消融：</p>
+<ol type="1">
+<li>原始 YOLOv8n-seg。</li>
+<li>YOLO + P2。</li>
+<li>YOLO + P2 + HAFM。</li>
+</ol>
+<p>重点比较小目标 Recall、Mask AP 和推理速度。</p>
+<h3 id="模块二bags-边界感知几何监督">3.3 模块二：BAGS
+边界感知几何监督</h3>
+<figure class="diagram">
+      <div class="diagram-title">图4  BAGS 边界感知几何监督</div>
+      <div class="diagram-frame"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 455" role="img" aria-label="AgroLabel-AL技术架构示意图" class="inline-diagram">
+    <defs>
+      <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#54736a"/></marker>
+      <marker id="arrBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#4778a8"/></marker>
+      <linearGradient id="greenGrad" x1="0" x2="1"><stop offset="0" stop-color="#e6f4ed"/><stop offset="1" stop-color="#c9e8d8"/></linearGradient>
+      <linearGradient id="blueGrad" x1="0" x2="1"><stop offset="0" stop-color="#eaf2fb"/><stop offset="1" stop-color="#d7e7f8"/></linearGradient>
+      <linearGradient id="goldGrad" x1="0" x2="1"><stop offset="0" stop-color="#fff5dc"/><stop offset="1" stop-color="#fbe7b7"/></linearGradient>
+    </defs>
+    <rect x="25" y="90" width="210" height="105" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="130.0" y="137.5" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">真实病斑掩码</text><text x="130.0" y="166.5" text-anchor="middle" font-size="15" fill="#52636b">Ground-truth Mask</text><path d="M235,142 L285,142" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="285" y="55" width="220" height="95" rx="16" fill="#fff4dd" stroke="#c59a45" stroke-width="2"/>
+    <text x="395.0" y="97.5" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">形态学边缘提取</text><text x="395.0" y="126.5" text-anchor="middle" font-size="14" fill="#52636b">Dilate − Erode</text><rect x="285" y="190" width="220" height="95" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="395.0" y="232.5" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">有符号距离变换</text><text x="395.0" y="261.5" text-anchor="middle" font-size="14" fill="#52636b">Signed Distance Map</text><path d="M505,102 L560,102" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M505,237 L560,237" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="560" y="55" width="185" height="95" rx="16" fill="#f3eafa" stroke="#9b82b7" stroke-width="2"/>
+    <text x="652.5" y="97.5" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">边界标签 B_GT</text><text x="652.5" y="126.5" text-anchor="middle" font-size="14" fill="#52636b">轮廓监督</text><rect x="560" y="190" width="185" height="95" rx="16" fill="#f3eafa" stroke="#9b82b7" stroke-width="2"/>
+    <text x="652.5" y="232.5" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">距离标签 D_GT</text><text x="652.5" y="261.5" text-anchor="middle" font-size="14" fill="#52636b">几何监督</text><rect x="25" y="335" width="210" height="85" rx="16" fill="#f2f5f8" stroke="#9aa9b5" stroke-width="2"/>
+    <text x="130.0" y="372.5" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">网络预测</text><text x="130.0" y="401.5" text-anchor="middle" font-size="14" fill="#52636b">Mask / Boundary / Distance</text><path d="M235,377 L285,377" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="285" y="330" width="220" height="95" rx="16" fill="#fff4dd" stroke="#c59a45" stroke-width="2"/>
+    <text x="395.0" y="372.5" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">联合损失</text><text x="395.0" y="401.5" text-anchor="middle" font-size="14" fill="#52636b">BCE + Dice + Boundary + SmoothL1</text><path d="M745,102 L800,102" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M745,237 L800,237" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="800" y="55" width="330" height="95" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="965.0" y="97.5" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">边界一致性</text><text x="965.0" y="126.5" text-anchor="middle" font-size="14" fill="#52636b">L_boundary = BCE + (1−Dice)</text><rect x="800" y="190" width="330" height="95" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="965.0" y="232.5" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">距离几何约束</text><text x="965.0" y="261.5" text-anchor="middle" font-size="14" fill="#52636b">L_distance = SmoothL1</text><path d="M395 330 V300 H965 V285" stroke="#54736a" stroke-width="2.5" fill="none" marker-end="url(#arr)"/><text x="600" y="28" text-anchor="middle" font-size="19" font-weight="700" fill="#203c35">BAGS：区域、轮廓与边界距离联合监督</text>
+    </svg></div>
+      <figcaption>训练期由真实掩码派生边界图和有符号距离图，辅助网络学习更精确的不规则病斑边缘；推理时可移除辅助预测头。</figcaption>
+    </figure>
+<p>全称：<em>Boundary-Aware Geometric Supervision</em>。</p>
+<p>这个模块针对病斑边界不规则、分割结果容易虚胖或边缘缺失的问题。</p>
+<h4 id="研究动机-1">研究动机</h4>
+<p>传统 Dice Loss 和 BCE Loss
+主要优化区域重叠程度，但病斑的几何边界也很重要。</p>
+<p>例如：</p>
+<ul>
+<li>两个面积相近的掩码，边界形状可能差异很大。</li>
+<li>微小病斑边缘偏移几个像素，就可能造成明显的区域误差。</li>
+<li>不规则病斑容易出现轮廓平滑过度的问题。</li>
+</ul>
+<h4 id="网络设计">网络设计</h4>
+<p>在原始分割头旁边增加一个边界辅助预测分支。网络同时预测：</p>
+<ol type="1">
+<li>病斑掩码 (M)。</li>
+<li>病斑边界图 (B)。</li>
+<li>归一化有符号距离图 (D)。</li>
+</ol>
+<p>其中：</p>
+<ul>
+<li>(M)：病斑区域。</li>
+<li>(B)：病斑边缘。</li>
+<li>(D)：每个像素到病斑边界的有符号距离。</li>
+</ul>
+<h4 id="标签生成">标签生成</h4>
+<p>利用真实掩码进行形态学处理：</p>
+<p>[ B_{GT}=Dilate(M_{GT})-Erode(M_{GT}) ]</p>
+<p>有符号距离图：</p>
+[ D_{GT}(p)=
+<p>]</p>
+<p>再对距离值进行归一化，避免距离数值过大。</p>
+<h4 id="损失函数">损失函数</h4>
+<p>区域损失：</p>
+<p>[ L_{mask}=L_{BCE}+(1-Dice) ]</p>
+<p>边界损失：</p>
+<p>[ L_{boundary}=BCE(B,B_{GT}) +(1-Dice(B,B_{GT})) ]</p>
+<p>距离约束：</p>
+<p>[ L_{distance}=SmoothL1(D,D_{GT}) ]</p>
+<p>最终：</p>
+<p>[ L_{BAGS}= L_{mask} +<em>b L</em>{boundary} +<em>d L</em>{distance}
+]</p>
+<p>这样模型不仅要学会病斑在哪里，还要学会病斑边缘在哪里。</p>
+<p>工程实现注意：边界分支在训练时增加监督，推理时可以移除辅助分支，只保留分割输出，从而降低部署成本。</p>
+<h3 id="模块三语义原型引导的多模态融合">3.4
+模块三：语义原型引导的多模态融合</h3>
+<figure class="diagram">
+      <div class="diagram-title">图5  语义原型引导的多模态融合</div>
+      <div class="diagram-frame"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 370" role="img" aria-label="AgroLabel-AL技术架构示意图" class="inline-diagram">
+    <defs>
+      <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#54736a"/></marker>
+      <marker id="arrBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#4778a8"/></marker>
+      <linearGradient id="greenGrad" x1="0" x2="1"><stop offset="0" stop-color="#e6f4ed"/><stop offset="1" stop-color="#c9e8d8"/></linearGradient>
+      <linearGradient id="blueGrad" x1="0" x2="1"><stop offset="0" stop-color="#eaf2fb"/><stop offset="1" stop-color="#d7e7f8"/></linearGradient>
+      <linearGradient id="goldGrad" x1="0" x2="1"><stop offset="0" stop-color="#fff5dc"/><stop offset="1" stop-color="#fbe7b7"/></linearGradient>
+    </defs>
+    <rect x="25" y="75" width="205" height="105" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="127.5" y="122.5" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">病斑图像 / RoI</text><text x="127.5" y="151.5" text-anchor="middle" font-size="15" fill="#52636b">视觉输入</text><rect x="25" y="235" width="205" height="105" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="127.5" y="282.5" text-anchor="middle" font-size="19" font-weight="700" fill="#203c35">类别与症状 Prompt</text><text x="127.5" y="311.5" text-anchor="middle" font-size="15" fill="#52636b">文本语义输入</text><path d="M230,127 L290,127" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M230,287 L290,287" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="290" y="75" width="220" height="105" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="400.0" y="122.5" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">视觉编码器</text><text x="400.0" y="151.5" text-anchor="middle" font-size="15" fill="#52636b">Visual Feature V</text><rect x="290" y="235" width="220" height="105" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="400.0" y="282.5" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">冻结文本编码器</text><text x="400.0" y="311.5" text-anchor="middle" font-size="15" fill="#52636b">Text Prototype T</text><path d="M510,127 L575,185" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M510,287 L575,220" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="575" y="145" width="215" height="120" rx="16" fill="#fff4dd" stroke="#c59a45" stroke-width="2"/>
+    <text x="682.5" y="200.0" text-anchor="middle" font-size="21" font-weight="700" fill="#203c35">相似度计算</text><text x="682.5" y="229.0" text-anchor="middle" font-size="17" fill="#52636b">S = VᵀT / τ</text><path d="M790,205 L845,205" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="845" y="145" width="160" height="120" rx="16" fill="#f3eafa" stroke="#9b82b7" stroke-width="2"/>
+    <text x="925.0" y="200.0" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">门控融合</text><text x="925.0" y="229.0" text-anchor="middle" font-size="17" fill="#52636b">λ · S</text><path d="M1005,205 L1050,205" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="1050" y="145" width="135" height="120" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="1117.5" y="200.0" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">分类分数</text><text x="1117.5" y="229.0" text-anchor="middle" font-size="15" fill="#52636b">Z_det + λS</text><text x="600" y="35" text-anchor="middle" font-size="19" font-weight="700" fill="#203c35">视觉特征与疾病文本原型对齐</text>
+    </svg></div>
+      <figcaption>CLIP文本原型离线缓存；推理时不依赖在线大模型。类别原型必须使用完整候选类别集合，且只在类别定义可对齐的数据集间共享。</figcaption>
+    </figure>
+<p>这是整个方案中体现多模态特征的部分。</p>
+<h4 id="为什么需要语义先验">为什么需要语义先验？</h4>
+<p>例如：</p>
+<ul>
+<li>番茄早疫病。</li>
+<li>番茄晚疫病。</li>
+<li>马铃薯早疫病。</li>
+<li>马铃薯晚疫病。</li>
+</ul>
+<p>它们可能存在相似的颜色、纹理和病斑形态。只依赖局部图像纹理，容易发生细粒度类别混淆。</p>
+<h4 id="设计方案">设计方案</h4>
+<p>使用冻结的 CLIP 文本编码器，在训练前生成疾病类别语义原型。</p>
+<p>例如：</p>
+<pre class="text"><code>A close-up image of a tomato leaf
+with early blight disease.
+
+A close-up image of a tomato leaf
+with late blight disease.
+
+A close-up image of a potato leaf
+with early blight disease.</code></pre>
+<p>每个类别生成文本向量：</p>
+<p>[ T_c=E_{text}(Prompt_c) ]</p>
+<p>视觉检测特征生成：</p>
+<p>[ V_i=E_{visual}(F_i) ]</p>
+<p>计算相似度：</p>
+<p>[ S_{ic}= ]</p>
+<p>其中 () 为温度参数。</p>
+<p>最终分类分数融合：</p>
+<p>[ Z_i=Z_i^{det}+_i S_i ]</p>
+<p>其中 (_i) 由门控网络预测，并限制在合理范围内。</p>
+<h4 id="多模态损失">多模态损失</h4>
+<p>[ L_{semantic}=CE(Softmax(S_i),y_i) ]</p>
+<p>如果类别之间存在明显语义相似性，还可以增加对比学习损失，但不建议第一版就引入复杂的对比学习框架。</p>
+<p>特别注意：</p>
+<ol type="1">
+<li>文本原型在本地提前生成并缓存。</li>
+<li>推理时不调用在线大模型。</li>
+<li>不能将真实测试类别直接作为模型输入。</li>
+<li>所有候选类别的文本原型都参与预测。</li>
+<li>对于数据集之间无法统一的类别，不进行强制语义融合。</li>
+</ol>
+<p>如果 CLIP
+语义分支不能提升验证集性能，就应当移除，而不是为了保留多模态概念而强行使用。</p>
+<h2 id="四完整损失函数设计">四、完整损失函数设计</h2>
+<p>网络最终训练目标：</p>
+<p>[ ]</p>
+<p>具体建议：</p>
+<table>
+<thead>
+<tr class="header">
+<th>损失</th>
+<th>作用</th>
+<th style="text-align: right;">初始权重建议</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>分类损失</td>
+<td>病害类别识别</td>
+<td style="text-align: right;">按基础模型</td>
+</tr>
+<tr class="even">
+<td>CIoU Loss</td>
+<td>检测框定位</td>
+<td style="text-align: right;">按基础模型</td>
+</tr>
+<tr class="odd">
+<td>DFL</td>
+<td>检测框分布回归</td>
+<td style="text-align: right;">按基础模型</td>
+</tr>
+<tr class="even">
+<td>BCE + Dice</td>
+<td>病斑区域分割</td>
+<td style="text-align: right;">1.0</td>
+</tr>
+<tr class="odd">
+<td>Boundary Loss</td>
+<td>病斑边缘监督</td>
+<td style="text-align: right;">0.25</td>
+</tr>
+<tr class="even">
+<td>Distance Loss</td>
+<td>几何边界约束</td>
+<td style="text-align: right;">0.1</td>
+</tr>
+<tr class="odd">
+<td>Semantic Loss</td>
+<td>类别语义对齐</td>
+<td style="text-align: right;">0.1</td>
+</tr>
+</tbody>
+</table>
+<p>这些权重是实验起点，不是固定最优值。</p>
+<p>建议先训练没有语义分支的版本，再逐步加入模块。不要一开始就同时增加所有损失，否则很难判断性能变化来自哪里。</p>
+<h2 id="五核心算法vard-al-价值感知主动学习">五、核心算法：VARD-AL
+价值感知主动学习</h2>
+<figure class="diagram">
+      <div class="diagram-title">图6  VARD-AL 主动学习评分与迭代流程</div>
+      <div class="diagram-frame"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 365" role="img" aria-label="AgroLabel-AL技术架构示意图" class="inline-diagram">
+    <defs>
+      <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#54736a"/></marker>
+      <marker id="arrBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#4778a8"/></marker>
+      <linearGradient id="greenGrad" x1="0" x2="1"><stop offset="0" stop-color="#e6f4ed"/><stop offset="1" stop-color="#c9e8d8"/></linearGradient>
+      <linearGradient id="blueGrad" x1="0" x2="1"><stop offset="0" stop-color="#eaf2fb"/><stop offset="1" stop-color="#d7e7f8"/></linearGradient>
+      <linearGradient id="goldGrad" x1="0" x2="1"><stop offset="0" stop-color="#fff5dc"/><stop offset="1" stop-color="#fbe7b7"/></linearGradient>
+    </defs>
+    <rect x="20" y="135" width="165" height="110" rx="16" fill="#f2f5f8" stroke="#9aa9b5" stroke-width="2"/>
+    <text x="102.5" y="185.0" text-anchor="middle" font-size="19" font-weight="700" fill="#203c35">未标注图片池 U</text><text x="102.5" y="214.0" text-anchor="middle" font-size="14" fill="#52636b">Pool</text><path d="M185,190 L225,190" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="225" y="95" width="180" height="190" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="315.0" y="185.0" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">模型推理</text><text x="315.0" y="214.0" text-anchor="middle" font-size="15" fill="#52636b">分类 / 检测 / 分割
+多视图增强</text><path d="M405,190 L450,190" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="450" y="35" width="170" height="90" rx="16" fill="#fff4dd" stroke="#c59a45" stroke-width="2"/>
+    <text x="535.0" y="75.0" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">不确定性 U</text><text x="535.0" y="104.0" text-anchor="middle" font-size="14" fill="#52636b">Entropy / Mask</text><rect x="450" y="145" width="170" height="90" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="535.0" y="185.0" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">多样性 D</text><text x="535.0" y="214.0" text-anchor="middle" font-size="14" fill="#52636b">Feature Distance</text><rect x="450" y="255" width="170" height="90" rx="16" fill="#f3eafa" stroke="#9b82b7" stroke-width="2"/>
+    <text x="535.0" y="295.0" text-anchor="middle" font-size="17" font-weight="700" fill="#203c35">稀有度 R + 分歧 G</text><text x="535.0" y="324.0" text-anchor="middle" font-size="13" fill="#52636b">Class Rarity / TTA</text><path d="M620,80 L675,175" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M620,190 L675,190" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M620,300 L675,205" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="675" y="125" width="190" height="145" rx="16" fill="#fff4dd" stroke="#c59a45" stroke-width="2"/>
+    <text x="770.0" y="192.5" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">成本感知评分</text><text x="770.0" y="221.5" text-anchor="middle" font-size="15" fill="#52636b">S = (0.35U + 0.25D
++ 0.20R + 0.20G) / C</text><path d="M865,197 L910,197" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="910" y="125" width="130" height="145" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="975.0" y="192.5" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">贪心多样性</text><text x="975.0" y="221.5" text-anchor="middle" font-size="15" fill="#52636b">Top-K / 配额</text><path d="M1040,197 L1070,197" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="1070" y="125" width="115" height="145" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="1127.5" y="192.5" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">人工复核</text><text x="1127.5" y="221.5" text-anchor="middle" font-size="14" fill="#52636b">修正标签</text><path d="M1125 270 V325 H315 V290" stroke="#4778a8" stroke-width="3" fill="none" marker-end="url(#arrBlue)"/><text x="720" y="320" text-anchor="middle" font-size="17" fill="#4778a8" font-weight="700">标签加入训练集 L，训练下一轮模型</text><text x="600" y="18" text-anchor="middle" font-size="19" font-weight="700" fill="#203c35">VARD-AL：选择单位人工成本下最有价值的样本</text>
+    </svg></div>
+      <figcaption>评分权重仅为初始实验设置；所有分量需归一化，人工成本需用真实标注耗时拟合，并通过随机采样等基线验证。</figcaption>
+    </figure>
+<p>这是最应该重点投入的部分。</p>
+<p>因为模型创新只能提高预标注质量，而主动学习直接解决企业最关心的问题：</p>
+<p><strong>有限人工标注预算下，怎样让模型尽可能快地变好？</strong></p>
+<p>传统随机标注：人工随机选取100张图片，逐张标注。</p>
+<p>我们的方法：AI先分析全部未标注图片，找出最值得人工标注的100张。</p>
+<h3 id="四维价值评价机制">5.1 四维价值评价机制</h3>
+<h4 id="a.-不确定性-u">A. 不确定性 U</h4>
+<p>判断模型对当前图片是否有把握。包含三个部分：</p>
+<ul>
+<li>分类不确定性。</li>
+<li>检测框置信度不确定性。</li>
+<li>分割掩码不确定性。</li>
+</ul>
+<p>分类熵：</p>
+<p>[ U_{cls}= - _{c=1}^{C}p_c(p_c+) ]</p>
+<p>检测不确定性：</p>
+<p>[ U_{det}=1-_{j=1}^{N}conf_j ]</p>
+<p>掩码不确定性：</p>
+<p>[ U_{mask}= _{x,y}4p(x,y)(1-p(x,y)) ]</p>
+<p>最终：</p>
+<p>[ U=0.4U_{cls}+0.3U_{det}+0.3U_{mask} ]</p>
+<p>其中掩码不确定性建议只在模型预测的病斑区域附近计算，避免大量背景像素稀释结果。</p>
+<h4 id="b.-多样性-d">B. 多样性 D</h4>
+<p>避免人工反复标注相似图片。</p>
+<p>利用 Backbone 的图像特征提取向量：</p>
+<p>[ f_i=Encoder(I_i) ]</p>
+<p>计算未标注图片与当前已标注集合的最小余弦距离：</p>
+<p>[ D_i= _{jL} (1- {|f_i||f_j|}) ]</p>
+<p>距离越大，说明图片越具有新颖性。</p>
+<p>为了避免不同量纲影响，所有指标均进行归一化。</p>
+<h4 id="c.-稀有类别-r">C. 稀有类别 R</h4>
+<p>如果模型发现某类病害样本非常少，就应该增加这类样本的标注优先级。</p>
+<p>定义：</p>
+<p>[ R_c= ]</p>
+<p>其中 (n_c) 是当前训练集该类别的有效标注数量。</p>
+<p>对于一张包含多个预测病斑的图片：</p>
+<p>[ R_i=_{cP_i}R_c ]</p>
+<p>这里 (P_i) 为该图片预测出的类别集合。</p>
+<p>如果一张图片没有预测出病斑，则不凭空赋予某个稀有类别，而由不确定性和多样性分数处理。</p>
+<h4 id="d.-模型分歧-g">D. 模型分歧 G</h4>
+<p>同一张图片在不同增强条件下预测不一致，可能存在复杂病斑。</p>
+<p>具体做法：对一张图片执行：</p>
+<ul>
+<li>原图推理。</li>
+<li>水平翻转推理。</li>
+<li>轻微亮度变化推理。</li>
+</ul>
+<p>将不同视图的检测框和掩码映射回原始坐标系，匹配相应预测，再计算预测差异。</p>
+<p>例如：</p>
+<p>[ G_i=1- (M_i<sup>{view1},M_i</sup>{view2}) ]</p>
+<p>也可以加入类别预测分布之间的 Jensen-Shannon Divergence。</p>
+<p>不需要额外训练第二个大型模型，使用测试时增强就可以实现。</p>
+<h3 id="增加人工标注成本感知">5.2 增加人工标注成本感知</h3>
+<p>传统主动学习只考虑样本价值。但一张简单图片可能只需要5秒钟就能修正，一张复杂图片可能需要2分钟才能修正。</p>
+<p>因此，增加人工标注成本 (C_i)。</p>
+<p>建立初始标注成本模型：</p>
+<p>[ C_i=a+bN_i+cP_i ]</p>
+<p>其中：</p>
+<ul>
+<li>(N_i)：预测病斑数量。</li>
+<li>(P_i)：预测掩码的边界复杂度。</li>
+<li>(a,b,c)：通过实际人工标注时间拟合的参数。</li>
+</ul>
+<p>在平台运行初期，先记录50～100张图片的真实人工修正时间，建立初始成本估计模型，之后可以逐步更新。</p>
+<h3 id="最终联合评分公式">5.3 最终联合评分公式</h3>
+<p>[ ]</p>
+<p>其中 (C_i) 是归一化后的人工成本。</p>
+<p>以上权重是第一轮实验的初始设置，应通过验证集和主动学习实验确定，不应在测试集上调参。</p>
+<h3 id="多样性约束防止选出100张相似图片">5.4
+多样性约束：防止选出100张相似图片</h3>
+<p>仅按照分数排序可能导致一个问题：模型发现100张番茄早疫病图片都很难，于是全部选出来。这不利于数据集的类别覆盖。</p>
+<p>建议采用贪心批量选择：</p>
+<ol type="1">
+<li>先选择得分最高的图片。</li>
+<li>计算其他图片与已选图片的特征距离。</li>
+<li>优先选择高价值且与已选样本差异较大的图片。</li>
+<li>同时设置类别数量上限或稀有类别最低配额。</li>
+</ol>
+<p>可以使用：</p>
+<p>[ Q_i=S_i+_{jB}d(f_i,f_j) ]</p>
+<p>其中 (B) 为本轮已经选中的图片集合。</p>
+<p>这样能兼顾价值与多样性。</p>
+<h3 id="主动学习完整执行流程">5.5 主动学习完整执行流程</h3>
+<ol type="1">
+<li>初始已标注训练集 L₀（5%）。</li>
+<li>训练初始 AgroHAFM-Seg 模型。</li>
+<li>对未标注池 U 进行预测。</li>
+<li>计算 U、D、R、G、C。</li>
+<li>VARD-AL 价值排序与多样性筛选。</li>
+<li>人工标注与修正。</li>
+<li>新标签加入 L，训练集扩大。</li>
+<li>进入下一轮主动学习。</li>
+</ol>
+<h3 id="必须完成的对照实验">5.6 必须完成的对照实验</h3>
+<table>
+<thead>
+<tr class="header">
+<th>方法</th>
+<th>策略</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Random</td>
+<td>随机选择</td>
+</tr>
+<tr class="even">
+<td>Entropy-AL</td>
+<td>仅不确定性</td>
+</tr>
+<tr class="odd">
+<td>CoreSet-AL</td>
+<td>仅多样性</td>
+</tr>
+<tr class="even">
+<td>Hybrid-AL</td>
+<td>不确定性+多样性</td>
+</tr>
+<tr class="odd">
+<td>VARD-AL</td>
+<td>四维联合+成本感知</td>
+</tr>
+</tbody>
+</table>
+<p>建议采用：</p>
+<ul>
+<li>初始标注预算：5%。</li>
+<li>每轮增加：5%。</li>
+<li>总预算：5%、10%、15%、20%、25%、30%。</li>
+<li>每个方法运行3个随机种子。</li>
+<li>验证集、测试集始终固定。</li>
+</ul>
+<p>最终比较：</p>
+<ol type="1">
+<li>相同标注预算下的 mAP 和 mIoU。</li>
+<li>达到相同模型精度所需的标注图片数量。</li>
+<li>达到相同质量所需的人工时间。</li>
+<li>稀有类别的检测和分割性能。</li>
+</ol>
+<p>其中第三项特别重要，因为企业真正想减少的是人工工作量，而不只是减少图片数量。</p>
+<h2 id="六人机协同系统完整工程架构">六、人机协同系统：完整工程架构</h2>
+<figure class="diagram">
+      <div class="diagram-title">图7  人机协同标注系统架构</div>
+      <div class="diagram-frame"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 465" role="img" aria-label="AgroLabel-AL技术架构示意图" class="inline-diagram">
+    <defs>
+      <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#54736a"/></marker>
+      <marker id="arrBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#4778a8"/></marker>
+      <linearGradient id="greenGrad" x1="0" x2="1"><stop offset="0" stop-color="#e6f4ed"/><stop offset="1" stop-color="#c9e8d8"/></linearGradient>
+      <linearGradient id="blueGrad" x1="0" x2="1"><stop offset="0" stop-color="#eaf2fb"/><stop offset="1" stop-color="#d7e7f8"/></linearGradient>
+      <linearGradient id="goldGrad" x1="0" x2="1"><stop offset="0" stop-color="#fff5dc"/><stop offset="1" stop-color="#fbe7b7"/></linearGradient>
+    </defs>
+    <rect x="310" y="25" width="580" height="85" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="600.0" y="62.5" text-anchor="middle" font-size="22" font-weight="700" fill="#203c35">Vue3 + Konva 前端</text><text x="600.0" y="91.5" text-anchor="middle" font-size="16" fill="#52636b">图片管理 · 预标注可视化 · 框/掩码编辑 · 统计看板</text><path d="M600,110 L600,150" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="310" y="150" width="580" height="80" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="600.0" y="185.0" text-anchor="middle" font-size="21" font-weight="700" fill="#203c35">FastAPI 业务服务</text><text x="600.0" y="214.0" text-anchor="middle" font-size="15" fill="#52636b">数据导入 · 标注接口 · 主动学习队列 · 训练管理</text><path d="M450,230 L300,275" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M750,230 L900,275" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="45" y="275" width="440" height="100" rx="16" fill="#fff4dd" stroke="#c59a45" stroke-width="2"/>
+    <text x="265.0" y="320.0" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">模型服务</text><text x="265.0" y="349.0" text-anchor="middle" font-size="15" fill="#52636b">PyTorch训练 · ONNX推理 · VARD-AL评分</text><rect x="715" y="275" width="440" height="100" rx="16" fill="#f3eafa" stroke="#9b82b7" stroke-width="2"/>
+    <text x="935.0" y="320.0" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">数据服务</text><text x="935.0" y="349.0" text-anchor="middle" font-size="15" fill="#52636b">SQLite · 图片路径 · 标签版本 · 人工日志</text><path d="M265 375 V420 H935 V375" stroke="#4778a8" stroke-width="2.5" fill="none" marker-end="url(#arrBlue)"/><text x="600" y="445" text-anchor="middle" font-size="17" fill="#4778a8">本地文件系统 / GPU / CPU / ONNX Runtime</text><text x="600" y="12" text-anchor="middle" font-size="19" font-weight="700" fill="#203c35">本地优先、模块解耦、可复现部署</text>
+    </svg></div>
+      <figcaption>前端负责可视化交互，FastAPI负责业务编排，模型服务与数据服务分离；核心推理在本地或私有环境运行。</figcaption>
+    </figure>
+<h3 id="技术栈">6.1 技术栈</h3>
+<table>
+<thead>
+<tr class="header">
+<th>层级</th>
+<th>技术</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>前端</td>
+<td>Vue3 + Konva</td>
+<td>图片显示、框和掩码编辑</td>
+</tr>
+<tr class="even">
+<td>后端</td>
+<td>FastAPI</td>
+<td>接口与业务逻辑</td>
+</tr>
+<tr class="odd">
+<td>模型</td>
+<td>PyTorch</td>
+<td>训练与算法研发</td>
+</tr>
+<tr class="even">
+<td>推理</td>
+<td>ONNX Runtime</td>
+<td>本地模型部署</td>
+</tr>
+<tr class="odd">
+<td>数据库</td>
+<td>SQLite</td>
+<td>标签和日志管理</td>
+</tr>
+<tr class="even">
+<td>数据可视化</td>
+<td>ECharts</td>
+<td>统计看板</td>
+</tr>
+</tbody>
+</table>
+<p>如果只有一个人，可以先使用 Gradio 实现功能验证，再逐步迁移到
+Vue3。</p>
+<h3 id="系统整体架构">6.2 系统整体架构</h3>
+<pre class="text"><code>Vue3 智能标注前端
+  数据管理 / 图像编辑 / 难例队列 / 统计看板
+                  │
+                  ▼
+FastAPI 业务服务
+  数据导入 / 标注接口 / 主动学习 / 训练管理
+          │                   │
+          ▼                   ▼
+      模型服务             数据服务
+ YOLO / ONNX / VARD-AL   SQLite / 图片 / 标签 / 日志
+          │                   │
+          └─────────┬─────────┘
+                    ▼
+       本地模型推理与训练
+ GPU / CPU / ONNX Runtime / 增量训练</code></pre>
+<h3 id="六个核心功能页面">6.3 六个核心功能页面</h3>
+<p><strong>页面一：数据集管理</strong></p>
+<ul>
+<li>批量导入图片。</li>
+<li>自动读取类别信息。</li>
+<li>重复图片检测。</li>
+<li>训练集、验证集、测试集管理。</li>
+<li>数据分布统计。</li>
+</ul>
+<p><strong>页面二：智能预标注</strong></p>
+<ul>
+<li>自动检测病斑。</li>
+<li>自动生成检测框。</li>
+<li>自动生成病斑掩码。</li>
+<li>显示类别和置信度。</li>
+<li>一键接受预标注。</li>
+</ul>
+<p><strong>页面三：人工修正</strong></p>
+<ul>
+<li>拖动和调整检测框。</li>
+<li>增删多边形顶点。</li>
+<li>画笔修正掩码。</li>
+<li>修改病害类别。</li>
+<li>撤销、恢复、保存。</li>
+</ul>
+<p><strong>页面四：主动学习队列</strong></p>
+<ul>
+<li>难例排名。</li>
+<li>价值评分。</li>
+<li>采样原因说明。</li>
+<li>稀有类别提示。</li>
+<li>批量分配人工标注。</li>
+</ul>
+<p><strong>页面五：标签质量检测</strong></p>
+<ul>
+<li>空掩码检测。</li>
+<li>重复框检测。</li>
+<li>框与掩码一致性。</li>
+<li>类别冲突检测。</li>
+<li>异常标注提示。</li>
+</ul>
+<p><strong>页面六：提效统计看板</strong></p>
+<ul>
+<li>人工标注耗时。</li>
+<li>人工修改次数。</li>
+<li>预标注接受率。</li>
+<li>标注成本下降比例。</li>
+<li>模型版本和精度变化。</li>
+</ul>
+<h3 id="最重要的交互流程">6.4 最重要的交互流程</h3>
+<figure class="diagram">
+      <div class="diagram-title">图8  预标注—人工修正—数据回流闭环</div>
+      <div class="diagram-frame"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-label="AgroLabel-AL技术架构示意图" class="inline-diagram">
+    <defs>
+      <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#54736a"/></marker>
+      <marker id="arrBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#4778a8"/></marker>
+      <linearGradient id="greenGrad" x1="0" x2="1"><stop offset="0" stop-color="#e6f4ed"/><stop offset="1" stop-color="#c9e8d8"/></linearGradient>
+      <linearGradient id="blueGrad" x1="0" x2="1"><stop offset="0" stop-color="#eaf2fb"/><stop offset="1" stop-color="#d7e7f8"/></linearGradient>
+      <linearGradient id="goldGrad" x1="0" x2="1"><stop offset="0" stop-color="#fff5dc"/><stop offset="1" stop-color="#fbe7b7"/></linearGradient>
+    </defs>
+    <rect x="20" y="105" width="160" height="120" rx="16" fill="#fff4dd" stroke="#c59a45" stroke-width="2"/>
+    <text x="100.0" y="160.0" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">上传图片</text><text x="100.0" y="189.0" text-anchor="middle" font-size="14" fill="#52636b">批量导入</text><rect x="220" y="105" width="160" height="120" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="300.0" y="160.0" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">自动预标注</text><text x="300.0" y="189.0" text-anchor="middle" font-size="14" fill="#52636b">框 + 类别 + 掩码</text><rect x="420" y="105" width="160" height="120" rx="16" fill="#fff4dd" stroke="#c59a45" stroke-width="2"/>
+    <text x="500.0" y="160.0" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">主动学习排序</text><text x="500.0" y="189.0" text-anchor="middle" font-size="14" fill="#52636b">挑选高价值样本</text><rect x="620" y="105" width="160" height="120" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="700.0" y="160.0" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">人工修正</text><text x="700.0" y="189.0" text-anchor="middle" font-size="14" fill="#52636b">改框 / 改掩码</text><rect x="820" y="105" width="160" height="120" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="900.0" y="160.0" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">质量检查</text><text x="900.0" y="189.0" text-anchor="middle" font-size="14" fill="#52636b">冲突 / 越界 / 重复</text><rect x="1020" y="105" width="160" height="120" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="1100.0" y="160.0" text-anchor="middle" font-size="18" font-weight="700" fill="#203c35">数据回流</text><text x="1100.0" y="189.0" text-anchor="middle" font-size="14" fill="#52636b">保存 / 再训练</text><path d="M180,165 L220,165" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M380,165 L420,165" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M580,165 L620,165" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M780,165 L820,165" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M980,165 L1020,165" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><path d="M1100 225 V285 H300 V225" stroke="#4778a8" stroke-width="3" fill="none" marker-end="url(#arrBlue)"/><text x="700" y="278" text-anchor="middle" font-size="17" fill="#4778a8" font-weight="700">新标签更新模型，下一轮自动预标注质量提升</text>
+    </svg></div>
+      <figcaption>演示时建议完整走通该流程：导入一批图片、自动预标注、查看难例队列、人工修正、保存标签并触发模型更新。</figcaption>
+    </figure>
+<ol type="1">
+<li>用户上传100张农业图片。</li>
+<li>点击自动预标注。</li>
+<li>系统生成检测框、病害类别和掩码。</li>
+<li>系统自动选出最值得人工复核的20张。</li>
+<li>用户打开图片修改检测框和病斑区域。</li>
+<li>点击保存，标签进入数据库。</li>
+<li>系统统计人工耗时与修改次数。</li>
+<li>用户点击数据回流，启动新模型训练。</li>
+<li>新模型验证通过后更新模型版本。</li>
+</ol>
+<p>这九步就是完整的产业应用闭环。</p>
+<h3 id="数据库设计">6.5 数据库设计</h3>
+<p>建议最少建立六张表：</p>
+<table>
+<thead>
+<tr class="header">
+<th>表名</th>
+<th>关键字段</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>images</td>
+<td>image_id、path、split</td>
+<td>图片管理</td>
+</tr>
+<tr class="even">
+<td>predictions</td>
+<td>image_id、model_id、boxes、masks</td>
+<td>模型预测</td>
+</tr>
+<tr class="odd">
+<td>annotations</td>
+<td>image_id、class_id、mask、bbox</td>
+<td>最终标签</td>
+</tr>
+<tr class="even">
+<td>review_logs</td>
+<td>image_id、edit_count、time</td>
+<td>人工修改记录</td>
+</tr>
+<tr class="odd">
+<td>active_batches</td>
+<td>batch_id、score、reason</td>
+<td>主动学习任务</td>
+</tr>
+<tr class="even">
+<td>model_versions</td>
+<td>version、metrics、path</td>
+<td>模型版本管理</td>
+</tr>
+</tbody>
+</table>
+<p>尤其要保存人工修改前后的标签，方便统计每张图片的修改成本。</p>
+<h2 id="七训练与实验具体怎么做">七、训练与实验：具体怎么做？</h2>
+<figure class="diagram">
+      <div class="diagram-title">图9  模型消融与系统提效实验路线</div>
+      <div class="diagram-frame"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" role="img" aria-label="AgroLabel-AL技术架构示意图" class="inline-diagram">
+    <defs>
+      <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#54736a"/></marker>
+      <marker id="arrBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#4778a8"/></marker>
+      <linearGradient id="greenGrad" x1="0" x2="1"><stop offset="0" stop-color="#e6f4ed"/><stop offset="1" stop-color="#c9e8d8"/></linearGradient>
+      <linearGradient id="blueGrad" x1="0" x2="1"><stop offset="0" stop-color="#eaf2fb"/><stop offset="1" stop-color="#d7e7f8"/></linearGradient>
+      <linearGradient id="goldGrad" x1="0" x2="1"><stop offset="0" stop-color="#fff5dc"/><stop offset="1" stop-color="#fbe7b7"/></linearGradient>
+    </defs>
+    <rect x="20" y="110" width="165" height="105" rx="16" fill="#f2f5f8" stroke="#9aa9b5" stroke-width="2"/>
+    <text x="102.5" y="157.5" text-anchor="middle" font-size="19" font-weight="700" fill="#203c35">E1 基线</text><text x="102.5" y="186.5" text-anchor="middle" font-size="14" fill="#52636b">YOLOv8n-seg</text><path d="M185,162 L225,162" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="225" y="110" width="165" height="105" rx="16" fill="#eaf2fb" stroke="#7396bb" stroke-width="2"/>
+    <text x="307.5" y="157.5" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">E2</text><text x="307.5" y="186.5" text-anchor="middle" font-size="15" fill="#52636b">+ P2</text><path d="M390,162 L430,162" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="430" y="110" width="165" height="105" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="512.5" y="157.5" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">E3</text><text x="512.5" y="186.5" text-anchor="middle" font-size="15" fill="#52636b">+ HAFM</text><path d="M595,162 L635,162" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="635" y="110" width="165" height="105" rx="16" fill="#fff4dd" stroke="#c59a45" stroke-width="2"/>
+    <text x="717.5" y="157.5" text-anchor="middle" font-size="20" font-weight="700" fill="#203c35">E4</text><text x="717.5" y="186.5" text-anchor="middle" font-size="15" fill="#52636b">+ BAGS</text><path d="M800,162 L840,162" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="840" y="110" width="165" height="105" rx="16" fill="#f3eafa" stroke="#9b82b7" stroke-width="2"/>
+    <text x="922.5" y="157.5" text-anchor="middle" font-size="19" font-weight="700" fill="#203c35">E5</text><text x="922.5" y="186.5" text-anchor="middle" font-size="14" fill="#52636b">+ Semantic</text><path d="M1005,162 L1045,162" stroke="#54736a" stroke-width="3" fill="none" marker-end="url(#arr)"/><rect x="1045" y="110" width="145" height="105" rx="16" fill="#e5f3eb" stroke="#6b9a82" stroke-width="2"/>
+    <text x="1117.5" y="157.5" text-anchor="middle" font-size="19" font-weight="700" fill="#203c35">E6</text><text x="1117.5" y="186.5" text-anchor="middle" font-size="14" fill="#52636b">完整模型</text><path d="M600 230 V275 H290 V230" stroke="#4778a8" stroke-width="2.5" fill="none" marker-end="url(#arrBlue)"/><text x="445" y="270" text-anchor="middle" font-size="16" fill="#4778a8">独立消融：检测/分割精度、边界质量、速度、参数量</text><path d="M1110 230 V310 H900 V230" stroke="#54736a" stroke-width="2.5" fill="none" marker-end="url(#arr)"/><text x="1000" y="305" text-anchor="middle" font-size="16" fill="#54736a">主动学习与人工耗时评测</text>
+    </svg></div>
+      <figcaption>固定数据划分和训练设置，逐项增加模块；主动学习部分固定模型、只改变采样策略；人工提效实验要求两组最终标签达到同等质检质量。</figcaption>
+    </figure>
+<h3 id="第一组模型对比实验">7.1 第一组：模型对比实验</h3>
+<table>
+<thead>
+<tr class="header">
+<th>实验</th>
+<th>模型</th>
+<th>验证目的</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>E1</td>
+<td>YOLOv8n-seg</td>
+<td>基础性能</td>
+</tr>
+<tr class="even">
+<td>E2</td>
+<td>YOLOv8n-seg + P2</td>
+<td>小目标检测</td>
+</tr>
+<tr class="odd">
+<td>E3</td>
+<td>E2 + HAFM</td>
+<td>特征融合</td>
+</tr>
+<tr class="even">
+<td>E4</td>
+<td>E3 + BAGS</td>
+<td>边界质量</td>
+</tr>
+<tr class="odd">
+<td>E5</td>
+<td>E4 + Semantic</td>
+<td>多模态语义</td>
+</tr>
+<tr class="even">
+<td>E6</td>
+<td>完整 AgroHAFM-Seg</td>
+<td>最终模型</td>
+</tr>
+</tbody>
+</table>
+<p>建议记录：</p>
+<ul>
+<li>Box mAP50。</li>
+<li>Box mAP50-95。</li>
+<li>Mask mAP50。</li>
+<li>Mask mAP50-95。</li>
+<li>mIoU。</li>
+<li>Dice。</li>
+<li>Boundary F1。</li>
+<li>Recall-small。</li>
+<li>参数量。</li>
+<li>FLOPs。</li>
+<li>推理时延。</li>
+</ul>
+<p>其中 Recall-small
+可以根据真实掩码区域面积或外接框面积定义小病斑，阈值必须在实验前确定。</p>
+<h3 id="第二组主动学习实验">7.2 第二组：主动学习实验</h3>
+<p>固定模型结构，只改变采样策略。</p>
+<p>建议计算：</p>
+<p>[ AULC=_0^B mAP(b),db ]</p>
+<p>其中 (b) 为人工标注预算。</p>
+<p>AULC 越大，说明相同标注预算下模型整体学习效率越高。</p>
+<p>此外计算：</p>
+<p>[ Saving= % ]</p>
+<p>其中 (T) 是达到相同质量所需要的人工标注时间。</p>
+<h3 id="第三组人机协同提效实验">7.3 第三组：人机协同提效实验</h3>
+<p>建议抽取200张图片进行人工实验。</p>
+<p>分为两组：</p>
+<ul>
+<li>A组：纯人工标注。</li>
+<li>B组：AI预标注后人工修正。</li>
+</ul>
+<p>两组最终标签必须达到同等质量。</p>
+<p>记录：</p>
+<table>
+<thead>
+<tr class="header">
+<th>评价指标</th>
+<th style="text-align: right;">A组</th>
+<th style="text-align: right;">B组</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>平均每张图片耗时</td>
+<td style="text-align: right;">实测</td>
+<td style="text-align: right;">实测</td>
+</tr>
+<tr class="even">
+<td>每张图片修改次数</td>
+<td style="text-align: right;">实测</td>
+<td style="text-align: right;">实测</td>
+</tr>
+<tr class="odd">
+<td>标签最终质量</td>
+<td style="text-align: right;">实测</td>
+<td style="text-align: right;">实测</td>
+</tr>
+<tr class="even">
+<td>每小时完成图片数</td>
+<td style="text-align: right;">实测</td>
+<td style="text-align: right;">实测</td>
+</tr>
+</tbody>
+</table>
+<p>如果只有一名标注人员，建议采用交叉顺序测试：一部分图片先纯人工、一部分先AI辅助，再交换方式，减少人员熟练程度和图片难度带来的偏差。</p>
+<p>如果有两名人员，可以采用相同难度分层的配对任务，并进行独立质量抽查。</p>
+<p>不要把机器自动预测时间当成人工节省时间，也不要把模型置信度当成标签正确率。</p>
+<h3 id="第四组跨数据集泛化实验">7.4 第四组：跨数据集泛化实验</h3>
+<p>训练集：PlantSeg。</p>
+<p>外部测试：PlantDoc。</p>
+<p>但只对两个数据集类别和标注语义能够准确对应的部分进行比较。</p>
+<p>检测框指标在 PlantDoc 上评价，分割指标在 PlantSeg
+上评价，不要把没有分割标签的 PlantDoc 当作分割测试集。</p>
+<p>另外建议专门测试：</p>
+<ul>
+<li>正常背景。</li>
+<li>复杂背景。</li>
+<li>光照变化。</li>
+<li>遮挡。</li>
+<li>小病斑。</li>
+<li>少数类别。</li>
+</ul>
+<p>PlantVillage
+的实验结果只能作为受控图像环境下的辅助结果，不能直接作为野外病斑检测泛化能力的证据。</p>
+<h2 id="八模型训练参数与工程配置">八、模型训练参数与工程配置</h2>
+<p>初始配置：</p>
+<table>
+<thead>
+<tr class="header">
+<th>参数</th>
+<th>推荐设置</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>基础模型</td>
+<td>YOLOv8n-seg</td>
+</tr>
+<tr class="even">
+<td>输入尺寸</td>
+<td>640×640</td>
+</tr>
+<tr class="odd">
+<td>Batch Size</td>
+<td>4～8，按显存调整</td>
+</tr>
+<tr class="even">
+<td>Epoch</td>
+<td>100～150</td>
+</tr>
+<tr class="odd">
+<td>Optimizer</td>
+<td>AdamW 或 SGD</td>
+</tr>
+<tr class="even">
+<td>初始学习率</td>
+<td>0.001（AdamW起点）</td>
+</tr>
+<tr class="odd">
+<td>Weight Decay</td>
+<td>0.0005</td>
+</tr>
+<tr class="even">
+<td>AMP</td>
+<td>开启</td>
+</tr>
+<tr class="odd">
+<td>数据增强</td>
+<td>HSV、翻转、缩放、轻量Mosaic</td>
+</tr>
+<tr class="even">
+<td>小目标增强</td>
+<td>P2 + HAFM</td>
+</tr>
+<tr class="odd">
+<td>分割增强</td>
+<td>BAGS</td>
+</tr>
+<tr class="even">
+<td>类别不平衡</td>
+<td>类别加权采样</td>
+</tr>
+<tr class="odd">
+<td>部署</td>
+<td>ONNX Runtime</td>
+</tr>
+</tbody>
+</table>
+<p>如果显存只有8GB：</p>
+<ul>
+<li>优先使用 Nano 模型。</li>
+<li>开启混合精度。</li>
+<li>使用 batch 4。</li>
+<li>必要时梯度累积。</li>
+<li>避免同时训练大型 CLIP 图像编码器。</li>
+</ul>
+<p>输入尺寸640是初始设置。如果原图较大，可以使用重叠滑窗裁剪；滑窗重叠建议从15%～20%开始验证。推理后将预测框和掩码映射回原图，再做跨窗口合并。</p>
+<h3 id="训练顺序">8.1 训练顺序</h3>
+<ol type="1">
+<li><strong>训练基础模型：</strong> YOLOv8n-seg +
+PlantSeg，建立可复现基线。</li>
+<li><strong>加入P2和HAFM：</strong> 观察小病斑检测是否提升。</li>
+<li><strong>加入BAGS：</strong> 观察 Dice、mIoU 和 Boundary F1
+是否提升。</li>
+<li><strong>加入语义原型：</strong> 观察细粒度类别识别是否提升。</li>
+<li><strong>执行主动学习：</strong>
+比较不同采样策略在相同标注预算下的效果。</li>
+<li><strong>导出部署模型：</strong> ONNX、FP16/INT8
+量化，进行速度和精度测试。</li>
+</ol>
+<h3 id="速度优化">8.2 速度优化</h3>
+<p>企业要求的参考时延是单张图片不超过300ms。</p>
+<p>建议使用：</p>
+<ul>
+<li>ONNX Runtime。</li>
+<li>FP16 推理。</li>
+<li>INT8 动态或静态量化测试。</li>
+<li>批量推理。</li>
+<li>模型剪枝（如果确实需要）。</li>
+</ul>
+<p>注意：必须分别测量纯模型推理时间和完整系统处理时间。</p>
+<p>建议预热50次，再测量至少500张图片，记录：</p>
+<ul>
+<li>平均时延。</li>
+<li>中位数时延。</li>
+<li>P95时延。</li>
+<li>FPS。</li>
+<li>显存占用。</li>
+</ul>
+<p>报告中写明 CPU、GPU、显存、输入尺寸、推理精度和 batch size。</p>
+<h2 id="九12人团队的具体开发计划">九、1—2人团队的具体开发计划</h2>
+<figure class="diagram">
+      <div class="diagram-title">图10  六周开发与交付节奏</div>
+      <div class="diagram-frame"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 350" role="img" aria-label="AgroLabel-AL技术架构示意图" class="inline-diagram">
+    <defs>
+      <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#54736a"/></marker>
+      <marker id="arrBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#4778a8"/></marker>
+      <linearGradient id="greenGrad" x1="0" x2="1"><stop offset="0" stop-color="#e6f4ed"/><stop offset="1" stop-color="#c9e8d8"/></linearGradient>
+      <linearGradient id="blueGrad" x1="0" x2="1"><stop offset="0" stop-color="#eaf2fb"/><stop offset="1" stop-color="#d7e7f8"/></linearGradient>
+      <linearGradient id="goldGrad" x1="0" x2="1"><stop offset="0" stop-color="#fff5dc"/><stop offset="1" stop-color="#fbe7b7"/></linearGradient>
+    </defs>
+    <text x="250" y="55" text-anchor="middle" font-size="17" font-weight="700" fill="#203c35">第1周</text><line x1="250" y1="70" x2="250" y2="330" stroke="#d7e1e8" stroke-dasharray="5 5"/><text x="415" y="55" text-anchor="middle" font-size="17" font-weight="700" fill="#203c35">第2周</text><line x1="415" y1="70" x2="415" y2="330" stroke="#d7e1e8" stroke-dasharray="5 5"/><text x="580" y="55" text-anchor="middle" font-size="17" font-weight="700" fill="#203c35">第3周</text><line x1="580" y1="70" x2="580" y2="330" stroke="#d7e1e8" stroke-dasharray="5 5"/><text x="745" y="55" text-anchor="middle" font-size="17" font-weight="700" fill="#203c35">第4周</text><line x1="745" y1="70" x2="745" y2="330" stroke="#d7e1e8" stroke-dasharray="5 5"/><text x="910" y="55" text-anchor="middle" font-size="17" font-weight="700" fill="#203c35">第5周</text><line x1="910" y1="70" x2="910" y2="330" stroke="#d7e1e8" stroke-dasharray="5 5"/><text x="1075" y="55" text-anchor="middle" font-size="17" font-weight="700" fill="#203c35">第6周</text><line x1="1075" y1="70" x2="1075" y2="330" stroke="#d7e1e8" stroke-dasharray="5 5"/><rect x="185" y="95" width="130" height="26" rx="7" fill="#dce9f6" stroke="#91a8b5"/><text x="250" y="113" text-anchor="middle" font-size="14" fill="#203c35">数据与基线</text><rect x="350" y="133" width="130" height="26" rx="7" fill="#cfe8dc" stroke="#91a8b5"/><text x="415" y="151" text-anchor="middle" font-size="14" fill="#203c35">P2 + HAFM</text><rect x="515" y="171" width="130" height="26" rx="7" fill="#f8e8c2" stroke="#91a8b5"/><text x="580" y="189" text-anchor="middle" font-size="14" fill="#203c35">BAGS + 语义</text><rect x="680" y="209" width="130" height="26" rx="7" fill="#e6dcf2" stroke="#91a8b5"/><text x="745" y="227" text-anchor="middle" font-size="14" fill="#203c35">VARD-AL实验</text><rect x="845" y="247" width="130" height="26" rx="7" fill="#dce9f6" stroke="#91a8b5"/><text x="910" y="265" text-anchor="middle" font-size="14" fill="#203c35">标注平台</text><rect x="1010" y="285" width="130" height="26" rx="7" fill="#cfe8dc" stroke="#91a8b5"/><text x="1075" y="303" text-anchor="middle" font-size="14" fill="#203c35">部署与材料</text>
+    </svg></div>
+      <figcaption>这是压缩后的参考排期；若数据许可、数据清洗或训练算力存在阻塞，应优先保证基线、主动学习对照和端到端演示。</figcaption>
+    </figure>
+<p>建议用六周时间完成核心工作。</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>时间</th>
+<th>核心任务</th>
+<th>交付结果</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>第1周</td>
+<td>下载数据、检查许可和标签、转换PlantSeg标签、训练基线</td>
+<td>可运行基线模型</td>
+</tr>
+<tr class="even">
+<td>第2周</td>
+<td>增加P2、开发HAFM、进行小目标实验</td>
+<td>HAFM模型</td>
+</tr>
+<tr class="odd">
+<td>第3周</td>
+<td>增加BAGS、生成距离场标签、加入CLIP语义原型</td>
+<td>完整模型</td>
+</tr>
+<tr class="even">
+<td>第4周</td>
+<td>实现四维评分、成本估计、随机采样和VARD-AL对比</td>
+<td>主动学习算法与结果</td>
+</tr>
+<tr class="odd">
+<td>第5周</td>
+<td>图片导入、自动预标注、人工修改、标签保存与回流、统计看板</td>
+<td>可演示系统</td>
+</tr>
+<tr class="even">
+<td>第6周</td>
+<td>ONNX部署、300ms时延测试、提效对比、报告、视频</td>
+<td>完整参赛作品</td>
+</tr>
+</tbody>
+</table>
+<h3 id="人员分工">人员分工</h3>
+<p>如果两个人：</p>
+<table>
+<thead>
+<tr class="header">
+<th>人员</th>
+<th>负责内容</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>成员A</td>
+<td>模型结构、损失函数、训练、消融实验、主动学习</td>
+</tr>
+<tr class="even">
+<td>成员B</td>
+<td>数据处理、前后端、人工标注、数据库、系统部署</td>
+</tr>
+</tbody>
+</table>
+<p>如果只有一个人：</p>
+<ol type="1">
+<li>第一阶段只做模型和标签转换。</li>
+<li>第二阶段实现主动学习算法。</li>
+<li>第三阶段使用 Gradio 做完整标注工作台。</li>
+<li>最后才做语义原型和界面美化。</li>
+</ol>
+<p>一个能稳定运行的系统，远比三个没有完整验证的创新模块更有竞争力。</p>
+<h2 id="十评分标准对应的冲奖策略">十、评分标准对应的冲奖策略</h2>
+<table>
+<thead>
+<tr class="header">
+<th>评分项</th>
+<th style="text-align: right;">分值</th>
+<th>得分抓手</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>预标注质量</td>
+<td style="text-align: right;">30</td>
+<td>HAFM、BAGS、小病斑和少数类</td>
+</tr>
+<tr class="even">
+<td>主动学习有效性</td>
+<td style="text-align: right;">25</td>
+<td>VARD-AL、随机采样对比、标注成本</td>
+</tr>
+<tr class="odd">
+<td>人机协同原型</td>
+<td style="text-align: right;">25</td>
+<td>六个功能页面、修正、回流、统计</td>
+</tr>
+<tr class="even">
+<td>工程实现</td>
+<td style="text-align: right;">15</td>
+<td>ONNX、本地部署、日志、复现</td>
+</tr>
+<tr class="odd">
+<td>展示与合规</td>
+<td style="text-align: right;">5</td>
+<td>演示、文档、数据许可</td>
+</tr>
+</tbody>
+</table>
+<p>建议重点完成：</p>
+<p><strong>模型预标注：</strong></p>
+<ul>
+<li>完成检测与分割联合预测。</li>
+<li>小病斑性能优于基础模型。</li>
+<li>少数类别性能有独立验证。</li>
+<li>边界质量有实际提升。</li>
+</ul>
+<p><strong>主动学习：</strong></p>
+<ul>
+<li>至少比较4种采样策略。</li>
+<li>相同标注预算下取得更好的模型性能。</li>
+<li>相同模型质量下减少人工时间。</li>
+</ul>
+<p><strong>工程系统：</strong></p>
+<ul>
+<li>图片导入和自动预标注。</li>
+<li>人工拖拽、修框、修改掩码。</li>
+<li>数据回流。</li>
+<li>自动统计提效指标。</li>
+<li>本地运行和模型版本管理。</li>
+</ul>
+<h2 id="十一项目风险与解决方案">十一、项目风险与解决方案</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>风险</th>
+<th>解决方案</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PlantVillage没有病斑掩码</td>
+<td>只用于分类预训练</td>
+</tr>
+<tr class="even">
+<td>PlantSeg连通区域不等于真实病斑实例</td>
+<td>明确伪实例标签，抽样人工核验</td>
+</tr>
+<tr class="odd">
+<td>多数据集类别不一致</td>
+<td>建立统一类别映射，只合并确切对应的类别</td>
+</tr>
+<tr class="even">
+<td>CLIP语义分支没有提升</td>
+<td>做独立消融，效果不好就移除</td>
+</tr>
+<tr class="odd">
+<td>主动学习只提高模型精度但没有节省人工时间</td>
+<td>必须记录真实标注耗时并进行等质量对照</td>
+</tr>
+</tbody>
+</table>
+<p>另外，PlantVillage主要是受控环境图像，PlantSeg和PlantDoc更接近复杂自然场景。不能只在
+PlantVillage 上获得高分类准确率，就宣称已经解决了野外病斑识别问题。</p>
+<h2
+id="十二最终参赛作品应该交付什么">十二、最终参赛作品应该交付什么？</h2>
+<table>
+<thead>
+<tr class="header">
+<th>交付物</th>
+<th>具体内容</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>算法模型</td>
+<td>AgroHAFM-Seg</td>
+</tr>
+<tr class="even">
+<td>主动学习算法</td>
+<td>VARD-AL</td>
+</tr>
+<tr class="odd">
+<td>标注平台</td>
+<td>AgroLabel-AL</td>
+</tr>
+<tr class="even">
+<td>模型权重</td>
+<td>基础模型、改进模型、部署模型</td>
+</tr>
+<tr class="odd">
+<td>实验结果</td>
+<td>消融、对比、主动学习、提效</td>
+</tr>
+<tr class="even">
+<td>评测代码</td>
+<td>检测、分割、主动学习评测脚本</td>
+</tr>
+<tr class="odd">
+<td>工程代码</td>
+<td>前后端、训练、推理、数据处理</td>
+</tr>
+<tr class="even">
+<td>技术报告</td>
+<td>完整技术路线与实测结果</td>
+</tr>
+<tr class="odd">
+<td>PPT</td>
+<td>创新、算法、结果、应用价值</td>
+</tr>
+<tr class="even">
+<td>演示视频</td>
+<td>不超过5分钟</td>
+</tr>
+</tbody>
+</table>
+<p>企业命题还要求提交技术报告、PPT、演示视频和可复现原型工程等材料；核心推理应优先在本地或私有化环境完成。</p>
+<h2 id="十三最终确定的技术路线">十三、最终确定的技术路线</h2>
+<p><strong>AgroLabel-AL 最终项目技术架构：</strong></p>
+<p><strong>第一部分：数据层</strong></p>
+<p>PlantVillage + PlantSeg + PlantDoc。</p>
+<p><strong>第二部分：模型层</strong></p>
+<p>YOLOv8n-seg + P2 + HAFM + BAGS + 语义原型。</p>
+<p><strong>第三部分：主动学习层</strong></p>
+<p>VARD-AL：不确定性 + 多样性 + 稀有类别 + 模型分歧 + 标注成本。</p>
+<p><strong>第四部分：系统层</strong></p>
+<p>Vue3 + FastAPI + SQLite + ONNX Runtime。</p>
+<p><strong>第五部分：闭环层</strong></p>
+<p>预标注 → 人工修正 → 质量控制 → 数据回流 → 增量训练。</p>
+<h2 id="十四最终实施顺序">十四、最终实施顺序</h2>
+<ol type="1">
+<li><strong>第一优先级：下载并检查 PlantSeg。</strong>
+确认图片、掩码、类别映射、官方划分全部正确。这是整个项目的地基。</li>
+<li><strong>第二优先级：训练 YOLOv8n-seg 基线。</strong>
+先确保检测框和病斑掩码都能正常输出。</li>
+<li><strong>第三优先级：开发 HAFM 和 BAGS。</strong>
+这是模型算法创新的主体。</li>
+<li><strong>第四优先级：实现 VARD-AL。</strong> 一定要有 Random
+对照实验。</li>
+<li><strong>第五优先级：开发完整标注平台。</strong>
+把模型、主动学习和人工修正整合起来。</li>
+</ol>
+<p>最终目标不是把 YOLO 的 mAP
+提高几个百分点，而是做出一个完整的数据生产闭环：</p>
+<ul>
+<li>模型负责自动发现病斑；</li>
+<li>主动学习负责发现最值得人工标注的图片；</li>
+<li>人工负责纠错；</li>
+<li>系统负责积累高质量标签；</li>
+<li>新模型利用这些标签持续提升。</li>
+</ul>
+<p>对于1—2人团队，这条路线既有算法创新，也有企业应用价值，而且能够围绕比赛的三个最高权重评分项形成完整证据链。</p>
+</main>
+</body>
+</html>

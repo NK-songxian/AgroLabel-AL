@@ -1,0 +1,43 @@
+# 主动学习配置：VARD-AL（价值感知的稀有类别主动学习）
+
+active_learning:
+  strategy: vard_al               # random | entropy | coreset | vard_al
+  budget_per_round: 100           # 每轮人工标注预算（张）
+  rounds: 8                       # 主动学习迭代轮数
+  init_ratio: 0.10                # 初始标注集占训练集比例
+
+  # 联合采样价值 S_i 的权重（U 不确定性 / D 多样性 / R 稀有类别 / G 模型分歧 / C 标注成本）
+  weights:
+    uncertainty: 1.0              # U
+    diversity: 0.5                # D
+    rarity: 0.8                   # R
+    disagreement: 0.5             # G
+    cost: 0.6                     # C（成本越高，优先级越低）
+
+  # 各价值分量的计算方式
+  uncertainty:
+    method: entropy               # entropy | margin | mask_entropy
+    tta_views: 4                  # TTA 多视图增强数量
+
+  diversity:
+    method: feature_distance      # 特征嵌入的 k-center / 余弦距离
+    feature_layer: backbone_pool
+
+  rarity:
+    method: inverse_freq          # 类别频率的倒数
+    smooth: 1.0
+
+  disagreement:
+    method: tta_variance          # 多视图预测差异
+
+  cost:
+    method: estimated_edit_cost   # 预估人工编辑代价（病斑数/遮挡度/边界复杂度）
+    normalize: true
+
+# 对比实验矩阵（必须包含随机采样对照）
+experiments:
+  - { name: random,  strategy: random }
+  - { name: al_unc,  strategy: entropy }
+  - { name: al_unc_div, strategy: entropy+coreset }
+  - { name: al_unc_rar, strategy: entropy+rarity }
+  - { name: ours,    strategy: vard_al }

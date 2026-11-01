@@ -1,0 +1,45 @@
+# 模型配置：AgroHAFM-Seg（YOLOv8n-seg + P2 + HAFM + BAGS + 语义原型）
+
+model:
+  name: AgroHAFM-Seg
+  base: yolov8n-seg               # 轻量实例分割基座
+  num_classes: 34                 # 与数据集类别映射保持一致
+
+  # 模块一：HAFM —— 多尺度病斑增强融合
+  hafm:
+    enable_p2: true               # 增加 P2 高分辨率检测分支（小病斑）
+    adaptive_fusion: true         # 高低层自适应融合
+
+  # 模块二：BAGS —— 边界感知几何监督
+  bags:
+    boundary_head: true           # 训练期边界辅助分支，推理可移除
+    distance_head: true           # 有符号距离图监督，推理可移除
+
+  # 模块三：语义原型引导的多模态融合
+  semantic:
+    enabled: true                 # 消融验证无效则设 false
+    clip_model: "ViT-B/32"        # 冻结 CLIP 文本编码器
+    prompt_template: "A close-up image of a {crop} leaf with {disease} disease."
+    temperature: 0.07
+    lambda_max: 0.5               # 门控权重上限
+
+# 训练超参
+train:
+  epochs: 100
+  imgsz: 640
+  batch: 16
+  optimizer: AdamW
+  lr0: 0.001
+  weight_decay: 0.0005
+  device: 0                       # 0=GPU0；无卡写 "cpu"
+  workers: 8
+
+# 损失权重（实验起点，非最优值）
+loss:
+  cls: 1.0
+  box_ciou: 1.0
+  dfl: 1.0
+  mask_bce_dice: 1.0
+  boundary: 0.25
+  distance: 0.1
+  semantic: 0.1
