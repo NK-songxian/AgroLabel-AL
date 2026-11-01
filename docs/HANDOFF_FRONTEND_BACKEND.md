@@ -32,40 +32,66 @@
 
 ---
 
-## 2. 唯一契约（先冻结，再写代码）
+## 2. 接口契约（先冻结，再写代码）
 
 来自 `docs/INTERFACE.md`，字段名一字不能改：
 
-| 方法 | 路径 | 入参 | 出参 | 谁调 |
-|---|---|---|---|---|
-| POST | `/api/predict` | `{image_base64 或 image_id}` | `{instances:[{class_id, class_name, score, polygon, bbox}], latency_ms}` | 前端 |
-| POST | `/api/sample` | `{pool:[image_id...], k, strategy:"random"\|"entropy"\|"tta"\|"coreset"}` | `{selected:[image_id...], reasons}` | 前端 |
-| POST | `/api/edit-cost` | `{pred_instances, gt_instances}` | `{edit_count, breakdown:{新画,删实例,改类别,拖边界,标为无目标}}` | 前端/后端 |
-| GET | `/api/health` | — | `{status:"ok", model:"...", classes:34}` | 运维 |
+| 方法 | 路径 | 入参 | 出参 |
+|---|---|---|---|
+| POST | `/api/predict` | `{image_base64 或 image_id}` | `{instances:[{class_id, class_name, score, polygon, bbox}], latency_ms}` |
+| POST | `/api/sample` | `{pool:[image_id...], k, strategy}`（`random\|entropy\|tta\|coreset`） | `{selected:[image_id...], reasons}` |
+| POST | `/api/edit-cost` | `{pred_instances, gt_instances}` | `{edit_count, breakdown:{新画,删实例,改类别,拖边界,标为无目标}}` |
+| GET | `/api/health` | — | `{status:"ok", model:"...", classes:34}` |
 
-**数据格式**
-- 分割标注：YOLO seg txt，每行 `class_id x1 y1 x2 y2 ...`（归一化多边形）
-- 实例：`{class_id, class_name, score, polygon(归一化), bbox}`
-- 时延预算：单张 `/api/predict` **≤ 300 ms**（模型侧实测 23–24 ms，留给服务层很宽裕）
+**数据格式**：YOLO seg txt（每行 `class_id x1 y1 ...` 归一化多边形）；实例 `{class_id, class_name, score, polygon, bbox}`。
+**时延预算**：单张 `/api/predict` ≤ **300 ms**（模型推理参考 20–30 ms @640，以实测为准）。
+**加载策略**：模型在进程启动时加载一次。
 
 ---
 
-## 3. 分阶段任务（按顺序做，每阶段可独立验收）
+## 3. 技术栈选型（已定）
 
-### P0 —— Mock 跑通（先把骨架立起来）
+**结论：后端 FastAPI，前端 React + Konva。**
+
+| 层 | 推荐 | 为什么不选其他 |
+|---|---|---|
+| 后端框架 | **FastAPI** | Flask 同步、无自动文档；Node/Go 需跨进程调 Python 模型，多一层序列化 |
+| 画布库 | **Konva** | Fabric.js 的 React/Vue 封装较弱；原生 Canvas 要自己做命中检测 |
+| 前端框架 | **React 18 + TS** | `react-konva` 最成熟；更熟 Vue 可用 Vue3 + `vue-konva` 平替 |
+| 状态管理 | **Zustand** | 比 Redux 轻，标注状态不复杂 |
+| 打包 | **Vite** | CRA 已停维护、启动慢 |
+
+**依赖清单**
+
+```bash
+# 后端（backend/）
+pip install fastapi "uvicorn[standard]" pydantic pillow opencv-python python-multipart ultralytics
+
+# 前端（frontend/）
+npm create vite@latest . -- --template react-ts
+npm i react-konva konva zustand antd axios
+```
+
+> `node_modules/`、`dist/` 已在 `.gitignore` 中忽略，不要提交。
+
+---
+
+## 4. 分阶段任务（P0 → P3）
+
+### P0 —— Mock 跑通
 - [ ] `backend/app.py` 起 FastAPI，实现 4 个接口，**全部返回假数据**
-- [ ] 假数据形状严格符合上表（可放 `backend/tests/mock_data.json`）
-- **验收**：`curl` 四个接口都能返回合法 JSON；`/api/health` 通
+- [ ] 假数据形状严格符合契约（可放 `backend/tests/mock_data.json`）
+- **验收**：`curl` 四个接口都返回合法 JSON；`/api/health` 通
 
-### P1 —— 前端画布（核心难点）
+### P1 —— 前端画布
 - [ ] 加载一批图，画布显示图片
 - [ ] 叠加 `/api/predict` 的预标注：框 + 多边形（不同类别不同颜色）
 - [ ] 标注工具：**画 / 拖边界 / 删 / 改类别 / 标为无目标**
 - [ ] 操作日志埋点：记录每张图"改了几次、改的什么类型、耗时"
 - **验收**：能在一张图上完成一次完整修正，日志能导出
 
-### P2 —— 接真模型（替换 mock）
-- [ ] 后端接模型侧提供的推理入口（见第 5 节）
+### P2 —— 接真模型
+- [ ] 后端接模型侧的推理 / 选样入口（见第 6 节签名）
 - [ ] `/api/predict`、`/api/sample` 走真模型
 - [ ] 模型在进程启动时加载一次，不要每请求重复加载
 - **验收**：前端看到的预标注是模型真输出的
@@ -78,7 +104,7 @@
 
 ---
 
-## 4. 协作约定
+## 5. 协作约定
 
 1. **契约先行**：字段名/路径不改，要改先发群里确认。
 2. **mock 先行**：不要等模型，先用假 JSON 把前后端联调通。
@@ -89,17 +115,24 @@
 
 ---
 
-## 5. 模型侧会提供什么（你只需要调）
+## 6. 模型侧接口约定（待实现 → 先按签名 mock）
 
-- **推理入口**：输入图片（路径或 tensor）→ 返回 `instances`（class_id/score/polygon/bbox）
-- **选样入口**：输入 `pool + k + strategy` → 返回 `selected`（image_id 列表）
-- **权重路径**：本地放在 `weights/` 或 `runs/.../best.pt`，**不入库**，由模型侧告知实际路径
+> ⚠️ 当前 `inference/`、`active_learning/` **仅有 README，入口脚本尚未实现**。下面是已约定的签名，你先按它 mock，P2 直接替换。
 
-> 这两个入口模型侧会封装好，你通过 HTTP 或进程内调用即可，不用关心模型细节。
+```python
+# 模型侧将提供（你 mock 时照这个签名）
+def predict(image_path: str) -> list[Instance]:
+    """返回 [{class_id, class_name, score, polygon, bbox}, ...]"""
+
+def select(pool: list[str], k: int, strategy: str) -> list[str]:
+    """strategy: random | entropy | tta | coreset；返回被选中的 image_id"""
+```
+
+**权重位置**：训练产物在 `runs/plantseg34_baseline/weights/best.pt`，**不入库**，后端启动时加载一次。
 
 ---
 
-## 6. 你的工作对应比赛多少分（附件4 评分表）
+## 7. 你的工作对应比赛多少分（附件4 评分表）
 
 | 维度 | 分值 | 与你的关系 |
 |---|---|---|

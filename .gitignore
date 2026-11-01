@@ -7,6 +7,17 @@ env/
 .env
 .DS_Store
 
+# ===== 前端（Node / Vite）=====
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
 # ===== IDE =====
 .idea/
 .vscode/
