@@ -213,8 +213,15 @@ def resolve_split(data_yaml, split):
     return imgs
 
 
-def images_to_labels(imgs):
-    """images/xxx/a.jpg -> labels/xxx/a.txt"""
+def images_to_labels(imgs, labels_dir=None):
+    """默认 images/xxx/a.jpg -> labels/xxx/a.txt。
+
+    给了 labels_dir 时改为 <labels_dir>/<stem>.txt，用于三臂对照实验的
+    标注产物（out/annotations/<arm>/，见 docs/INTERFACE_ADDENDUM.md §4.3）。
+    """
+    if labels_dir is not None:
+        d = Path(labels_dir)
+        return [d / (Path(p).stem + ".txt") for p in imgs]
     out = []
     for p in imgs:
         parts = list(p.parts)
@@ -304,12 +311,23 @@ def main():
                     choices=list(WEIGHT_PRESETS),
                     help="操作权重方案。flat 是等权计数，realistic/lenient 按实际操作耗时折算")
     ap.add_argument("--out-dir", default=None)
+    ap.add_argument("--labels-dir", default=None,
+                    help="按 <stem>.txt 从该目录读标签（用于 out/annotations/<arm>/）；"
+                         "给了就只评估该目录里存在标注的图")
     args = ap.parse_args()
 
     imgs = resolve_split(args.data, args.split)
     if not imgs:
         raise SystemExit(f"{args.data} 里 {args.split} 没有图片")
-    labs = images_to_labels(imgs)
+    labs = images_to_labels(imgs, args.labels_dir)
+    if args.labels_dir:
+        keep = [(i, l) for i, l in zip(imgs, labs) if l.exists()]
+        if not keep:
+            raise SystemExit(
+                f"{args.labels_dir} 下没有与 {args.split} 匹配的 .txt 标注")
+        imgs = [i for i, _ in keep]
+        labs = [l for _, l in keep]
+        print(f"{args.split}: 按 --labels-dir 过滤后 {len(imgs)} 张有标注")
     print(f"{args.split}: {len(imgs)} 张图，标签 {sum(1 for p in labs if p.exists())} 个存在")
 
     out_dir = Path(args.out_dir) if args.out_dir else PROJECT / "out" / "report"
