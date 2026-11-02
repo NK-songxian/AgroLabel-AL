@@ -24,7 +24,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # 云端默认路径（AutoDL Pro6000 实例）
 DEF_ROOT = "/root/autodl-tmp/Ryan/data_plantseg34"
 DEF_COCO = "/root/autodl-tmp/Ryan/ArgoLable-AL/datasets/sam3"
-DEF_LOGDIR = "/root/autodl-tmp/Ryan/runs"
+# 默认把 run 写进项目内 runtime/runs（不再散落在 /root/autodl-tmp/Ryan/runs）
+DEF_LOGDIR = str(REPO_ROOT / "runtime" / "runs")
 DEF_CKPT = "/root/autodl-tmp/Ryan/sam3.pt"
 DEF_BPE = "/root/autodl-tmp/Ryan/sam3_repo/sam3/assets/bpe_simple_vocab_16e6.txt.gz"
 
