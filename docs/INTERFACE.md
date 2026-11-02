@@ -2,6 +2,11 @@
 
 > 本文档定义三方协作的最小接口。模型侧（强哥）产出能力，后端（队友）包装成 HTTP API，
 > 前端（队友）调用 API。先冻结契约，再各自实现，避免返工。
+>
+> ⚠️ **本文只含"模型能力封装"的 4 个接口。标注工作流所需的另外 8 个接口
+> （`/api/images`、`/api/refine`、`/api/annotations`、`/api/logs/ops` 等）
+> 见 [`INTERFACE_ADDENDUM.md`](INTERFACE_ADDENDUM.md)，该文件已于 2026-11-02 团队确认，
+> 与本文**同等有效**。**
 
 ## 1. 数据格式约定
 
