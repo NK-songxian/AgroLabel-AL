@@ -45,7 +45,9 @@ def busy_procs() -> list[str]:
     for line in out.splitlines():
         if "run_matrix" in line:
             continue
-        if "train.py" in line or "prompt_sweep" in line:
+        # 注意：脚本名是 train_seg_baseline.py，不含 "train.py" 子串，
+        # 之前用 "train.py" 匹配会漏掉，导致同一实验被多次 --run 叠加。
+        if "train_seg_baseline.py" in line or "prompt_sweep" in line:
             hits.append(line.strip())
     return hits
 
@@ -82,7 +84,10 @@ def ensure_data_yaml(data_root: str) -> None:
     if d.get("path") == want:
         return
     d["path"] = want
-    p.write_text(yaml.safe_dump(d, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    # 原子写：并发启动多个实验时，避免两个进程同时写坏 data.yaml
+    tmp = p.with_suffix(".yaml.tmp")
+    tmp.write_text(yaml.safe_dump(d, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    tmp.replace(p)
     print(f"[data.yaml] path -> {want}")
 
 
@@ -109,8 +114,17 @@ def load_state() -> dict:
     return {}
 
 
-def save_state(state: dict) -> None:
-    STATE.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+def save_state(eid: str, entry: dict) -> None:
+    """读-改-写 + 原子替换。
+
+    并行跑多个实验时各自记住的是启动时的快照，直接整份覆盖会把别人刚写的结果冲掉；
+    这里每次写前重新读一次，只合并自己这一条。
+    """
+    cur = load_state()
+    cur[eid] = entry
+    tmp = STATE.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(cur, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(STATE)
 
 
 def main() -> None:
@@ -174,15 +188,15 @@ def main() -> None:
         with open(log, "w", encoding="utf-8") as f:
             rc = subprocess.call(cmd, shell=True, cwd=str(ROOT), env=env,
                                  stdout=f, stderr=subprocess.STDOUT)
-        state[eid] = {
+        entry = {
             "status": "done" if rc == 0 else "failed",
             "rc": rc,
             "sec": round(time.time() - t0, 1),
             "log": str(log),
             "ts": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
-        save_state(state)
-        print(f"[{eid}] {'完成' if rc == 0 else '失败'} rc={rc} ({state[eid]['sec']}s)")
+        save_state(eid, entry)
+        print(f"[{eid}] {'完成' if rc == 0 else '失败'} rc={rc} ({entry['sec']}s)")
         return rc == 0
 
     if args.list or (not args.run and not args.phase and not args.dry_run):
