@@ -26,24 +26,26 @@ export function TopBar() {
         </div>
       </div>
 
-      <ToolBar />
+      <div className="topbar-center">
+        <ToolBar />
 
-      <div className="topbar-mid">
-        {ds && (
-          <span className={`chip ${ds.mode === 'demo' ? 'chip-warn' : 'chip-ok'}`} title={ds.note}>
-            {ds.mode === 'demo' ? 'DEMO 数据' : '正式数据集'} · {total} 张
-          </span>
-        )}
-        {mi && (
-          <span className="chip chip-plain" title={mi.model_version}>
-            {mi.device === 'cpu' ? 'CPU' : `GPU${mi.device}`} · {mi.imgsz}px
-          </span>
-        )}
-        {latencyMs != null && (
-          <span className={`chip ${latencyMs <= 300 ? 'chip-ok' : 'chip-warn'}`}>
-            预标注 {latencyMs.toFixed(1)} ms
-          </span>
-        )}
+        <div className="topbar-mid">
+          {ds && (
+            <span className={`chip ${ds.mode === 'demo' ? 'chip-warn' : 'chip-ok'}`} title={ds.note}>
+              {ds.mode === 'demo' ? 'DEMO 数据' : '正式数据集'} · {total} 张
+            </span>
+          )}
+          {mi && (
+            <span className="chip chip-plain" title={mi.model_version}>
+              {mi.device === 'cpu' ? 'CPU' : `GPU${mi.device}`} · {mi.imgsz}px
+            </span>
+          )}
+          {latencyMs != null && (
+            <span className={`chip ${latencyMs <= 300 ? 'chip-ok' : 'chip-warn'}`}>
+              预标注 {latencyMs.toFixed(1)} ms
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="topbar-right">

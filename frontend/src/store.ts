@@ -138,6 +138,12 @@ type Store = {
   endVertexDrag: () => void
   /** 给选中实例插入一个顶点（落在最长边的中点）。选中了才可用。 */
   addVertex: () => boolean
+  /**
+   * 在指定位置插一个顶点：找离该点最近的边，把它劈成两段。
+   * 坐标用**图像像素**，内部转归一化 —— 距离必须在像素空间量，
+   * 否则 302×225 这种非方形图上归一化距离会被拉伸，选错边。
+   */
+  insertVertexAt: (px: number, py: number, imgW: number, imgH: number) => boolean
   /** 点提示：在图像像素坐标 (px,py) 处裁 ROI 重识别，成功后插入一个新实例 */
   refineAt: (px: number, py: number) => Promise<void>
   /** 主动学习选样，把结果换成新队列 */
@@ -582,6 +588,56 @@ export const useStore = create<Store>((set, get) => ({
       '拖边界',
       `${sel.class_name} 加节点（${polygon.length} 顶点）`,
       instances.findIndex((i) => i.id === sel.id), // 下标，不是总数
+    )
+    return true
+  },
+
+  insertVertexAt: (px, py, imgW, imgH) => {
+    const { instances, selectedId, undoStack, nOps, labelState } = get()
+    const sel = instances.find((i) => i.id === selectedId)
+    if (!sel || sel.polygon.length < 3 || !imgW || !imgH) return false
+
+    // 点到线段的最短距离（像素空间）。夹紧到 [0,1] 再量，
+    // 否则点在线段延长线上时会误判成"很近"。
+    const segDist = (ax: number, ay: number, bx: number, by: number) => {
+      const dx = bx - ax
+      const dy = by - ay
+      const len2 = dx * dx + dy * dy
+      if (len2 === 0) return Math.hypot(px - ax, py - ay)
+      let t = ((px - ax) * dx + (py - ay) * dy) / len2
+      t = Math.max(0, Math.min(1, t))
+      return Math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+    }
+
+    let edge = 0
+    let best = Infinity
+    for (let i = 0; i < sel.polygon.length; i++) {
+      const a = sel.polygon[i]
+      const b = sel.polygon[(i + 1) % sel.polygon.length]
+      const d = segDist(a[0] * imgW, a[1] * imgH, b[0] * imgW, b[1] * imgH)
+      if (d < best) {
+        best = d
+        edge = i
+      }
+    }
+
+    // 顶点落在鼠标位置，夹到图内
+    const nx = Math.min(1, Math.max(0, px / imgW))
+    const ny = Math.min(1, Math.max(0, py / imgH))
+    const polygon: [number, number][] = [
+      ...sel.polygon.slice(0, edge + 1),
+      [nx, ny],
+      ...sel.polygon.slice(edge + 1),
+    ]
+
+    set({
+      undoStack: [...undoStack, { instances, nOps, labelState }].slice(-MAX_UNDO),
+      instances: instances.map((it) => (it.id === sel.id ? { ...it, polygon } : it)),
+    })
+    get().logOp(
+      '拖边界',
+      `${sel.class_name} 右键插节点（${polygon.length} 顶点）`,
+      instances.findIndex((i) => i.id === sel.id),
     )
     return true
   },

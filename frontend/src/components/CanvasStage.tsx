@@ -1,11 +1,12 @@
 /**
  * Konva 画布：显示原图 + 叠加预标注多边形。
  *
- * 交互（当前阶段）：
- *   - 滚轮缩放（以光标为锚点）
- *   - 拖拽平移
+ * 交互：
+ *   - 滚轮缩放（以光标为锚点）、拖拽平移、双击 / F 自适应
  *   - 点多边形选中、点空白取消
- *   - 双击 / F 键 自适应
+ *   - 选择模式：拖顶点微调；**双击右键**在鼠标处插一个顶点
+ *   - 点提示模式：点一下让模型重识别
+ *   - 手画模式：逐点单击、双击闭合
  *
  * 坐标约定：后端给的是**归一化**多边形，这里统一乘原图宽高还原成像素，
  * 再交给 Group 的 scale 变换。不要在这里做任何归一化又归一化的来回转换。
@@ -53,10 +54,14 @@ export function CanvasStage() {
   const beginVertexDrag = useStore((s) => s.beginVertexDrag)
   const moveVertex = useStore((s) => s.moveVertex)
   const endVertexDrag = useStore((s) => s.endVertexDrag)
+  const insertVertexAt = useStore((s) => s.insertVertexAt)
+  const toast = useStore((s) => s.toast)
 
   const [size, setSize] = useState({ width: 0, height: 0 })
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [imgState, setImgState] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle')
+  /** 上一次右键的时间与位置，用来识别「双击右键」（浏览器不给 button=2 的 dblclick） */
+  const rclickRef = useRef<{ t: number; x: number; y: number } | null>(null)
 
   // ---- 容器尺寸
   useEffect(() => {
@@ -183,6 +188,10 @@ export function CanvasStage() {
    */
   const onStageClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
+      // Konva 的 click 不区分鼠标键：右键也会走这里，于是会把选中清掉，
+      // 导致紧接着的"双击右键加节点"永远看不到 selectedId。主键之外一律忽略。
+      if (e.evt?.button !== 0) return
+
       const stage = stageRef.current
       const p = stage?.getPointerPosition()
       if (!p) return
@@ -225,6 +234,45 @@ export function CanvasStage() {
      drawAddPoint, drawCommit, toImagePx],
   )
 
+  /** 右键双击间隔与位置容差 */
+  const RCLICK_GAP_MS = 520
+  const RCLICK_SLOP_PX = 10
+
+  /**
+   * 选择模式下**双击右键**：在鼠标位置插一个顶点。
+   *
+   * 浏览器不会为右键触发 dblclick（那是主键专有事件），所以自己配对：
+   * 记录上一次右键的时间与位置，两次间隔够近就当成双击。
+   * 顺带把原生右键菜单挡掉 —— 否则每插一个点弹一次菜单。
+   */
+  const onStageContextMenu = useCallback(
+    (e: Konva.KonvaEventObject<PointerEvent>) => {
+      e.evt.preventDefault()
+
+      const p = stageRef.current?.getPointerPosition()
+      if (!p) return
+      const now = performance.now()
+      const prev = rclickRef.current
+      rclickRef.current = { t: now, x: p.x, y: p.y }
+
+      if (mode !== 'select') return
+      if (!prev || now - prev.t > RCLICK_GAP_MS) return
+      if (Math.hypot(p.x - prev.x, p.y - prev.y) > RCLICK_SLOP_PX) return
+
+      rclickRef.current = null
+      if (!selectedId) {
+        toast('先选中一个区域，再双击右键加节点', 'warn')
+        return
+      }
+      const px = toImagePx(p)
+      if (!px || !imgW || !imgH) return
+      if (!insertVertexAt(px.x, px.y, imgW, imgH)) {
+        toast('这个区域顶点太少，加不了节点', 'warn')
+      }
+    },
+    [mode, selectedId, imgW, imgH, toImagePx, insertVertexAt, toast],
+  )
+
   return (
     <div className="stage-wrap" ref={wrapRef}>
       {size.width > 0 && (
@@ -234,6 +282,7 @@ export function CanvasStage() {
           height={size.height}
           onWheel={onWheel}
           onClick={onStageClick}
+          onContextMenu={onStageContextMenu}
           onDblClick={() => {
             // draw 模式下双击 = 闭合，不能顺手把视图重置了
             if (mode === 'draw') {
