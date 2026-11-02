@@ -1,0 +1,10 @@
+{
+  "gt": "/root/autodl-tmp/Ryan/runs/sam3_zeroshot/val_lowconf/gt.json",
+  "pred": "/root/autodl-tmp/Ryan/runs/sam3_zeroshot/val_lowconf/pred.json",
+  "n_pred": 40249,
+  "dice_matched": 0.8449,
+  "n_matched": 708,
+  "mask_mAP50": 0.0254,
+  "mask_mAP50_95": 0.0101,
+  "mask_mAP75": 0.0073
+}

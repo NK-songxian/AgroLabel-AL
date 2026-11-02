@@ -1,0 +1,15 @@
+{
+  "split": "val",
+  "images": 846,
+  "no_label": 0,
+  "images_hit": 512,
+  "instances_raw": 40249,
+  "instances_kept": 40249,
+  "conf": 0.01,
+  "imgsz": 1008,
+  "prompt": "tuned",
+  "fp16": true,
+  "sec_total": 62.25,
+  "sec_per_img": 0.122,
+  "ckpt": "/root/autodl-tmp/Ryan/sam3.pt"
+}
