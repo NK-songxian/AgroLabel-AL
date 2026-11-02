@@ -193,6 +193,26 @@ export function InspectorPanel() {
           {copied ? '已复制' : '复制 CSV'}
         </button>
       </div>
+
+      {/* 画布上的鼠标操作速查。每个模式都列出来，省得来回切着试 */}
+      <div className="mouse-legend">
+        <span>
+          <kbd>左键</kbd>选中 / 拖顶点
+        </span>
+        <span>
+          <kbd>右键双击</kbd>加节点
+        </span>
+        <span>
+          <kbd>中键拖拽</kbd>平移
+        </span>
+        <span>
+          <kbd>滚轮</kbd>缩放
+        </span>
+        <span>
+          <kbd>左键双击</kbd>自适应
+        </span>
+      </div>
+
       <div className="pane-foot dim tiny">
         表头与 src/m4_app.py:131 一致，可直接追加到 out/logs/ops.csv
       </div>

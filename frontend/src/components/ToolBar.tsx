@@ -91,21 +91,26 @@ export function ToolBar() {
         </button>
       </div>
 
+      {mode === 'select' && (
+        <span className="tool-hint">
+          左键选中/拖顶点 · 右键双击加节点 · 中键平移
+        </span>
+      )}
       {mode === 'refine' && (
         <span className="tool-hint">
-          在漏检的病斑上点一下{refining && ' · 识别中…'}
+          左键点一下病斑{refining && ' · 识别中…'}
         </span>
       )}
       {mode === 'draw' && (
         <span className="tool-hint">
           {draft && draft.length > 0
             ? `${draft.length} 个点 · 右键双击闭合 · Backspace 退一点 · Esc 取消`
-            : '逐点单击，≥3 点后右键双击闭合'}
+            : '左键逐点单击，≥3 点后右键双击闭合'}
         </span>
       )}
       {mode === 'erase' && (
         <span className="tool-hint">
-          点节点擦除 · 只剩 3 个顶点时停手 · Esc 退出
+          左键点节点擦除 · 只剩 3 个顶点时停手 · Esc 退出
         </span>
       )}
     </div>
