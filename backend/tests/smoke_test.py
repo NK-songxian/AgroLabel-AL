@@ -397,8 +397,19 @@ def main() -> int:
                       f'cid={r.get("class_id")} mismatch={r.get("class_mismatch")}')
                 check("polygon 归一化在 [0,1]",
                       all(0 <= q[0] <= 1 and 0 <= q[1] <= 1 for q in r["polygon"]))
-                check("顶点数 <= max_vertices(64)", len(r["polygon"]) <= 64,
+                # 模型侧默认上限 64，实测能吐 40 个顶点、相邻只隔 1.1px（点挤在一起没法拖）。
+                # 后端把默认降到 20 并剪掉 <2px 的边，这里守住这个口径。
+                check("默认顶点数 <= 20（不再顶到 64）", len(r["polygon"]) <= 20,
                       str(len(r["polygon"])))
+                pts = [(q[0] * iw, q[1] * ih) for q in r["polygon"]]
+                n = len(pts)
+                edges = [
+                    ((pts[i][0] - pts[(i + 1) % n][0]) ** 2
+                     + (pts[i][1] - pts[(i + 1) % n][1]) ** 2) ** 0.5
+                    for i in range(n)
+                ]
+                check("相邻顶点最小间距 >= 1.5px（不再挤成一团）",
+                      min(edges) >= 1.5, f"{min(edges):.2f}px")
             else:
                 check("类别被钉住（硬过滤生效）", True, "该点未检出，跳过")
 

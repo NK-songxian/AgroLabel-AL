@@ -42,7 +42,7 @@ export function ToolBar() {
         <button
           className={`tool${mode === 'draw' ? ' on' : ''}`}
           onClick={() => setMode('draw')}
-          title="手画多边形：逐点单击，双击或点回起点闭合（D）"
+          title="手画多边形：逐点单击，右键双击或点回起点闭合（D）"
         >
           手画
         </button>
@@ -99,8 +99,8 @@ export function ToolBar() {
       {mode === 'draw' && (
         <span className="tool-hint">
           {draft && draft.length > 0
-            ? `${draft.length} 个点 · 双击闭合 · Backspace 退一点 · Esc 取消`
-            : '逐点单击，≥3 点后双击闭合'}
+            ? `${draft.length} 个点 · 右键双击闭合 · Backspace 退一点 · Esc 取消`
+            : '逐点单击，≥3 点后右键双击闭合'}
         </span>
       )}
       {mode === 'erase' && (

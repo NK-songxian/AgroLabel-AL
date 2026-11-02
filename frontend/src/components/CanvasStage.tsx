@@ -291,11 +291,12 @@ export function CanvasStage() {
   const RCLICK_SLOP_PX = 10
 
   /**
-   * 选择模式下**双击右键**：在鼠标位置插一个顶点。
-   *
-   * 浏览器不会为右键触发 dblclick（那是主键专有事件），所以自己配对：
+   * 右键双击。浏览器不会为右键触发 dblclick（那是主键专有事件），所以自己配对：
    * 记录上一次右键的时间与位置，两次间隔够近就当成双击。
-   * 顺带把原生右键菜单挡掉 —— 否则每插一个点弹一次菜单。
+   * 顺带把原生右键菜单挡掉 —— 否则每点一次弹一次菜单。
+   *
+   *   select 模式：在鼠标位置插一个顶点
+   *   draw   模式：闭合当前多边形
    */
   const onStageContextMenu = useCallback(
     (e: Konva.KonvaEventObject<PointerEvent>) => {
@@ -307,11 +308,18 @@ export function CanvasStage() {
       const prev = rclickRef.current
       rclickRef.current = { t: now, x: p.x, y: p.y }
 
-      if (mode !== 'select') return
       if (!prev || now - prev.t > RCLICK_GAP_MS) return
       if (Math.hypot(p.x - prev.x, p.y - prev.y) > RCLICK_SLOP_PX) return
-
       rclickRef.current = null
+
+      if (mode === 'draw') {
+        const n = draft?.length ?? 0
+        if (n >= 3) drawCommit()
+        else toast(`只有 ${n} 个点，至少 3 个才能围成多边形`, 'warn')
+        return
+      }
+
+      if (mode !== 'select') return
       if (!selectedId) {
         toast('先选中一个区域，再双击右键加节点', 'warn')
         return
@@ -322,7 +330,7 @@ export function CanvasStage() {
         toast('这个区域顶点太少，加不了节点', 'warn')
       }
     },
-    [mode, selectedId, imgW, imgH, toImagePx, insertVertexAt, toast],
+    [mode, draft, drawCommit, selectedId, imgW, imgH, toImagePx, insertVertexAt, toast],
   )
 
   return (
@@ -342,12 +350,10 @@ export function CanvasStage() {
             // 只认主键。
             if (e.evt?.button !== 0) return
 
-            // draw 模式下左键双击 = 闭合
-            if (mode === 'draw') {
-              if ((draft?.length ?? 0) >= 3) drawCommit()
-              else useStore.getState().drawCancel()
-              return
-            }
+            // 手画模式下左键只管加点（双击=加一个点），闭合交给右键双击，
+            // 免得"加点的双击"和"闭合的双击"抢同一个手势
+            if (mode === 'draw') return
+
             fit()
           }}
           style={{

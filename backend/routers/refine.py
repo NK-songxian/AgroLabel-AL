@@ -33,6 +33,8 @@
 
 from __future__ import annotations
 
+import math
+
 import cv2
 import numpy as np
 from fastapi import APIRouter, HTTPException, Request
@@ -51,6 +53,15 @@ MAX_RADIUS = 512
 # 局部重识别用更低的置信度：ROI 被放大后，模型对同一病斑的分数普遍偏低
 REFINE_CONF = 0.10
 
+# 顶点上限。模型侧默认 64，但实测 64 上限时一张图能吐 40 个顶点、
+# 相邻点只隔 1.1 px —— 手根本点不准，也拖不动。
+# 数据集真值平均 22 顶点/实例，取 20 与人工标注密度一致。
+DEFAULT_MAX_VERTICES = 20
+
+# 顶点最小间距（图像像素）。approxPolyDP 会在细长凸起上留下挤在一起的点，
+# 视觉上就是"点非常紧密"。小于这个距离的直接并掉（保留至少 3 个）。
+MIN_EDGE_PX = 2.0
+
 
 class RefineRequest(BaseModel):
     image_id: str = Field(..., min_length=1, max_length=256)
@@ -58,11 +69,42 @@ class RefineRequest(BaseModel):
                                description="原图像素坐标 [x, y]，不是归一化")
     radius: int | None = Field(default=None, ge=48, le=1024)
     class_id: int | None = Field(default=None, ge=0)
-    max_vertices: int = Field(default=64, ge=16, le=256)
+    max_vertices: int = Field(default=DEFAULT_MAX_VERTICES, ge=3, le=256)
 
 
 def _default_radius(w: int, h: int) -> int:
     return int(max(MIN_RADIUS, min(MAX_RADIUS, round(0.5 * min(w, h)))))
+
+
+def _prune_close(polygon, w: int, h: int) -> list[list[float]]:
+    """把挤在一起的顶点并掉，返回归一化多边形。
+
+    approxPolyDP 只保证"顶部数不超过 N"，不保证点之间拉得开 —— 实测最小边能到
+    1.1 px。那种点在画布上互相重叠，既看不出边界也没法拖。
+    """
+    if not polygon or len(polygon) < 3:
+        return polygon or []
+
+    pts = [(x * w, y * h) for x, y in polygon]
+    kept: list[tuple[float, float]] = []
+    for p in pts:
+        if not kept or math.dist(p, kept[-1]) >= MIN_EDGE_PX:
+            kept.append(p)
+
+    # 首尾也可能贴在一起（闭合边）
+    while len(kept) > 3 and math.dist(kept[0], kept[-1]) < MIN_EDGE_PX:
+        kept.pop()
+
+    if len(kept) < 3:      # 全都挤在一起，宁可保留原始点也不要退化成一条线
+        kept = pts
+    return [[round(x / w, 5), round(y / h, 5)] for x, y in kept]
+
+
+def _bbox_of(polygon, w: int, h: int) -> list[float]:
+    xs = [p[0] * w for p in polygon]
+    ys = [p[1] * h for p in polygon]
+    return [round(min(xs) / w, 5), round(min(ys) / h, 5),
+            round(max(xs) / w, 5), round(max(ys) / h, 5)]
 
 
 def _contains(polygon, px: float, py: float, w: int, h: int) -> bool:
@@ -133,6 +175,13 @@ def refine(body: RefineRequest, request: Request):
     # 不校验的话，点在空白处也会插出一个莫名其妙的多边形
     if out["found"] and not _contains(out.get("polygon"), px, py, w, h):
         out = {**out, "found": False, "polygon": None, "bbox": None}
+
+    # 顶点太密就并掉一些。剪枝后要再验一次包含关系 —— 万一点正好落在被剪掉的
+    # 细窄凸起里，宁可保留原始密点，也不能返回一个不含点击位的多边形
+    if out["found"] and out.get("polygon"):
+        pruned = _prune_close(out["polygon"], w, h)
+        if len(pruned) < len(out["polygon"]) and _contains(pruned, px, py, w, h):
+            out = {**out, "polygon": pruned, "bbox": _bbox_of(pruned, w, h)}
 
     # found=False 是"查询成功但没结果"，不是错误 —— 前端要靠它走手画兜底
     return RefineResponse(**out, class_mismatch=mismatch, radius_used=radius)
