@@ -97,3 +97,14 @@ experiments/sam3_sample_vis/
 # 实验矩阵运行输出与状态
 experiments/matrix/
 experiments/matrix_state.json
+
+# ===== 前后端本地开发环境 =====
+# 工作区 venv（继承 conda base 的 torch，只装缺失的服务端依赖）
+.venv/
+# pip / npm 缓存与临时目录：都重定向进仓库，避免写系统目录被拦
+.tmp/
+.pipcache/
+.npmcache/
+.npmrc
+# 沙箱权限诊断脚本的恢复记录，仅本机有意义
+.acl-recovery/
