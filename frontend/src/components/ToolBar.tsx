@@ -76,6 +76,19 @@ export function ToolBar() {
         >
           ＋ 加节点
         </button>
+        <button
+          className={`tool${mode === 'erase' ? ' on' : ''}`}
+          disabled={!canAddVertex && mode !== 'erase'}
+          onClick={() => setMode(mode === 'erase' ? 'select' : 'erase')}
+          title={
+            canAddVertex || mode === 'erase'
+              ? '橡皮擦：点节点把它擦掉（X）。少于 3 个顶点时不允许'
+              : '先选中一个实例才能删节点'
+          }
+          aria-pressed={mode === 'erase'}
+        >
+          ⌫ 删节点
+        </button>
       </div>
 
       {mode === 'refine' && (
@@ -88,6 +101,11 @@ export function ToolBar() {
           {draft && draft.length > 0
             ? `${draft.length} 个点 · 双击闭合 · Backspace 退一点 · Esc 取消`
             : '逐点单击，≥3 点后双击闭合'}
+        </span>
+      )}
+      {mode === 'erase' && (
+        <span className="tool-hint">
+          点节点擦除 · 只剩 3 个顶点时停手 · Esc 退出
         </span>
       )}
     </div>

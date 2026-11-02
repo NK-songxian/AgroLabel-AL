@@ -17,13 +17,86 @@ import json
 from fastapi import APIRouter, HTTPException, Query, Request
 
 from .. import config
-from ..schemas import AnnotateRequest, AnnotateResponse
+from ..schemas import (
+    AnnotateRequest,
+    AnnotateResponse,
+    AnnotationReadResponse,
+    SavedInstance,
+)
 from ..util import atomic_write_text, now_stamp, safe_name
 
 router = APIRouter(prefix="/api", tags=["annotations"])
 
 COORD_TOL = 1e-6          # 归一化坐标的容差
 MAX_VERTICES = 512        # 单实例顶点上限，防止伪造超大多边形撑爆磁盘
+
+
+@router.get("/annotations/{image_id}", response_model=AnnotationReadResponse)
+def read_annotation(
+    image_id: str,
+    arm: str | None = Query(
+        default=None,
+        description="实验臂；缺省取 AGROLABEL_ARM，再缺省 assisted",
+    ),
+):
+    """读回已保存的标注。
+
+    没有它，刷新页面就会把标注员的工作全部丢掉 —— 前端只能重新调 /api/predict，
+    而预标注不是他改完的结果。ADDENDUM §2.7 就是为这个场景留的。
+    """
+    arm_name = safe_name(arm or config.DEFAULT_ARM, fallback="assisted")
+    image_id = safe_name(image_id, fallback="unnamed")
+
+    arm_dir = config.ANNOTATION_DIR / arm_name
+    label_path = arm_dir / f"{image_id}.txt"
+    meta_path = arm_dir / f"{image_id}.json"
+    if not label_path.is_file():
+        raise HTTPException(
+            404, f"{arm_name} 臂下没有 {image_id} 的标注（{label_path.name} 不存在）"
+        )
+
+    instances: list[SavedInstance] = []
+    text = label_path.read_text(encoding="utf-8")
+    for line_no, line in enumerate(text.splitlines(), 1):
+        parts = line.split()
+        if not parts:
+            continue
+        if len(parts) < 7 or (len(parts) - 1) % 2:
+            raise HTTPException(
+                422,
+                f"{label_path.name} 第 {line_no} 行不是合法的 YOLO seg 行"
+                f"（应为 class_id + 成对的 x y，实际 {len(parts)} 个字段）",
+            )
+        cid = int(parts[0])
+        vals = [float(v) for v in parts[1:]]
+        poly = [[vals[i], vals[i + 1]] for i in range(0, len(vals), 2)]
+        instances.append(
+            SavedInstance(
+                class_id=cid,
+                class_name=config.CLASS_NAMES[cid]
+                if 0 <= cid < len(config.CLASS_NAMES) else "",
+                polygon=poly,
+            )
+        )
+
+    meta: dict = {}
+    if meta_path.is_file():
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            meta = {}
+
+    return AnnotationReadResponse(
+        found=True,
+        image_id=image_id,
+        arm=arm_name,
+        label_state=meta.get("label_state", "labeled"),
+        instances=instances,
+        n_instances=len(instances),
+        elapsed_ms=meta.get("elapsed_ms"),
+        saved_at=meta.get("ts"),
+        pred_cached=bool(meta.get("pred_cached")),
+    )
 
 
 @router.post("/annotations", response_model=AnnotateResponse)

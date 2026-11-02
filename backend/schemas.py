@@ -145,6 +145,25 @@ class AnnotateResponse(BaseModel):
     saved_at: str
 
 
+class SavedInstance(BaseModel):
+    class_id: int
+    class_name: str = ""
+    polygon: list[list[float]]
+
+
+class AnnotationReadResponse(BaseModel):
+    """GET /api/annotations/{image_id} —— 读回已保存的标注（续标/刷新不丢数据）"""
+    found: bool
+    image_id: str
+    arm: str
+    label_state: Literal["labeled", "no_target"]
+    instances: list[SavedInstance]
+    n_instances: int
+    elapsed_ms: int | None = None
+    saved_at: str | None = None
+    pred_cached: bool = False
+
+
 # ---------------------------------------------------------------- 操作日志
 
 class OpEventIn(BaseModel):

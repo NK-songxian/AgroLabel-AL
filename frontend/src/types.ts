@@ -9,7 +9,8 @@ export type Instance = {
   score: number | null
   /** 归一化多边形 [[x,y], ...]，0..1 */
   polygon: [number, number][]
-  source: 'pred' | 'manual'
+  /** 'pred' 预标注 / 'manual' 人手画的 / 'saved' 从后端读回的已保存结果 */
+  source: 'pred' | 'manual' | 'saved'
 }
 
 export type ImageItem = {
@@ -131,5 +132,18 @@ export type RefineResponse = {
   radius_used: number | null
 }
 
-/** 画布交互模式：select 点选 / refine 点一下让模型重识别 / draw 手画多边形 */
-export type CanvasMode = 'select' | 'refine' | 'draw'
+/** 画布交互模式：select 点选 / refine 点一下让模型重识别 / draw 手画 / erase 橡皮擦删节点 */
+export type CanvasMode = 'select' | 'refine' | 'draw' | 'erase'
+
+/** GET /api/annotations/{id} 的返回（续标 / 刷新恢复用） */
+export type AnnotationRead = {
+  found: boolean
+  image_id: string
+  arm: string
+  label_state: 'labeled' | 'no_target'
+  instances: { class_id: number; class_name: string; polygon: [number, number][] }[]
+  n_instances: number
+  elapsed_ms: number | null
+  saved_at: string | null
+  pred_cached: boolean
+}

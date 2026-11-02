@@ -136,6 +136,8 @@ type Store = {
   beginVertexDrag: () => void
   moveVertex: (id: string, index: number, x: number, y: number) => void
   endVertexDrag: () => void
+  /** 删掉某个顶点（橡皮擦模式）。少于 3 个顶点时拒绝。 */
+  deleteVertex: (id: string, index: number) => boolean
   /** 给选中实例插入一个顶点（落在最长边的中点）。选中了才可用。 */
   addVertex: () => boolean
   /**
@@ -262,6 +264,34 @@ export const useStore = create<Store>((set, get) => ({
     get().requestFit()
 
     try {
+      // 先看这张有没有存过的标注：有就恢复，别再拿预标注覆盖人的工作。
+      // （之前刷新就丢数据的根因除了 confirmAll 不落盘，还有这里永远走 predict）
+      const saved = await api.getAnnotation(img.image_id)
+      if (seq !== openSeq) return
+      if (saved?.found) {
+        const list: Instance[] = saved.instances.map((it) => ({
+          id: uid(),
+          class_id: it.class_id,
+          class_name: it.class_name,
+          score: null,
+          polygon: it.polygon,
+          source: 'saved' as const,
+        }))
+        set({
+          instances: list,
+          predSnapshot: [],
+          status: 'ready',
+          labelState: saved.label_state,
+          latencyMs: null,
+          modelVersion: null,
+        })
+        get().toast(
+          `已恢复上次保存的标注（${list.length} 个实例）`,
+          'ok',
+        )
+        return
+      }
+
       const res = await api.predict(img.image_id)
       // 快速连按 ←/→ 时，先发的请求可能后回来 —— 用序号把过期响应丢掉，
       // 否则会把上一张图的多边形贴到当前这张上
@@ -390,6 +420,7 @@ export const useStore = create<Store>((set, get) => ({
       labelState: 'no_target',
     })
     get().logOp('标为无目标', '')
+    void persist()
   },
 
   confirmAll: () => {
@@ -400,6 +431,9 @@ export const useStore = create<Store>((set, get) => ({
       labelState: labelState === 'unlabeled' ? 'labeled' : labelState,
     })
     get().logOp('整张确认', `${instances.length} 个实例`)
+    // 「确认」在标注员心里就是"这张我认可了，存下来"。
+    // 之前只写日志不落盘，刷新就全丢 —— 必须真存。
+    void persist()
   },
 
   undo: () => {
@@ -423,7 +457,7 @@ export const useStore = create<Store>((set, get) => ({
   // ------------------------------------------------------------ 提交
 
   submit: async () => {
-    const { current, instances, labelState, startedAt } = get()
+    const { current, instances, labelState } = get()
     if (!current) return
 
     if (labelState === 'unlabeled' && instances.length === 0) {
@@ -431,38 +465,16 @@ export const useStore = create<Store>((set, get) => ({
       return
     }
 
-    const payload = {
-      image_id: current.image_id,
-      label_state: (labelState === 'unlabeled' ? 'labeled' : labelState) as LabelState,
-      instances: instances.map((x) => ({ class_id: x.class_id, polygon: x.polygon })),
-      elapsed_ms: Date.now() - startedAt,
-      session_id: SESSION_ID,
-    }
-
-    const finish = () => {
-      get().logOp('提交', `${instances.length} 个实例`)
-      set({ submitted: { ...get().submitted, [current.image_id]: instances.length }, status: 'done' })
-    }
-
-    try {
-      await api.submitAnnotation(payload)
-      finish()
-      // m5 靠"提交"事件确定分母，必须在上送完再翻页
-      await flushOps(true)
-      get().toast(`已提交 ${instances.length} 个实例`, 'ok')
-      setTimeout(() => void get().next(), 260)
-    } catch (e) {
-      if (e instanceof NotImplementedError) {
-        finish()
-        void flushOps(true)
-        get().toast('后端 /api/annotations 尚未实现，本条仅本地暂存', 'warn')
-        setTimeout(() => void get().next(), 260)
-        return
-      }
-      const msg = e instanceof Error ? e.message : String(e)
-      // 后端因为几何/类别校验打回时，把原因原样带出来，别只说"提交失败"
-      get().toast(`提交失败：${msg}`, 'err')
-    }
+    const ok = await persist(`已提交 ${instances.length} 个实例，正在下一张`)
+    if (!ok) return
+    get().logOp('提交', `${instances.length} 个实例`)
+    set({
+      submitted: { ...get().submitted, [current.image_id]: instances.length },
+      status: 'done',
+    })
+    // m5 靠"提交"事件确定分母，必须在上送完再翻页
+    await flushOps(true)
+    setTimeout(() => void get().next(), 260)
   },
 
   // ------------------------------------------------------------ 点提示
@@ -551,6 +563,29 @@ export const useStore = create<Store>((set, get) => ({
       sel ? `${sel.class_name}（${sel.polygon.length} 顶点）` : '顶点微调',
       idx, // instance 列是下标，不是总数
     )
+  },
+
+  deleteVertex: (id, index) => {
+    const { instances, undoStack, nOps, labelState } = get()
+    const sel = instances.find((i) => i.id === id)
+    if (!sel) return false
+    if (sel.polygon.length <= 3) {
+      // 两个点的"多边形"没有面积，m6 会把退化的实例直接丢掉，统计就对不上了
+      get().toast('只剩 3 个顶点了，再删就不成多边形；整个实例请用「删实例」', 'warn')
+      return false
+    }
+    const polygon = sel.polygon.filter((_, i) => i !== index)
+    set({
+      undoStack: [...undoStack, { instances, nOps, labelState }].slice(-MAX_UNDO),
+      instances: instances.map((it) => (it.id === id ? { ...it, polygon } : it)),
+      selectedId: id,
+    })
+    get().logOp(
+      '拖边界',
+      `${sel.class_name} 删节点（${polygon.length} 顶点）`,
+      instances.findIndex((i) => i.id === id),
+    )
+    return true
   },
 
   addVertex: () => {
@@ -837,5 +872,40 @@ async function flushOps(force: boolean): Promise<void> {
     }
   } finally {
     flushing = false
+  }
+}
+
+/**
+ * 把当前图的标注写进后端（out/annotations/<arm>/）。
+ *
+ * 抽出来是因为「整张确认」「标为无目标」「提交并下一张」都要落盘 ——
+ * 之前只有 submit 落盘，标注员点「确认」以为存了，刷新就全丢。
+ */
+async function persist(text?: string): Promise<boolean> {
+  const { current, instances, labelState, startedAt } = useStore.getState()
+  if (!current) return false
+
+  const payload = {
+    image_id: current.image_id,
+    label_state: (labelState === 'unlabeled' ? 'labeled' : labelState) as LabelState,
+    instances: instances.map((x) => ({ class_id: x.class_id, polygon: x.polygon })),
+    elapsed_ms: Date.now() - startedAt,
+    session_id: SESSION_ID,
+  }
+
+  const toast = useStore.getState().toast
+  try {
+    await api.submitAnnotation(payload)
+    toast(text ?? `已保存 ${instances.length} 个实例`, 'ok')
+    void flushOps(true)
+    return true
+  } catch (e) {
+    if (e instanceof NotImplementedError) {
+      toast('后端 /api/annotations 尚未实现，本条仅本地暂存', 'warn')
+      return false
+    }
+    // 后端因为几何/类别校验打回时，把原因原样带出来，别只说"保存失败"
+    toast(`保存失败：${e instanceof Error ? e.message : String(e)}`, 'err')
+    return false
   }
 }

@@ -30,6 +30,16 @@ const FIT_PADDING = 28
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
+/** 橡皮擦光标：一块倾斜的橡皮。内联成 data URI，免得再引一个图片资源 */
+const ERASER_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26">' +
+  '<g transform="rotate(-45 13 13)">' +
+  '<rect x="4" y="9.5" width="18" height="9" rx="2.5" fill="#ff7aa8" stroke="#fff" stroke-width="1.6"/>' +
+  '<rect x="4" y="9.5" width="18" height="4.5" rx="2.5" fill="#ffd9e6"/>' +
+  "</g></svg>"
+const ERASER_CURSOR =
+  `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(ERASER_SVG)}") 13 13, cell`
+
 export function CanvasStage() {
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const stageRef = useRef<Konva.Stage | null>(null)
@@ -55,6 +65,7 @@ export function CanvasStage() {
   const moveVertex = useStore((s) => s.moveVertex)
   const endVertexDrag = useStore((s) => s.endVertexDrag)
   const insertVertexAt = useStore((s) => s.insertVertexAt)
+  const deleteVertex = useStore((s) => s.deleteVertex)
   const toast = useStore((s) => s.toast)
 
   const [size, setSize] = useState({ width: 0, height: 0 })
@@ -340,7 +351,11 @@ export function CanvasStage() {
             fit()
           }}
           style={{
-            cursor: mode === 'draw' ? 'crosshair' : mode === 'refine' ? 'copy' : 'default',
+            cursor:
+              mode === 'erase' ? ERASER_CURSOR
+              : mode === 'draw' ? 'crosshair'
+              : mode === 'refine' ? 'copy'
+              : 'default',
           }}
         >
           <Layer>
@@ -399,44 +414,51 @@ export function CanvasStage() {
                 )
               })}
 
-              {/* 选中实例的顶点：可拖动微调边界。整段拖动只在 dragStart 压一次撤销栈 */}
-              {showMasks && mode === 'select' && selected?.polygon.map(([x, y], i) => (
-                <Circle
-                  key={`${selected.id}-${i}`}
-                  x={x * imgW}
-                  y={y * imgH}
-                  radius={4 * strokeUnit}
-                  fill="#fff"
-                  stroke={classStroke(selected.class_id)}
-                  strokeWidth={1.4 * strokeUnit}
-                  draggable
-                  onMouseEnter={(e) => {
-                    const st = e.target.getStage()
-                    if (st) st.container().style.cursor = 'grab'
-                  }}
-                  onMouseLeave={(e) => {
-                    const st = e.target.getStage()
-                    if (st) st.container().style.cursor = 'crosshair'
-                  }}
-                  onDragStart={(e) => {
-                    e.cancelBubble = true
-                    beginVertexDrag()
-                  }}
-                  onDragMove={(e) => {
-                    // 边拖边更新：否则 Line 要等松手才跟上，看着像断开的
-                    const nx = Math.min(1, Math.max(0, e.target.x() / imgW))
-                    const ny = Math.min(1, Math.max(0, e.target.y() / imgH))
-                    moveVertex(selected.id, i, nx, ny)
-                  }}
-                  onDragEnd={(e) => {
-                    e.cancelBubble = true
-                    endVertexDrag()
-                  }}
-                  onClick={(e) => {
-                    e.cancelBubble = true
-                  }}
-                />
-              ))}
+              {/* 选中实例的顶点。
+                  select 模式：可拖动微调边界（整段拖动只在 dragStart 压一次撤销栈）
+                  erase  模式：变成橡皮擦靶点，点一下就删掉这个顶点 */}
+              {showMasks && (mode === 'select' || mode === 'erase') && selected?.polygon.map(([x, y], i) => {
+                const erasing = mode === 'erase'
+                return (
+                  <Circle
+                    key={`${selected.id}-${i}`}
+                    x={x * imgW}
+                    y={y * imgH}
+                    radius={(erasing ? 7 : 4) * strokeUnit}
+                    fill={erasing ? 'rgba(255,122,168,.22)' : '#fff'}
+                    stroke={erasing ? '#ff7aa8' : classStroke(selected.class_id)}
+                    strokeWidth={(erasing ? 2 : 1.4) * strokeUnit}
+                    hitStrokeWidth={10 * strokeUnit}
+                    draggable={!erasing}
+                    onMouseEnter={(e) => {
+                      const st = e.target.getStage()
+                      if (st) st.container().style.cursor = erasing ? 'pointer' : 'grab'
+                    }}
+                    onMouseLeave={(e) => {
+                      const st = e.target.getStage()
+                      if (st) st.container().style.cursor = ''
+                    }}
+                    onDragStart={(e) => {
+                      e.cancelBubble = true
+                      beginVertexDrag()
+                    }}
+                    onDragMove={(e) => {
+                      // 边拖边更新：否则 Line 要等松手才跟上，看着像断开的
+                      const nx = Math.min(1, Math.max(0, e.target.x() / imgW))
+                      const ny = Math.min(1, Math.max(0, e.target.y() / imgH))
+                      moveVertex(selected.id, i, nx, ny)
+                    }}
+                    onDragEnd={(e) => {
+                      e.cancelBubble = true
+                      endVertexDrag()
+                    }}
+                    onClick={(e) => {
+                      e.cancelBubble = true
+                      if (erasing) deleteVertex(selected.id, i)
+                    }}
+                  />
+                )
+              })}
 
               {/* 手画中的草稿：不受"显示标注"开关影响，正在画就得看得见 */}
               {draft && draft.length > 0 && (

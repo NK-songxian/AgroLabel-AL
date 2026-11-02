@@ -12,6 +12,7 @@ import type {
   ImageListResponse,
   LabelState,
   Op,
+  AnnotationRead,
   PredictResponse,
   RefineResponse,
   SampleResponse,
@@ -137,6 +138,21 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(params),
     }),
+
+  /**
+   * 读回已保存的标注。没有就返回 null（**不抛错**）——
+   * 调用方用它决定"恢复上次的标注"还是"重新预标注"。
+   */
+  getAnnotation: async (image_id: string, arm?: string): Promise<AnnotationRead | null> => {
+    const q = arm ? `?arm=${encodeURIComponent(arm)}` : ''
+    const res = await fetch(
+      `${BASE}/api/annotations/${encodeURIComponent(image_id)}${q}`,
+      { headers: { Accept: 'application/json' } },
+    )
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error(`读取标注失败：${res.status} ${await res.text()}`)
+    return (await res.json()) as AnnotationRead
+  },
 
   imageUrl: (image: ImageItem | string, bust?: number) => {
     const id = typeof image === 'string' ? image : image.image_id

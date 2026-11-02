@@ -73,6 +73,10 @@ export function useHotkeys() {
         case 'D':
           s.setMode('draw')
           break
+        case 'x':
+        case 'X':
+          s.setMode(s.mode === 'erase' ? 'select' : 'erase')
+          break
         case 'h':
         case 'H':
           s.toggleMasks()
