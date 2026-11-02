@@ -11,7 +11,12 @@ DATA="$ROOT/data_plantseg34"
 
 echo "== 0. 目录 =="
 mkdir -p "$ROOT/envs" "$ROOT/runs" "$ROOT/logs"
-[ -d "$REPO" ] || { echo "缺少仓库 $REPO"; exit 1; }
+if [ ! -d "$REPO/.git" ]; then
+  echo "克隆仓库到 $REPO"
+  rmdir "$REPO" 2>/dev/null || true
+  git clone https://github.com/NK-songxian/AgroLabel-AL.git "$REPO"
+fi
+cd "$REPO" && git pull -q --ff-only || true
 
 echo "== 1. GPU =="
 nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader || true
