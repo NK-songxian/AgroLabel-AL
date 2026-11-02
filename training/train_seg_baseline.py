@@ -17,6 +17,10 @@ import argparse
 import os
 import sys
 
+# 云端连不上 GitHub / PyPI，ultralytics 启动时的联网自检会卡在 SYN_SENT 十几分钟。
+# YOLO_OFFLINE=1 关掉这些检查，纯本地训练不受影响。
+os.environ.setdefault("YOLO_OFFLINE", "1")
+
 # 固定工作目录为项目根，保证相对路径 configs/... 可解析
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

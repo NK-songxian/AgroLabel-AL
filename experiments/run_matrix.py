@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -168,8 +169,10 @@ def main() -> None:
         log = LOG_DIR / f"{eid}_{time.strftime('%Y%m%d_%H%M%S')}.log"
         print(f"[{eid}] 运行: {cmd}\n        日志: {log}")
         t0 = time.time()
+        env = {**os.environ}
+        env.setdefault("YOLO_OFFLINE", "1")  # 云端无外网，关闭 ultralytics 联网自检
         with open(log, "w", encoding="utf-8") as f:
-            rc = subprocess.call(cmd, shell=True, cwd=str(ROOT),
+            rc = subprocess.call(cmd, shell=True, cwd=str(ROOT), env=env,
                                  stdout=f, stderr=subprocess.STDOUT)
         state[eid] = {
             "status": "done" if rc == 0 else "failed",
