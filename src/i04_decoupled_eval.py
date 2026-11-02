@@ -37,10 +37,15 @@ import argparse
 import json
 import os
 import ssl
+import sys
 import time
+from pathlib import Path
 
 import numpy as np
 from PIL import Image
+
+# sam3_baseline 在仓库根，本文件在 src/ 下，补一条路径
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 ssl._create_default_https_context = ssl._create_unverified_context
 os.environ.setdefault("YOLO_OFFLINE", "1")

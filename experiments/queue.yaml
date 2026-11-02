@@ -29,12 +29,24 @@ queue:
   - id: I-04-direct115
     name: I-04 口径B：直接 115 类细粒度提示
     status: pending
-    command: "{py} src/i04_decoupled_eval.py --mode direct115 --ckpt {repo}/weights/sam3.pt --data-root {repo}/data/plantseg34 --meta-root {repo}/datasets/plantseg115 --split val --limit 150 --out {repo}/experiments/matrix/I-04/direct115"
+    command: "{py} src/i04_decoupled_eval.py --mode direct115 --ckpt {repo}/weights/sam3.pt --data-root {repo}/data/plantseg34 --meta-root {repo}/datasets/plantseg115 --split val --limit 100 --out {repo}/experiments/matrix/I-04/direct115"
 
   - id: I-04-decoupled
     name: I-04 口径C：通用定位 + CLIP 上下文分类
     status: pending
     command: "{py} src/i04_decoupled_eval.py --mode decoupled --ckpt {repo}/weights/sam3.pt --data-root {repo}/data/plantseg34 --meta-root {repo}/datasets/plantseg115 --split val --limit 150 --out {repo}/experiments/matrix/I-04/decoupled"
+
+  # ---------------- 补跑基线：B3/B5 曾因 5 训练并发 OOM 退出 ----------------
+  # 队列串行执行，任一时刻只有一个训练占卡，不会再抢显存。
+  - id: B3
+    name: 补跑 YOLOv8x-seg 960（曾 OOM，第 4 epoch 退出）
+    status: pending
+    command: "{py} training/train_seg_baseline.py --data {repo}/data/plantseg34/data.yaml --model {repo}/weights/yolov8x-seg.pt --imgsz 960 --epochs 150 --name b3_v8x_960 --project {repo}/experiments/matrix/B3/runs"
+
+  - id: B5
+    name: 补跑 YOLO26x-seg 960（曾 OOM，启动即退出）
+    status: pending
+    command: "{py} training/train_seg_baseline.py --data {repo}/data/plantseg34/data.yaml --model {repo}/weights/yolo26x-seg.pt --imgsz 960 --epochs 150 --name b5_y26x_960 --project {repo}/experiments/matrix/B5/runs"
 
   # ---------------- 微调：YOLOE / YOLO-World（F2/F3）----------------
   - id: F2

@@ -42,10 +42,15 @@ import argparse
 import json
 import os
 import ssl
+import sys
 import time
+from pathlib import Path
 
 import numpy as np
 from PIL import Image
+
+# 本文件在 src/ 下，sys.path[0] 是 src/，但 sam3_baseline 在仓库根，需要补一条
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 # 离线兜底：云端连不上 GitHub，ultralytics 任何联网自检都会卡死
 ssl._create_default_https_context = ssl._create_unverified_context

@@ -54,7 +54,9 @@ os.environ.setdefault("YOLO_OFFLINE", "1")
 from pycocotools import mask as mask_utils  # noqa: E402
 
 PROJECT = Path(__file__).resolve().parents[1]
+# src/ 与仓库根都要在路径上：m6_editcost 在 src/，sam3_baseline 在仓库根
 sys.path.insert(0, str(PROJECT / "src"))
+sys.path.insert(0, str(PROJECT))
 
 from m6_editcost import WEIGHT_PRESETS, edit_ops  # noqa: E402
 from sam3_baseline.eval_full import compute_metrics  # noqa: E402
