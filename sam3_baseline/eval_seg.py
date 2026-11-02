@@ -48,6 +48,14 @@ def per_class_ap(ev, coco):
     return rows
 
 
+def _rle(d):
+    """json 里的 counts 是 str，pycocotools 需要 bytes。"""
+    c = d["counts"]
+    if isinstance(c, str):
+        c = c.encode("ascii")
+    return {"size": list(d["size"]), "counts": c}
+
+
 def mean_dice(gt_path, pred_path, iou_gate=0.5):
     with open(gt_path) as f:
         gt = json.load(f)
@@ -63,15 +71,11 @@ def mean_dice(gt_path, pred_path, iou_gate=0.5):
         cands = by_img.get(a["image_id"], [])
         if not cands:
             continue
-        grle = a["segmentation"]
-        if isinstance(grle["counts"], list):
-            grle = mask_utils.frPyObjects(grle, grle["size"][0], grle["size"][1])
+        grle = _rle(a["segmentation"])
         garea = float(mask_utils.area(grle))
         best, best_iou = -1.0, 0.0
         for c in cands:
-            prle = c["segmentation"]
-            if isinstance(prle["counts"], list):
-                prle = mask_utils.frPyObjects(prle, prle["size"][0], prle["size"][1])
+            prle = _rle(c["segmentation"])
             iou = float(mask_utils.iou([prle], [grle], [0])[0][0])
             if iou > best_iou:
                 best_iou = iou

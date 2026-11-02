@@ -32,9 +32,10 @@ def parse_args():
     ap.add_argument("--out", required=True)
     ap.add_argument("--conf", type=float, default=0.25)
     ap.add_argument("--limit", type=int, default=0, help=">0 只跑前 N 张（冒烟）")
-    ap.add_argument("--prompt-key", default="primary", choices=["primary", "name"])
-    ap.add_argument("--bank", default="configs/species_prompt_bank.json")
+    ap.add_argument("--prompt-key", default="primary", choices=["primary", "name", "tuned"])
+    ap.add_argument("--bank", default="configs/species_prompt_bank_tuned.json")
     ap.add_argument("--fp32", action="store_true", help="默认 FP16")
+    ap.add_argument("--imgsz", type=int, default=1008)
     return ap.parse_args()
 
 
@@ -60,11 +61,13 @@ def read_label(path):
 def polys_to_rle(polys, w, h):
     from pycocotools import mask as mask_utils
 
-    m = np.zeros((h, w), dtype=np.uint8)
-    d = ImageDraw.Draw(Image.fromarray(m))
+    canvas = Image.new("L", (w, h), 0)
+    d = ImageDraw.Draw(canvas)
     for poly in polys:
         xy = np.clip(poly * np.array([w, h], dtype=np.float32), 0, None)
-        d.polygon([tuple(v) for v in xy.tolist()], fill=1)
+        if len(xy) >= 3:
+            d.polygon([tuple(v) for v in xy.tolist()], fill=1)
+    m = np.asarray(canvas, dtype=np.uint8)
     return mask_utils.encode(np.asfortranarray(m))
 
 
@@ -76,7 +79,7 @@ def rle_json(rle):
     return {"size": list(rle["size"]), "counts": c}
 
 
-def build_predictor(ckpt, conf, half):
+def build_predictor(ckpt, conf, half, imgsz=1008):
     from ultralytics.models.sam import SAM3SemanticPredictor
 
     ov = {
@@ -84,6 +87,7 @@ def build_predictor(ckpt, conf, half):
         "task": "segment",
         "mode": "predict",
         "model": ckpt,
+        "imgsz": imgsz,
         "retina_masks": True,
         "verbose": False,
         "save": False,
@@ -109,7 +113,7 @@ def main():
     from pycocotools import mask as mask_utils
 
     bank = load_bank(args.bank)
-    predictor = build_predictor(args.ckpt, args.conf, not args.fp32)
+    predictor = build_predictor(args.ckpt, args.conf, not args.fp32, args.imgsz)
 
     img_dir = os.path.join(args.data_root, "images", args.split)
     lbl_dir = os.path.join(args.data_root, "labels", args.split)
@@ -142,7 +146,7 @@ def main():
                 n_zero += 1
                 continue
             cls_id = max(set(ids), key=ids.count)
-            prompt = bank[cls_id][args.prompt_key]
+            prompt = bank[cls_id].get(args.prompt_key) or bank[cls_id]["primary"]
 
             t0 = time.time()
             predictor.set_image(np.asarray(im))
@@ -180,7 +184,7 @@ def main():
         json.dump(preds, f)
     meta = {"split": args.split, "images": len(files), "no_label": n_zero,
             "images_hit": n_ok, "instances_raw": n_inst, "instances_kept": len(preds),
-            "conf": args.conf, "prompt": args.prompt_key, "fp16": not args.fp32,
+            "conf": args.conf, "imgsz": args.imgsz, "prompt": args.prompt_key, "fp16": not args.fp32,
             "sec_total": round(t_all, 2), "sec_per_img": round(t_all / max(1, n_ok), 3),
             "ckpt": args.ckpt}
     with open(os.path.join(args.out, "meta.json"), "w", encoding="utf-8") as f:
