@@ -13,8 +13,9 @@
 - 只读 matrix.yaml；运行状态写 experiments/matrix_state.json，不改 yaml。
 - 默认检测到 train.py / prompt_sweep 进程时**拒绝执行**（避免抢卡影响在跑训练），
   `--allow-busy` 放行。
-- 命令占位符 {repo} {data_root} {data_yaml} {weights} {sam3_weights} {out}
+- 命令占位符 {py} {repo} {data_root} {data_yaml} {weights} {sam3_weights} {out}
   由 meta 与 --data-root 解析；云端/本地自动选数据根。
+- {py} 取当前解释器（sys.executable），不依赖 PATH 里的 python。
 """
 from __future__ import annotations
 
@@ -89,6 +90,7 @@ def resolve(tpl: str, meta: dict, out_dir: Path, data_root: str) -> str:
     sam3_weights = str(meta.get("sam3_weights", "")).replace("{repo}", str(ROOT))
     return (
         tpl.replace("{repo}", str(ROOT))
+        .replace("{py}", sys.executable)
         .replace("{data_root}", str(data_root))
         .replace("{data_yaml}", str(Path(data_root) / "data.yaml"))
         .replace("{sam3_weights}", sam3_weights)
