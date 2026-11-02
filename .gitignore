@@ -93,3 +93,7 @@ third_party/
 runtime/
 # 数据审计抽样图，可由 datasets_tools/sam3_data_audit.py 再生
 experiments/sam3_sample_vis/
+
+# 实验矩阵运行输出与状态
+experiments/matrix/
+experiments/matrix_state.json

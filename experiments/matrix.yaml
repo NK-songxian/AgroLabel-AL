@@ -1,0 +1,144 @@
+# AgroLabel-AL 模型实验矩阵
+# 依据：docs/模型实验作战手册.html（B0–B3 / Z1–Z3 / F1–F4 / I-01–I-04）
+# 执行：python experiments/run_matrix.py --list / --dry-run B0 / --run B0 / --phase baseline
+# 说明：本文件只定义；运行状态写到 experiments/matrix_state.json，不改本文件。
+#       占位符 {repo} {data_root} {data_yaml} {weights} {out} 由执行器解析。
+
+meta:
+  name: AgroLabel-AL 模型实验矩阵
+  protocol: docs/模型实验作战手册.html
+  data_root_cloud: /root/autodl-tmp/Ryan/data_plantseg34
+  data_root_local: F:/_plantseg/dataset_plantseg_34
+  weights: weights/baseline_yolov8nseg_plantseg34_best.pt
+  sam3_weights: /root/autodl-tmp/Ryan/sam3.pt
+  splits: { train: 5367, val: 846, test: 1560 }
+  metrics: [mask_mAP50, mask_mAP50_95, mask_mAP75, instance_recall, boundary_f1, matched_dice]
+  eval_note: 验证集选模型/阈值，测试集锁定后只评一次；AP 与 YOLO 框 AP 不混比。
+
+experiments:
+  # ---------------- 基线 B ----------------
+  - id: B0
+    name: YOLOv8n-seg 复评 640
+    phase: baseline
+    priority: must
+    status: todo
+    command: python src/m6_editcost.py --data {data_yaml} --split val --weights {weights} --imgsz 640 --device 0 --out-dir {out}
+    note: 统一权重/配置/分割口径，解释历史 0.0568 / 0.2492 / 0.287 的差异来源。
+
+  - id: B1
+    name: YOLOv8n-seg 960
+    phase: baseline
+    priority: must
+    status: todo
+    needs: [train]
+    command: python training/train_seg_baseline.py --model yolov8n-seg.pt --imgsz 960 --epochs 150 --name b1_v8n_960 --project {out}/runs
+    note: 与 B0 比分辨率收益；batch 变化需记录。
+
+  - id: B2
+    name: YOLOv8s-seg 640
+    phase: baseline
+    priority: must
+    status: todo
+    needs: [train, yolov8s-seg.pt]
+    command: python training/train_seg_baseline.py --model yolov8s-seg.pt --imgsz 640 --epochs 150 --name b2_v8s_640 --project {out}/runs
+    note: 与 B0 比模型规模收益。
+
+  - id: B3
+    name: YOLOv8s-seg 960
+    phase: baseline
+    priority: must
+    status: todo
+    needs: [train, yolov8s-seg.pt]
+    command: python training/train_seg_baseline.py --model yolov8s-seg.pt --imgsz 960 --epochs 150 --name b3_v8s_960 --project {out}/runs
+    note: 规模×分辨率交互。
+
+  # ---------------- 零样本 Z ----------------
+  - id: Z1
+    name: SAM3 零样本·病斑提示（host_0）
+    phase: zeroshot
+    priority: must
+    status: done
+    command: python -m sam3_baseline.prompt_sweep --split val --data-root {data_root} --ckpt {sam3_weights} --out {out} --variants host_0 --imgsz 1008
+    note: 已完成 S0/S1；全 846 张 mAP50=0.1709，200 子集=0.2146（见 experiments/sam3_s1/sweep.json）。
+
+  - id: Z2
+    name: YOLO-World 零样本检测
+    phase: zeroshot
+    priority: recommended
+    status: blocked
+    needs: [ultralytics_yoloworld, 检测脚本]
+    note: 只出框 AP，不与掩码 AP 混比；高阈值不得提前截断。待补脚本。
+
+  - id: Z3
+    name: YOLOE-Seg 零样本
+    phase: zeroshot
+    priority: recommended
+    status: blocked
+    needs: [ultralytics_yoloe]
+    note: 评估单类病斑掩码及提示敏感性。待补脚本。
+
+  # ---------------- 微调 F ----------------
+  - id: F1
+    name: SAM3 全参数微调（S2）
+    phase: finetune
+    priority: resource
+    status: running
+    command: cd /root/autodl-tmp/Ryan/sam3_repo && python sam3/train/train.py -c configs/plantseg34/plantseg34_s2.yaml --use-cluster 0 --num-gpus 1
+    note: 进行中。配置生成见 datasets_tools/sam3_make_ft_config.py；评测用 convert_ft_ckpt.py + prompt_sweep。
+
+  - id: F2
+    name: YOLOE-Seg 微调
+    phase: finetune
+    priority: recommended
+    status: blocked
+    needs: [ultralytics_yoloe]
+    note: 官方固定类别微调会融合类别头，训练后不可随意换提示，需记录。
+
+  - id: F3
+    name: YOLO-World 微调 + SAM3 框提示
+    phase: finetune
+    priority: recommended
+    status: blocked
+    needs: [ultralytics_yoloworld]
+    note: 用预测框而非真值框，同时记录检测与分割收益、总时延。
+
+  - id: F4
+    name: YOLO 框 + SAM3 / GT 框 + SAM3
+    phase: finetune
+    priority: conditional
+    status: blocked
+    needs: [框提示脚本]
+    note: 区分检测器作用；GT 框仅作上限对照。
+
+  # ---------------- 创新 I ----------------
+  - id: I-01
+    name: SAM3-LoRA + 全局—局部病斑感知
+    phase: innovation
+    priority: main
+    status: planned
+    needs: [LoRA 实现, 局部裁剪训练]
+    note: 主线。先 LoRA 冒烟（rank8/alpha16）确认可训练参数与梯度，再加局部训练做消融。对应 S3。
+
+  - id: I-02
+    name: 提示鲁棒 LoRA（等价表达 + 负提示）
+    phase: innovation
+    priority: extended
+    status: planned
+    needs: [I-01 完成]
+    note: 固定/多提示/多提示+负提示三组对照；推理固定单提示。
+
+  - id: I-03
+    name: 轻量预标注 + 按需 SAM3 精修
+    phase: innovation
+    priority: engineering
+    status: planned
+    needs: [refine 接口已就绪]
+    note: 无精修/全量/按需三组；记录精修调用率、P95、人工秒数。refine() 见 inference/predict.py。
+
+  - id: I-04
+    name: 病斑定位与宿主—病害识别解耦
+    phase: innovation
+    priority: extended
+    status: planned
+    needs: [115 类细粒度实验]
+    note: 34 宿主 / 直接 115 / 通用定位+上下文分类；缺类不评估（val 缺 Peach peach rust，test 缺 Coffee coffee black rot）。
