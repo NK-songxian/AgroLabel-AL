@@ -40,8 +40,8 @@ experiments:
     priority: must
     status: todo
     needs: [train, yolov8x-seg.pt]
-    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolov8x-seg.pt --imgsz 640 --epochs 150 --name b2_v8x_640 --project {out}/runs"
-    note: 原设计为 v8s，官方 v8s-seg 权重在内网拿不到，改用 v8x（规模档位由 s 提到 x）；与 B0 比模型规模收益。
+    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolov8x-seg.pt --imgsz 640 --epochs 150 --batch 32 --name b2_v8x_640 --project {out}/runs"
+    note: 原设计为 v8s，官方 v8s-seg 权重在内网拿不到，改用 v8x（规模档位由 s 提到 x）；与 B0 比模型规模收益。batch 32（96G 卡，batch 16 时 GPU 空转）。
 
   - id: B3
     name: YOLOv8x-seg 960
@@ -58,8 +58,8 @@ experiments:
     priority: extended
     status: todo
     needs: [train, yolo26x-seg.pt]
-    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolo26x-seg.pt --imgsz 640 --epochs 150 --name b4_y26x_640 --project {out}/runs"
-    note: 换代对照（26x vs 8x，同为 x 规模、640）。与 B2 配对比较。
+    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolo26x-seg.pt --imgsz 640 --epochs 150 --batch 32 --name b4_y26x_640 --project {out}/runs"
+    note: 换代对照（26x vs 8x，同为 x 规模、640）。与 B2 配对比较。batch 32。
 
   - id: B5
     name: YOLO26x-seg 960
