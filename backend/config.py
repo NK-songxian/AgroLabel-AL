@@ -130,6 +130,11 @@ OUT_DIR = PROJECT / "out"
 PRED_CACHE_DIR = OUT_DIR / "pred_cache"
 ANNOTATION_DIR = OUT_DIR / "annotations"
 LOG_DIR = OUT_DIR / "logs"
+OPS_CSV = LOG_DIR / "ops.csv"
+
+# 实验臂：标注产物落到 out/annotations/<arm>/，三臂互不覆盖（ADDENDUM §4.3）
+# assisted = 预标 + 修正，manual = 纯人工对照，noprompt = 预标但无点提示
+DEFAULT_ARM = os.environ.get("AGROLABEL_ARM", "assisted")
 
 
 def ensure_dirs() -> None:

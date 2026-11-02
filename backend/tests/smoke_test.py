@@ -191,6 +191,148 @@ def main() -> int:
                   {"image_id": first_id, "image_base64": "AAAA"})
     check("两个入参都给 -> 422", st == 422, str(st))
 
+    # ---------------------------------------------------- 提交标注
+    print("\n[7] POST /api/annotations")
+    from pathlib import Path as _P
+    root = _P(__file__).resolve().parents[2]
+    test_arm = "smoketest"
+    test_arm_dir = root / "out" / "annotations" / test_arm
+    if test_arm_dir.exists():
+        for f in test_arm_dir.glob("*"):
+            f.unlink()
+
+    # 先对这张图跑一次 predict，确保 pred_cache 存在（否则测不到快照回填）
+    http("POST", "/api/predict", {"image_id": first_id})
+
+    poly = [[0.10, 0.10], [0.30, 0.10], [0.30, 0.40], [0.10, 0.40]]
+    st, _, raw = http(
+        "POST", f"/api/annotations?arm={test_arm}",
+        {
+            "image_id": first_id,
+            "label_state": "labeled",
+            "instances": [
+                {"class_id": 0, "polygon": poly},
+                {"class_id": 3, "polygon": [[0.5, 0.5], [0.6, 0.5], [0.6, 0.6]]},
+            ],
+            "elapsed_ms": 12345,
+            "operator": "smoke",
+            "session_id": "smoke-session",
+        },
+    )
+    check("200", st == 200, str(st))
+    if st == 200:
+        r = json.loads(raw.decode("utf-8"))
+        check("ok=true", r.get("ok") is True)
+        check("n_instances=2", r.get("n_instances") == 2, str(r.get("n_instances")))
+        check("arm 回显正确", r.get("arm") == test_arm, r.get("arm"))
+        check("pred_cached=true（快照从缓存回填）", r.get("pred_cached") is True)
+        check("label_state 回显", r.get("label_state") == "labeled")
+
+        txt = root / r["label_path"]
+        meta = txt.with_suffix(".json")
+        check("标签 txt 已写", txt.is_file(), r["label_path"])
+        check("元数据 json 已写", meta.is_file(), meta.name)
+
+        if txt.is_file():
+            body_lines = [ln for ln in txt.read_text(encoding="utf-8").splitlines() if ln.strip()]
+            check("txt 有 2 行（每实例一行）", len(body_lines) == 2, str(len(body_lines)))
+            parts = body_lines[0].split()
+            check("txt 每行 1+2n 个字段（class + 顶点）",
+                  len(parts) == 1 + 2 * len(poly), str(len(parts)))
+            check("txt 首列是 class_id", parts[0] == "0", parts[0])
+            vals = [float(v) for v in parts[1:]]
+            check("txt 坐标为归一化 [0,1]", all(0 <= v <= 1 for v in vals))
+
+        if meta.is_file():
+            m = json.loads(meta.read_text(encoding="utf-8"))
+            check("meta.label_state 正确", m.get("label_state") == "labeled")
+            check("meta 含 pred_snapshot", isinstance(m.get("pred_snapshot"), list))
+            check("meta.pred_snapshot 非空（缓存命中）",
+                  len(m.get("pred_snapshot") or []) > 0, str(len(m.get("pred_snapshot") or [])))
+            check("meta 含 elapsed_ms / operator",
+                  m.get("elapsed_ms") == 12345 and m.get("operator") == "smoke")
+
+    # no_target：应落空 txt
+    st, _, raw = http(
+        "POST", f"/api/annotations?arm={test_arm}",
+        {"image_id": first_id, "label_state": "no_target", "instances": []},
+    )
+    check("no_target 提交 200", st == 200, str(st))
+    if st == 200:
+        r = json.loads(raw.decode("utf-8"))
+        t = root / r["label_path"]
+        check("no_target 落空 txt", t.is_file() and t.stat().st_size == 0,
+              f"size={t.stat().st_size if t.exists() else 'missing'}")
+
+    # 校验：no_target 带实例 / 坐标越界 / class_id 越界 / 顶点太少
+    st, _, _ = http("POST", f"/api/annotations?arm={test_arm}",
+                    {"image_id": first_id, "label_state": "no_target",
+                     "instances": [{"class_id": 0, "polygon": poly}]})
+    check("no_target 带实例 -> 422", st == 422, str(st))
+    st, _, _ = http("POST", f"/api/annotations?arm={test_arm}",
+                    {"image_id": first_id, "label_state": "labeled",
+                     "instances": [{"class_id": 0,
+                                    "polygon": [[1.5, 0.1], [0.3, 0.1], [0.3, 0.4]]}]})
+    check("坐标越界 -> 422", st == 422, str(st))
+    st, _, _ = http("POST", f"/api/annotations?arm={test_arm}",
+                    {"image_id": first_id, "label_state": "labeled",
+                     "instances": [{"class_id": 99, "polygon": poly}]})
+    check("class_id 越界 -> 422", st == 422, str(st))
+    st, _, _ = http("POST", f"/api/annotations?arm={test_arm}",
+                    {"image_id": first_id, "label_state": "labeled",
+                     "instances": [{"class_id": 0, "polygon": [[0, 0], [1, 1]]}]})
+    check("顶点少于 3 -> 422", st == 422, str(st))
+
+    # ---------------------------------------------------- 操作日志
+    print("\n[8] POST /api/logs/ops")
+    ev = [
+        {"ts": "2026-11-02 18:00:01", "image": "smoke_img", "op": "改类别",
+         "instance": 0, "detail": "Apple -> Tomato", "n_ops_on_image": 1, "api_ms": "20.5"},
+        {"ts": "2026-11-02 18:00:05", "image": "smoke_img", "op": "删实例",
+         "instance": 1, "detail": "Tomato", "n_ops_on_image": 2, "api_ms": "20.5"},
+        {"ts": "2026-11-02 18:00:09", "image": "smoke_img", "op": "整张确认",
+         "instance": -1, "detail": "2 个实例", "n_ops_on_image": 3, "api_ms": ""},
+    ]
+    st, _, raw = http("POST", "/api/logs/ops", {"session_id": "smoke-session", "events": ev})
+    check("200", st == 200, str(st))
+    if st == 200:
+        r = json.loads(raw.decode("utf-8"))
+        check("appended=3", r.get("appended") == 3, str(r.get("appended")))
+        check("返回 path 以 ops.csv 结尾", str(r.get("path", "")).endswith("ops.csv"),
+              str(r.get("path")))
+        csv_path = root / r["path"]
+        check("ops.csv 已生成", csv_path.is_file())
+        if csv_path.is_file():
+            raw_bytes = csv_path.read_bytes()
+            check("CSV 带 UTF-8 BOM（m5 用 utf-8-sig 读）", raw_bytes[:3] == b"\xef\xbb\xbf",
+                  raw_bytes[:3].hex())
+            text = raw_bytes.decode("utf-8-sig")
+            rows = [ln for ln in text.splitlines() if ln.strip()]
+            check("表头逐字对齐 m4_app.py:131",
+                  rows[0] == "ts,image,op,instance,detail,n_ops_on_image,api_ms", rows[0])
+            check("末尾三行是本次上报", len(rows) >= 4, f"共 {len(rows)} 行")
+            check("中文 detail 未乱码", "Apple -> Tomato" in text)
+
+    st, _, _ = http("POST", "/api/logs/ops", {
+        "session_id": "s", "events": [{"ts": "t", "image": "i", "op": "瞎写一个", "instance": -1}],
+    })
+    check("词表外的 op -> 422", st == 422, str(st))
+    st, _, _ = http("POST", "/api/logs/ops", {"session_id": "s", "events": []})
+    check("空事件列表 -> 422", st == 422, str(st))
+
+    # ---------------------------------------------------- 导出（P3 占位）
+    print("\n[9] GET /api/logs/export")
+    st, _, _ = http("GET", "/api/logs/export")
+    check("返回 501（不是 404）", st == 501, str(st))
+    st, _, _ = http("GET", "/api/logs/export?format=json")
+    check("format=json -> 400", st == 400, str(st))
+
+    # ---------------------------------------------------- 清理测试产物
+    if test_arm_dir.exists():
+        for f in test_arm_dir.glob("*"):
+            f.unlink()
+        test_arm_dir.rmdir()
+
     # ---------------------------------------------------- 汇总
     print("\n" + "=" * 64)
     total = passed + failed

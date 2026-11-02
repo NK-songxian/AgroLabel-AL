@@ -36,15 +36,45 @@
 | `GET /api/classes` | ✅ | 34 类字典，源为 `configs/dataset_plantseg34.local.yaml` |
 | `GET /api/images` | ✅ | 分页 / `ids=` 批量 / 按 split、class 过滤 |
 | `GET /api/images/{id}/file` | ✅ | ETag + 304 + Range + immutable 缓存 |
-| `POST /api/predict` | ✅ | **真模型**，GPU 单张，实测 20 ms |
+| `POST /api/predict` | ✅ | **真模型**，GPU 单张，实测 28–48 ms |
+| `POST /api/annotations` | ✅ | 落 `out/annotations/<arm>/`，YOLO seg txt + 元数据 json |
+| `POST /api/logs/ops` | ✅ | 追加 `out/logs/ops.csv`，表头对齐 `src/m4_app.py:131` |
+| `GET /api/logs/export` | 🕒 | **P3 占位**：已注册路由，一律返回 501 + 说明（不是 404） |
 | `POST /api/sample` | ⬜ | 等模型侧提供 `select()` |
 | `POST /api/edit-cost` | ⬜ | 口径已冻结在 ADDENDUM §3.3 |
-| `POST /api/annotations` | ⬜ | 落盘 `out/annotations/<arm>/` |
-| `POST /api/logs/ops` | ⬜ | 写 `out/logs/ops.csv`，表头对齐 `src/m4_app.py:131` |
 | `POST /api/refine` | ⬜ | 点提示 ROI 重识别，见 ADDENDUM §2.6 |
 
 `/api/predict` 除了契约里的 `instances` + `latency_ms`，还多返回
 `image_width` / `image_height` / `model_version`（向后兼容的新增字段）。
+
+### 标注与日志的几处实现约定
+
+- **实验臂** `arm` 走查询参数：`POST /api/annotations?arm=assisted`。
+  缺省取环境变量 `AGROLABEL_ARM`，再缺省 `assisted`。
+  三臂（`assisted` / `manual` / `noprompt`）各落一个目录，互不覆盖（ADDENDUM §4.3）。
+- **`pred_snapshot` 不由前端传**：提交时从 `out/pred_cache/<image_id>.json` 读（§4.2）。
+  缓存缺失时记为 `[]`、响应 `pred_cached: false`，**但提交照常成功**。
+- **`no_target` 也落一个空 txt**：空文件才代表"标过了、确实没目标"，
+  和"从没标过"（文件不存在）靠文件存在性区分（§4.1）。
+- **几何校验**：顶点 < 3、坐标超出 `[0,1]`、`class_id` 越界一律 422 打回。
+  宁可报错也不要写出坏标签去污染 m6 的统计。
+- **`ops.csv` 用 `utf-8-sig`**：`m4_app.py` 写、`m5_logstats.py` 用 `utf-8-sig` 读，
+  不带 BOM 时中文 `detail` 会乱码。
+- **`op` 词表严格校验**：`改类别/删实例/标为无目标/整张确认/撤销/提交/新画/拖边界`，
+  词表外的值 422 打回 —— 这张表是 `m5_logstats.py` 硬编码的，多加一个词就等于统计失真。
+
+### 闭环已验证
+
+用真实浏览器操作（删 1 个实例 → 整张确认 → 提交）跑通：
+
+```
+POST /api/annotations  200  -> out/annotations/assisted/00_cabbage....txt（23 行）
+POST /api/logs/ops     200  -> out/logs/ops.csv（3 行，带 BOM）
+python src/m5_logstats.py  -> 已提交 1 张，均值 1.00 次/张，时延 42ms（线 300ms）
+```
+
+注意 m5 只把 `改类别 / 删实例 / 标为无目标` 计入修改次数，
+`整张确认` 与 `提交` 是中性 —— 上面那次的 1 次就来自 `删实例`。
 
 ---
 

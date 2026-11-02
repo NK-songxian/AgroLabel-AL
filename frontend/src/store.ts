@@ -30,6 +30,15 @@ const PAGE = 60
 const MAX_UNDO = 50
 const SESSION_ID = `s${Date.now().toString(36)}`
 
+/** 日志上送的攒批参数：够 5 条或停手 0.8s 就冲一次，提交时强制冲 */
+const FLUSH_AT = 5
+const FLUSH_DELAY_MS = 800
+
+// 这两个是运行时态，不该进 store（会触发无意义的重渲染）
+let queue: Op[] = []
+let flushTimer: ReturnType<typeof setTimeout> | null = null
+let flushing = false
+
 const uid = () =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
@@ -98,6 +107,9 @@ type Store = {
 
   /** 记录一条操作日志。口径对齐 src/m4_app.py 的 log() */
   logOp: (op: OpName, detail: string, instance?: number) => void
+
+  /** 把攒着的日志立刻上送到 /api/logs/ops。force=false 时失败不重排定时器。 */
+  flushOps: (force?: boolean) => Promise<void>
 
   setViewport: (v: { scale?: number; tx?: number; ty?: number }) => void
   requestFit: () => void
@@ -261,7 +273,14 @@ export const useStore = create<Store>((set, get) => ({
       api_ms: latencyMs != null ? latencyMs.toFixed(1) : '',
     }
     set({ ops: [...ops, entry] })
+
+    // 攒批上送后端，写成 out/logs/ops.csv 供 m5_logstats.py 消费
+    queue.push(entry)
+    if (queue.length >= FLUSH_AT) void flushOps(false)
+    else scheduleFlush()
   },
+
+  flushOps: (force = false) => flushOps(force),
 
   deleteSelected: () => {
     const { selectedId, instances, undoStack, nOps, labelState } = get()
@@ -367,16 +386,21 @@ export const useStore = create<Store>((set, get) => ({
     try {
       await api.submitAnnotation(payload)
       finish()
+      // m5 靠"提交"事件确定分母，必须在上送完再翻页
+      await flushOps(true)
       get().toast(`已提交 ${instances.length} 个实例`, 'ok')
       setTimeout(() => void get().next(), 260)
     } catch (e) {
       if (e instanceof NotImplementedError) {
         finish()
+        void flushOps(true)
         get().toast('后端 /api/annotations 尚未实现，本条仅本地暂存', 'warn')
         setTimeout(() => void get().next(), 260)
         return
       }
-      get().toast(`提交失败：${e instanceof Error ? e.message : e}`, 'err')
+      const msg = e instanceof Error ? e.message : String(e)
+      // 后端因为几何/类别校验打回时，把原因原样带出来，别只说"提交失败"
+      get().toast(`提交失败：${msg}`, 'err')
     }
   },
 
@@ -415,3 +439,52 @@ export const useStore = create<Store>((set, get) => ({
     return ops.filter((o) => o.image === s && COUNTED_OPS.has(o.op)).length
   },
 }))
+
+// ---------------------------------------------------------------- 日志上送
+
+let failures = 0
+const MAX_FAILURES = 3
+
+function scheduleFlush() {
+  if (flushTimer != null) return
+  flushTimer = setTimeout(() => {
+    flushTimer = null
+    void flushOps(false)
+  }, FLUSH_DELAY_MS)
+}
+
+/**
+ * 把攒着的日志 POST 到 /api/logs/ops，由后端追加进 out/logs/ops.csv。
+ *
+ * 失败时的态度是**不打断标注**：事件继续留在内存队列里等下次，
+ * 本地 `ops` 数组始终完整（右栏可随时导出 CSV），所以最坏情况只是"没写进后端文件"。
+ * 连续失败 3 次就放弃上送，避免后端没起来时每个操作都打一次无效请求。
+ */
+async function flushOps(force: boolean): Promise<void> {
+  if (flushing || queue.length === 0) return
+  if (failures >= MAX_FAILURES) return
+
+  flushing = true
+  if (flushTimer != null) {
+    clearTimeout(flushTimer)
+    flushTimer = null
+  }
+
+  const batch = queue.slice(0, 200)
+  try {
+    await api.pushOps(SESSION_ID, batch)
+    queue = queue.slice(batch.length)
+    failures = 0
+    if (queue.length) scheduleFlush()
+  } catch {
+    failures += 1
+    if (failures >= MAX_FAILURES) {
+      queue = []
+      useStore.getState().toast('日志上送失败，已停用自动上报；仍可手动导出 CSV', 'warn')
+    } else if (force) {
+      scheduleFlush()
+    }
+  } finally {
+    flushing = false
+  }
+}

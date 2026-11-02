@@ -109,3 +109,61 @@ class HealthResponse(BaseModel):
     classes: int
     dataset: DatasetInfo
     model_info: ModelInfo
+
+
+# ---------------------------------------------------------------- 提交标注
+
+class AnnotateRequest(BaseModel):
+    """POST /api/annotations 的请求体（ADDENDUM §2.4）。
+
+    注意：**没有 pred_snapshot** —— 契约 §4.2 决定由后端从 out/pred_cache 读。
+    """
+    image_id: str = Field(..., min_length=1, max_length=256)
+    label_state: Literal["labeled", "no_target"]
+    instances: list[InInstance] = Field(default_factory=list)
+    elapsed_ms: int = Field(default=0, ge=0)
+    operator: str | None = Field(default=None, max_length=64)
+    session_id: str | None = Field(default=None, max_length=64)
+
+    @model_validator(mode="after")
+    def _no_target_must_be_empty(self):
+        # 契约 §4.1：no_target 时 instances 必须是 []
+        if self.label_state == "no_target" and self.instances:
+            raise ValueError("label_state=no_target 时 instances 必须为空；"
+                             "若确实标出了目标请用 label_state=labeled")
+        return self
+
+
+class AnnotateResponse(BaseModel):
+    ok: bool
+    image_id: str
+    n_instances: int
+    label_state: str
+    arm: str
+    pred_cached: bool
+    label_path: str
+    saved_at: str
+
+
+# ---------------------------------------------------------------- 操作日志
+
+class OpEventIn(BaseModel):
+    ts: str = Field(..., min_length=1, max_length=32)
+    image: str = Field(..., min_length=1, max_length=256)
+    op: str = Field(..., min_length=1, max_length=16)
+    instance: int = -1
+    detail: str = ""
+    n_ops_on_image: int = 0
+    api_ms: str = ""
+
+
+class OpsRequest(BaseModel):
+    session_id: str = Field(..., min_length=1, max_length=64)
+    events: list[OpEventIn] = Field(..., min_length=1, max_length=500)
+
+
+class OpsResponse(BaseModel):
+    ok: bool
+    appended: int
+    rows_total: int
+    path: str
