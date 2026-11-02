@@ -13,7 +13,7 @@ grad 必然是开着的，第一步 forward 就会崩。这里把前向改成：
 fc1+act，无梯度仍走融合算子（不改变推理性能、不改变数学等价性）。
 
 用法:
-    python datasets_tools/patch_sam3_train.py --repo /root/autodl-tmp/Ryan/sam3_repo
+    python datasets_tools/patch_sam3_train.py --repo third_party/sam3_repo
 
 幂等：已打过补丁会直接跳过。
 """

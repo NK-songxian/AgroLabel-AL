@@ -110,3 +110,5 @@ experiments/matrix_state.json
 .acl-recovery/
 # 数据集搬入仓库内（大文件不入库）
 data/plantseg34/
+# 云端隔离 venv（继承 conda base 的 torch，只补训练侧依赖）
+envs/

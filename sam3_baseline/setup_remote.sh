@@ -1,63 +1,64 @@
 #!/usr/bin/env bash
-# AutoDL Pro6000 一次性环境准备（幂等，只写 /root/autodl-tmp/Ryan/）
-# 不改动全局 python、不杀进程、不动 Ryan/ 之外的任何文件。
+# AutoDL Pro6000 一次性环境准备（幂等）
+#
+# 约定：项目相关的所有东西都放在仓库目录内，仓库之外不落任何文件。
+#
+#   <repo>/data/plantseg34     数据集（不入 git）
+#   <repo>/weights/sam3.pt     SAM3 原始权重（不入 git）
+#   <repo>/third_party/sam3_repo  SAM3 官方源码（不入 git）
+#   <repo>/envs/sam3train      隔离 venv（不入 git，继承 conda base 的 torch）
+#   <repo>/runtime/            运行产物（不入 git）
+#
+# 不改动全局 python、不杀进程、不写仓库之外的路径。
 set -euo pipefail
 
-ROOT="${ROOT:-/root/autodl-tmp/Ryan}"
-REPO="$ROOT/ArgoLable-AL"
-ENVP="$ROOT/envs/sam3"
-CKPT="$ROOT/sam3.pt"
-DATA="$ROOT/data_plantseg34"
+REPO="${REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+ENVP="$REPO/envs/sam3train"
+BASE_PY="${BASE_PY:-/root/miniconda3/bin/python}"
+CKPT="$REPO/weights/sam3.pt"
+DATA="$REPO/data/plantseg34"
+SAM3_SRC="$REPO/third_party/sam3_repo"
 
-echo "== 0. 目录 =="
-mkdir -p "$ROOT/envs" "$ROOT/runs" "$ROOT/logs"
-if [ ! -d "$REPO/.git" ]; then
-  echo "克隆仓库到 $REPO"
-  rmdir "$REPO" 2>/dev/null || true
-  git clone https://github.com/NK-songxian/AgroLabel-AL.git "$REPO"
-fi
-cd "$REPO" && git pull -q --ff-only || true
+cd "$REPO"
 
 echo "== 1. GPU =="
 nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader || true
 
-echo "== 2. conda 环境（独立前缀，不污染 base）=="
+echo "== 2. 隔离 venv（--system-site-packages 继承 base 的 torch，不重复装 2.5G）=="
 if [ ! -x "$ENVP/bin/python" ]; then
-  conda create -y -p "$ENVP" python=3.12
+  "$BASE_PY" -m venv --system-site-packages "$ENVP"
 fi
 PY="$ENVP/bin/python"
 "$PY" -V
+"$PY" -c "import torch; print('torch', torch.__version__, 'cuda', torch.cuda.is_available())"
 
-echo "== 3. PyTorch (cu128) =="
-if ! "$PY" -c "import torch" 2>/dev/null; then
-  "$PY" -m pip install -q torch==2.10.0 torchvision --index-url https://download.pytorch.org/whl/cu128
+echo "== 3. SAM3 源码（可编辑安装，指向 third_party/sam3_repo）=="
+if [ ! -d "$SAM3_SRC/sam3" ]; then
+  echo "缺少 $SAM3_SRC，请先解压/克隆 SAM3 官方源码" >&2
+  exit 1
 fi
-"$PY" -c "import torch;print('torch',torch.__version__,'cuda',torch.cuda.is_available(),torch.cuda.get_device_name(0) if torch.cuda.is_available() else '')"
+"$PY" -m pip install -q --no-deps -e "$SAM3_SRC"
+"$PY" -c "import sam3, os; print('sam3 ->', os.path.dirname(sam3.__file__))"
 
-echo "== 4. SAM3 源码 =="
-if [ ! -d "$REPO/third_party/sam3" ]; then
-  mkdir -p "$REPO/third_party"
-  git clone --depth 1 https://github.com/facebookresearch/sam3.git "$REPO/third_party/sam3"
-fi
-"$PY" -m pip install -q -e "$REPO/third_party/sam3"
+echo "== 4. 评测依赖 =="
+"$PY" -m pip install -q pycocotools pillow numpy opencv-python-headless
 
-echo "== 5. 评测依赖 =="
-"$PY" -m pip install -q pycocotools pillow numpy
-
-echo "== 6. 检查权重 =="
+echo "== 5. 检查权重 =="
 if [ -f "$CKPT" ]; then
   ls -lh "$CKPT"
 else
-  echo "警告：$CKPT 不存在，需先放好 sam3.pt"
+  echo "警告：$CKPT 不存在，需先放好 sam3.pt（3.3G）"
 fi
 
-echo "== 7. 检查数据 =="
+echo "== 6. 检查数据 =="
 if [ -d "$DATA/images/val" ]; then
-  echo "数据 OK: $(ls "$DATA/images/val" | wc -l) val 张"
-  [ -e "$REPO/data/plantseg34" ] || ln -sfn "$DATA" "$REPO/data/plantseg34"
+  # images/ 下混放了同名 .npy 掩码，只数图片，别把掩码算成图
+  n_val=$(find "$DATA/images/val" -maxdepth 1 -type f \( -name '*.jpg' -o -name '*.png' \) | wc -l)
+  n_train=$(find "$DATA/images/train" -maxdepth 1 -type f \( -name '*.jpg' -o -name '*.png' \) 2>/dev/null | wc -l)
+  echo "数据 OK: train $n_train / val $n_val"
 else
   echo "警告：$DATA 不存在，先上传数据"
 fi
 
 echo "== 完成 =="
-echo "激活用: $ENVP/bin/python  （或 conda activate $ENVP）"
+echo "解释器: $PY"

@@ -14,7 +14,7 @@
 用法:
     python datasets_tools/convert_ft_ckpt.py \
         --ft runs/sam3_s2_full_ft_host/checkpoints/checkpoint.pt \
-        --base /root/autodl-tmp/Ryan/sam3.pt \
+        --base weights/sam3.pt \
         --out weights/sam3_plantseg34_s2.pt
 """
 

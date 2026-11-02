@@ -48,18 +48,44 @@ def busy_procs() -> list[str]:
     return hits
 
 
-def resolve(tpl: str, meta: dict, out_dir: Path, data_root_override: str | None) -> str:
-    """解析命令占位符。数据根优先用仓库内 data/plantseg34（本地/云端一致）。"""
+def pick_data_root(meta: dict, override: str | None) -> str:
+    """数据根优先用仓库内 data/plantseg34（本地/云端一致），再回落云端/本地路径。"""
     inrepo = ROOT / "data" / "plantseg34"
-    local = meta.get("data_root_local", "")
-    if data_root_override:
-        data_root = data_root_override
-    elif inrepo.is_dir():
-        data_root = str(inrepo)
-    elif meta.get("data_root_cloud") and Path(meta["data_root_cloud"]).exists():
-        data_root = meta["data_root_cloud"]
-    else:
-        data_root = local
+    if override:
+        return override
+    if inrepo.is_dir():
+        return str(inrepo)
+    cloud = str(meta.get("data_root_cloud", "")).replace("{repo}", str(ROOT))
+    if cloud and Path(cloud).is_dir():
+        return cloud
+    return meta.get("data_root_local", "")
+
+
+def ensure_data_yaml(data_root: str) -> None:
+    """把 data.yaml 的 path 校正为当前机器的绝对路径。
+
+    数据目录不进 git，data.yaml 却可能带着另一台机器的路径（如 F:/_plantseg/...），
+    YOLO 读到不存在的 path 会静默去找默认数据集目录。此处就地改成实际路径。
+    """
+    p = Path(data_root) / "data.yaml"
+    if not p.is_file():
+        return
+    try:
+        import yaml
+
+        d = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+    except Exception:
+        return
+    want = str(Path(data_root).resolve())
+    if d.get("path") == want:
+        return
+    d["path"] = want
+    p.write_text(yaml.safe_dump(d, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    print(f"[data.yaml] path -> {want}")
+
+
+def resolve(tpl: str, meta: dict, out_dir: Path, data_root: str) -> str:
+    """解析命令占位符。"""
     sam3_weights = str(meta.get("sam3_weights", "")).replace("{repo}", str(ROOT))
     return (
         tpl.replace("{repo}", str(ROOT))
@@ -119,11 +145,14 @@ def main() -> None:
             return False
         out_dir = ROOT / "experiments" / "matrix" / eid
         out_dir.mkdir(parents=True, exist_ok=True)
-        cmd = resolve(tpl, meta, out_dir, args.data_root)
+        data_root = pick_data_root(meta, args.data_root)
+        cmd = resolve(tpl, meta, out_dir, data_root)
 
         if dry:
             print(cmd)
             return True
+
+        ensure_data_yaml(data_root)
 
         if not allow_busy:
             hits = busy_procs()
