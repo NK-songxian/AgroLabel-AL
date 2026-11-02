@@ -84,3 +84,6 @@ out/
 *.npy
 *.npz
 *.csv.tmp
+
+# 例外：基线权重需随仓库分发（队友测试用）
+!weights/baseline_*.pt

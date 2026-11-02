@@ -15,3 +15,12 @@
 
 - 训练产物统一输出到仓库外的 `F:/_plantseg/` 或 `runs/`（已 gitignore）。
 - 部署时由 backend 在进程启动阶段加载，路径通过环境变量或 `configs/` 配置注入。
+
+## 随仓库分发的基线权重
+
+- `baseline_yolov8nseg_plantseg34_best.pt`
+  - 模型：YOLOv8n-seg，34 类（PlantSeg 植物宿主）
+  - 训练：150 epoch，imgsz 640，seed 42（`configs/baseline_yolov8n_seg.yaml`）
+  - 指标：Box mAP50 0.299 / Mask mAP50 0.287（mAP50-95 Box 0.167 / Mask 0.140）
+  - 用途：队友联调预标注接口（`inference/`），非最终精度
+  - 复现产物：`runs/plantseg34_baseline/`（未入库）
