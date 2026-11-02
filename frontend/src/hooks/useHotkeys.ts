@@ -22,6 +22,12 @@ export function useHotkeys() {
       switch (e.key) {
         case 'Delete':
         case 'Backspace':
+          // 手画时 Backspace 是"退一个点"，不是删实例
+          if (s.mode === 'draw' && s.draft?.length) {
+            e.preventDefault()
+            s.drawUndoPoint()
+            break
+          }
           if (s.selectedId) {
             e.preventDefault()
             s.deleteSelected()
@@ -32,6 +38,15 @@ export function useHotkeys() {
           s.confirmAll()
           break
         case 'Escape':
+          // 手画中先取消草稿，再按一次才退出手画模式
+          if (s.draft) {
+            s.drawCancel()
+            break
+          }
+          if (s.mode === 'draw') {
+            s.setMode('select')
+            break
+          }
           s.select(null)
           break
         case 'ArrowRight':
@@ -53,6 +68,10 @@ export function useHotkeys() {
         case 'p':
         case 'P':
           s.setMode('refine')
+          break
+        case 'd':
+        case 'D':
+          s.setMode('draw')
           break
         case 'h':
         case 'H':

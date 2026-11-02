@@ -127,5 +127,5 @@ export type RefineResponse = {
   latency_ms: number
 }
 
-/** 画布交互模式：select = 点选实例；refine = 点一下让模型重识别 */
-export type CanvasMode = 'select' | 'refine'
+/** 画布交互模式：select 点选 / refine 点一下让模型重识别 / draw 手画多边形 */
+export type CanvasMode = 'select' | 'refine' | 'draw'

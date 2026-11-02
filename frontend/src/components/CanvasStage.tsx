@@ -48,6 +48,12 @@ export function CanvasStage() {
   const refineAt = useStore((s) => s.refineAt)
   const showMasks = useStore((s) => s.showMasks)
   const toggleMasks = useStore((s) => s.toggleMasks)
+  const draft = useStore((s) => s.draft)
+  const drawAddPoint = useStore((s) => s.drawAddPoint)
+  const drawCommit = useStore((s) => s.drawCommit)
+  const beginVertexDrag = useStore((s) => s.beginVertexDrag)
+  const moveVertex = useStore((s) => s.moveVertex)
+  const endVertexDrag = useStore((s) => s.endVertexDrag)
 
   const [size, setSize] = useState({ width: 0, height: 0 })
   const [img, setImg] = useState<HTMLImageElement | null>(null)
@@ -160,9 +166,21 @@ export function CanvasStage() {
 
   const strokeUnit = 1 / Math.max(scale, 0.001)
 
+  /** 屏幕坐标 -> 图像像素坐标；出图返回 null */
+  const toImagePx = useCallback(
+    (p: { x: number; y: number }): { x: number; y: number } | null => {
+      const ix = (p.x - tx) / scale
+      const iy = (p.y - ty) / scale
+      if (ix < 0 || iy < 0 || ix > imgW || iy > imgH) return null
+      return { x: ix, y: iy }
+    },
+    [tx, ty, scale, imgW, imgH],
+  )
+
   /**
    * 点空白处才会走到这里 —— 实例的 Line 已经 cancelBubble 了。
-   * refine 模式下：把屏幕坐标反算成图像像素坐标，交给点提示。
+   * refine 模式：反算成图像像素坐标交给点提示。
+   * draw 模式：落一个顶点；点回起点则闭合。
    */
   const onStageClick = useCallback(
     (e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -170,19 +188,42 @@ export function CanvasStage() {
       const p = stage?.getPointerPosition()
       if (!p) return
 
+      if (mode === 'draw') {
+        if (!imgW || !imgH) return
+        const px = toImagePx(p)
+        if (!px) return
+        const d = draft ?? []
+
+        // 点回第一个点 = 闭合（屏幕距离 10px 内算命中）
+        if (d.length >= 3) {
+          const [fx, fy] = d[0]
+          if (Math.hypot(px.x - fx * imgW, px.y - fy * imgH) * scale < 10) {
+            drawCommit()
+            return
+          }
+        }
+        // 与上一点几乎重合（双击的第二下）就忽略，避免插一个零长边
+        const last = d[d.length - 1]
+        if (last) {
+          const [lx, ly] = last
+          if (Math.hypot(px.x - lx * imgW, px.y - ly * imgH) * scale < 4) return
+        }
+        drawAddPoint(px.x / imgW, px.y / imgH)
+        return
+      }
+
       if (mode !== 'refine') {
         if (e.target === e.target.getStage()) select(null)
         return
       }
       if (refining || !imgW || !imgH) return
 
-      const ix = (p.x - tx) / scale
-      const iy = (p.y - ty) / scale
-      // 点在图外不算
-      if (ix < 0 || iy < 0 || ix > imgW || iy > imgH) return
-      void refineAt(ix, iy)
+      const px = toImagePx(p)
+      if (!px) return
+      void refineAt(px.x, px.y)
     },
-    [mode, refining, imgW, imgH, tx, ty, scale, select, refineAt],
+    [mode, refining, imgW, imgH, draft, scale, select, refineAt,
+     drawAddPoint, drawCommit, toImagePx],
   )
 
   return (
@@ -194,8 +235,18 @@ export function CanvasStage() {
           height={size.height}
           onWheel={onWheel}
           onClick={onStageClick}
-          onDblClick={fit}
-          style={{ cursor: mode === 'refine' ? 'copy' : 'crosshair' }}
+          onDblClick={() => {
+            // draw 模式下双击 = 闭合，不能顺手把视图重置了
+            if (mode === 'draw') {
+              if ((draft?.length ?? 0) >= 3) drawCommit()
+              else useStore.getState().drawCancel()
+              return
+            }
+            fit()
+          }}
+          style={{
+            cursor: mode === 'draw' ? 'crosshair' : mode === 'refine' ? 'copy' : 'default',
+          }}
         >
           <Layer>
             <Group
@@ -250,19 +301,69 @@ export function CanvasStage() {
                 )
               })}
 
-              {/* 选中实例的顶点，为后面的拖顶点微调留位 */}
-              {showMasks && selected?.polygon.map(([x, y], i) => (
+              {/* 选中实例的顶点：可拖动微调边界。整段拖动只在 dragStart 压一次撤销栈 */}
+              {showMasks && mode === 'select' && selected?.polygon.map(([x, y], i) => (
                 <Circle
-                  key={i}
+                  key={`${selected.id}-${i}`}
                   x={x * imgW}
                   y={y * imgH}
-                  radius={3.2 * strokeUnit}
+                  radius={4 * strokeUnit}
                   fill="#fff"
                   stroke={classStroke(selected.class_id)}
                   strokeWidth={1.4 * strokeUnit}
-                  listening={false}
+                  draggable
+                  onMouseEnter={(e) => {
+                    const st = e.target.getStage()
+                    if (st) st.container().style.cursor = 'grab'
+                  }}
+                  onMouseLeave={(e) => {
+                    const st = e.target.getStage()
+                    if (st) st.container().style.cursor = 'crosshair'
+                  }}
+                  onDragStart={(e) => {
+                    e.cancelBubble = true
+                    beginVertexDrag()
+                  }}
+                  onDragMove={(e) => {
+                    // 边拖边更新：否则 Line 要等松手才跟上，看着像断开的
+                    const nx = Math.min(1, Math.max(0, e.target.x() / imgW))
+                    const ny = Math.min(1, Math.max(0, e.target.y() / imgH))
+                    moveVertex(selected.id, i, nx, ny)
+                  }}
+                  onDragEnd={(e) => {
+                    e.cancelBubble = true
+                    endVertexDrag()
+                  }}
+                  onClick={(e) => {
+                    e.cancelBubble = true
+                  }}
                 />
               ))}
+
+              {/* 手画中的草稿：不受"显示标注"开关影响，正在画就得看得见 */}
+              {draft && draft.length > 0 && (
+                <Group listening={false}>
+                  <Line
+                    points={draft.flatMap(([x, y]) => [x * imgW, y * imgH])}
+                    closed={draft.length >= 3}
+                    stroke="#4ea1ff"
+                    strokeWidth={2 * strokeUnit}
+                    dash={[6 * strokeUnit, 4 * strokeUnit]}
+                    fill={draft.length >= 3 ? 'rgba(78,161,255,0.18)' : undefined}
+                  />
+                  {draft.map(([x, y], i) => (
+                    <Circle
+                      key={i}
+                      x={x * imgW}
+                      y={y * imgH}
+                      radius={(i === 0 ? 4.5 : 3.2) * strokeUnit}
+                      fill={i === 0 ? '#4ea1ff' : '#fff'}
+                      stroke="#4ea1ff"
+                      strokeWidth={1.5 * strokeUnit}
+                    />
+                  ))}
+                </Group>
+              )}
             </Group>
           </Layer>
         </Stage>
@@ -285,10 +386,25 @@ export function CanvasStage() {
           >
             点提示
           </button>
+          <button
+            className={`tool${mode === 'draw' ? ' on' : ''}`}
+            onClick={() => useStore.getState().setMode('draw')}
+            title="手画多边形：逐点单击，双击或点回起点闭合（D）"
+          >
+            手画
+          </button>
+
           {mode === 'refine' && (
             <span className="tool-hint">
               在漏检的病斑上点一下
               {refining && ' · 识别中…'}
+            </span>
+          )}
+          {mode === 'draw' && (
+            <span className="tool-hint">
+              {draft && draft.length > 0
+                ? `${draft.length} 个点 · 双击闭合 · Backspace 退一点 · Esc 取消`
+                : '逐点单击，≥3 点后双击闭合'}
             </span>
           )}
 

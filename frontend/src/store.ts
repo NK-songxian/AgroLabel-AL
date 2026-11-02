@@ -121,6 +121,21 @@ type Store = {
 
   setMode: (m: CanvasMode) => void
   toggleMasks: () => void
+
+  // ---- 手画多边形
+  /** 正在画的多边形顶点（归一化坐标）。null 表示没在画 */
+  draft: [number, number][] | null
+  drawAddPoint: (x: number, y: number) => void
+  drawUndoPoint: () => void
+  /** 闭合：≥3 个点才成实例，返回是否成功 */
+  drawCommit: () => boolean
+  drawCancel: () => void
+
+  // ---- 拖顶点
+  /** 按下顶点时压一次撤销栈（整段拖动只算一次撤销） */
+  beginVertexDrag: () => void
+  moveVertex: (id: string, index: number, x: number, y: number) => void
+  endVertexDrag: () => void
   /** 点提示：在图像像素坐标 (px,py) 处裁 ROI 重识别，成功后插入一个新实例 */
   refineAt: (px: number, py: number) => Promise<void>
   /** 主动学习选样，把结果换成新队列 */
@@ -179,6 +194,7 @@ export const useStore = create<Store>((set, get) => ({
   refining: false,
   /** 画布是否显示标注多边形。纯视图开关，不影响实例数据本身 */
   showMasks: true,
+  draft: null,
 
   toasts: [],
 
@@ -233,6 +249,7 @@ export const useStore = create<Store>((set, get) => ({
       scale: 1,
       tx: 0,
       ty: 0,
+      draft: null,
     })
     get().requestFit()
 
@@ -442,9 +459,89 @@ export const useStore = create<Store>((set, get) => ({
 
   // ------------------------------------------------------------ 点提示
 
-  setMode: (m) => set({ mode: m }),
+  setMode: (m) => set({ mode: m, draft: null }),
 
   toggleMasks: () => set((s) => ({ showMasks: !s.showMasks })),
+
+  // ------------------------------------------------------------ 手画多边形
+
+  drawAddPoint: (x, y) =>
+    set((s) => ({ draft: [...(s.draft ?? []), [x, y] as [number, number]] })),
+
+  drawUndoPoint: () =>
+    set((s) => {
+      const d = s.draft ?? []
+      return { draft: d.length > 1 ? d.slice(0, -1) : null }
+    }),
+
+  drawCommit: () => {
+    const { draft, current, instances, undoStack, nOps, labelState, classes } = get()
+    if (!draft || draft.length < 3 || !current) {
+      set({ draft: null })
+      return false
+    }
+
+    // 类别跟点提示保持一致：图像的 gt 类优先。人在病斑上描的是"这张图的病"，
+    // 逐点选类别太慢，改类随时可以在右栏做。
+    const cid = current.gt_class_id ?? 0
+    const cname = current.gt_class_name
+      ?? classes.find((c) => c.class_id === cid)?.class_name
+      ?? ''
+
+    const inst: Instance = {
+      id: uid(),
+      class_id: cid,
+      class_name: cname,
+      score: null,
+      polygon: draft,
+      source: 'manual',
+    }
+
+    set({
+      undoStack: [...undoStack, { instances, nOps, labelState }].slice(-MAX_UNDO),
+      instances: [...instances, inst],
+      selectedId: inst.id,
+      labelState: 'labeled',
+      draft: null,
+    })
+    get().logOp('新画', `手画 ${cname}（${draft.length} 顶点）`, instances.length)
+    return true
+  },
+
+  drawCancel: () => set({ draft: null }),
+
+  // ------------------------------------------------------------ 拖顶点
+
+  beginVertexDrag: () => {
+    const { instances, undoStack, nOps, labelState } = get()
+    // 整段拖动只压一次，否则每帧一次撤销，Ctrl+Z 要按几百下
+    set({
+      undoStack: [...undoStack, { instances, nOps, labelState }].slice(-MAX_UNDO),
+    })
+  },
+
+  moveVertex: (id, index, x, y) =>
+    set((s) => ({
+      instances: s.instances.map((it) =>
+        it.id !== id
+          ? it
+          : {
+              ...it,
+              polygon: it.polygon.map((p, i) =>
+                i === index ? ([x, y] as [number, number]) : p,
+              ),
+            },
+      ),
+    })),
+
+  endVertexDrag: () => {
+    const sel = get().instances.find((i) => i.id === get().selectedId)
+    get().logOp(
+      '拖边界',
+      sel ? `${sel.class_name}（${sel.polygon.length} 顶点）` : '顶点微调',
+      get().instances.length,
+    )
+  },
 
   refineAt: async (px, py) => {
     const { current, instances, selectedId, classes } = get()
