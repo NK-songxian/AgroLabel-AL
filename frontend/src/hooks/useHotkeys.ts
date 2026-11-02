@@ -54,6 +54,10 @@ export function useHotkeys() {
         case 'P':
           s.setMode('refine')
           break
+        case 'h':
+        case 'H':
+          s.toggleMasks()
+          break
         default:
           break
       }

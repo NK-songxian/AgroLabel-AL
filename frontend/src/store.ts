@@ -99,6 +99,8 @@ type Store = {
   mode: CanvasMode
   /** 点提示请求进行中（与 predict 的 status 分开，避免文案串台） */
   refining: boolean
+  /** 画布是否显示标注多边形；关掉可以干净地看原图（数据不受影响） */
+  showMasks: boolean
 
   toasts: Toast[]
 
@@ -118,6 +120,7 @@ type Store = {
   submit: () => Promise<void>
 
   setMode: (m: CanvasMode) => void
+  toggleMasks: () => void
   /** 点提示：在图像像素坐标 (px,py) 处裁 ROI 重识别，成功后插入一个新实例 */
   refineAt: (px: number, py: number) => Promise<void>
   /** 主动学习选样，把结果换成新队列 */
@@ -174,6 +177,8 @@ export const useStore = create<Store>((set, get) => ({
 
   mode: 'select',
   refining: false,
+  /** 画布是否显示标注多边形。纯视图开关，不影响实例数据本身 */
+  showMasks: true,
 
   toasts: [],
 
@@ -438,6 +443,8 @@ export const useStore = create<Store>((set, get) => ({
   // ------------------------------------------------------------ 点提示
 
   setMode: (m) => set({ mode: m }),
+
+  toggleMasks: () => set((s) => ({ showMasks: !s.showMasks })),
 
   refineAt: async (px, py) => {
     const { current, instances, selectedId, classes } = get()

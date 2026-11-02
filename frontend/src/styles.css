@@ -350,6 +350,25 @@ button { font: inherit; color: inherit; }
   white-space: nowrap;
 }
 
+/* 模式组与显示开关之间的分隔 */
+.tool-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 2px 2px;
+  background: var(--border-2);
+}
+
+/* 显示/隐藏标注：这是视图开关，不是模式，所以用弱一档的高亮 */
+.tool.toggle { display: inline-flex; align-items: center; gap: 5px; }
+.tool.toggle.on {
+  color: var(--text);
+  background: rgba(78, 161, 255, .16);
+  border-color: rgba(78, 161, 255, .4);
+  font-weight: 500;
+}
+.tool.toggle:not(.on) { color: var(--dim-2); }
+.tool-eye { font-size: 10px; line-height: 1; }
+
 /* 左栏：智能选样 */
 .sample-bar {
   display: flex;

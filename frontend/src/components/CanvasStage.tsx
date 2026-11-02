@@ -46,6 +46,8 @@ export function CanvasStage() {
   const mode = useStore((s) => s.mode)
   const refining = useStore((s) => s.refining)
   const refineAt = useStore((s) => s.refineAt)
+  const showMasks = useStore((s) => s.showMasks)
+  const toggleMasks = useStore((s) => s.toggleMasks)
 
   const [size, setSize] = useState({ width: 0, height: 0 })
   const [img, setImg] = useState<HTMLImageElement | null>(null)
@@ -210,7 +212,9 @@ export function CanvasStage() {
                 <KonvaImage image={img} width={imgW} height={imgH} listening={false} />
               )}
 
-              {instances.map((inst, i) => {
+              {/* 关掉标注时连实例一起不渲染：既不挡视线，也不再拦截点击
+                  （于是 select 模式的点空白取消、refine 模式的点提示都还能用） */}
+              {showMasks && instances.map((inst, i) => {
                 const isSel = inst.id === selectedId
                 return (
                   <Group key={inst.id}>
@@ -247,7 +251,7 @@ export function CanvasStage() {
               })}
 
               {/* 选中实例的顶点，为后面的拖顶点微调留位 */}
-              {selected?.polygon.map(([x, y], i) => (
+              {showMasks && selected?.polygon.map(([x, y], i) => (
                 <Circle
                   key={i}
                   x={x * imgW}
@@ -287,6 +291,20 @@ export function CanvasStage() {
               {refining && ' · 识别中…'}
             </span>
           )}
+
+          <span className="tool-sep" />
+
+          <button
+            className={`tool toggle${showMasks ? ' on' : ''}`}
+            onClick={toggleMasks}
+            title="显示 / 隐藏标注框（H）—— 关掉可以干净地看原图，不影响已标的实例"
+            aria-pressed={showMasks}
+          >
+            <span className="tool-eye" aria-hidden>
+              {showMasks ? '◉' : '○'}
+            </span>
+            标注{showMasks ? '显示' : '隐藏'}
+          </button>
         </div>
       )}
 
