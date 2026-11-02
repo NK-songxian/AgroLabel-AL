@@ -11,12 +11,16 @@ Swagger: http://127.0.0.1:8000/docs
 
 from __future__ import annotations
 
-# ⚠️ 必须在 import torch 之前完成这两步（实测会崩）：
+# ⚠️ 必须在 import torch 之前完成这几步（实测会崩）：
 #   1) KMP_DUPLICATE_LIB_OK —— conda 的 MKL 与 CUDA 版 torch 各带一份 libiomp5md.dll
 #   2) import cv2 早于 torch —— 否则 OMP Error #15
+#   3) YOLO_OFFLINE    —— ultralytics 有联网自检（字体/AMP/权重探测），
+#      断网或挂代理时会卡住几十秒。团队已在 training/train_seg_baseline.py
+#      统一默认开启（commit 5c2042c），后端跟着对齐，别让推理路径也去联网。
 import os
 
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+os.environ.setdefault("YOLO_OFFLINE", "1")
 
 import cv2  # noqa: E402,F401  （顺序敏感，勿删）
 
