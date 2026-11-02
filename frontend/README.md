@@ -1,36 +1,143 @@
-# frontend/ —— 标注界面（队友负责）
+# frontend/ —— 标注工作台
 
-标注员操作界面，调用 [`../backend`](../backend) 的 API。接口契约见 [`../docs/INTERFACE.md`](../docs/INTERFACE.md)。
+React 19 + TypeScript 7 + Vite 8 + react-konva 19 + Zustand 5 + Ant Design 6。
 
-## 核心交互（来自契约）
+契约见 [`../docs/INTERFACE.md`](../docs/INTERFACE.md) 与 [`../docs/INTERFACE_ADDENDUM.md`](../docs/INTERFACE_ADDENDUM.md)。
 
-1. 加载一批图像 → 显示 `/api/predict` 返回的预标注实例（不同类别不同颜色）。
-2. 标注员在预标注基础上做最小化修改：画 / 删 / 改类别 / 拖边界 / 标为无目标。
-3. 修改动作记录操作日志（供后端/模型侧计算验收数字）。
-4. "智能选样"按钮 → 调 `/api/sample` 拉取模型最不确定 / 最具多样性的一批图，形成主动学习闭环。
+![界面截图](../docs/screenshot-ui.jpg)
 
-## 待实现
+> 截图是真实渲染的：后端真模型在 302×225 的甘蓝黑腐病图上预标出 24 个病斑，
+> 每个多边形都压在病斑上；右栏是实例列表与 34 类可搜索下拉。
 
-- [ ] 图像画布与多边形标注工具（画/拖/删/改类）
-- [ ] 预标注结果叠加显示与一键采纳
-- [ ] 操作日志埋点（修改类型 + 耗时）
-- [ ] 智能选样入口
-- [ ] 与 backend 的联调
+---
 
-## 建议技术栈（队友自选）
+## 跑起来
 
-- React / Vue + Canvas 或 SVG 标注库（如 Konva、Fabric.js、Label Studio 前端）。
-- 保持与契约一致的字段命名（class_id / score / polygon / bbox）。
+先起后端（另开一个终端，在仓库根目录）：
 
-## 目录约定
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+```
+
+再起前端：
+
+```powershell
+cd frontend
+npm install          # 首次
+npm run dev          # http://localhost:5173
+```
+
+`vite.config.ts` 已把 `/api` 代理到 `127.0.0.1:8000`，所以前端代码里一律用相对路径；
+生产部署时把 `dist/` 挂到反代后面即可，不用改任何 base 配置。
+
+换后端地址：`$env:VITE_API_TARGET='http://127.0.0.1:8001'; npm run dev`
+
+---
+
+## 交互（与契约 §5 一一对应）
+
+四段式：**模型预标打底 → 人做"删 / 改类" → 漏检点一下让模型放大重识别 → 手画兜底**。
+
+| 操作 | 怎么做 | 走哪个接口 |
+|---|---|---|
+| 选图 | 左栏点任意一行 | `GET /api/images` + `GET /api/images/{id}/file` |
+| 预标注 | 打开即自动跑 | `POST /api/predict` |
+| 改类别 | 右栏实例行的下拉框（可搜索） | 纯前端 |
+| 删实例 | 选中后按 `Del`，或右栏"删除选中" | 纯前端 |
+| 整张确认 | 右栏按钮 / `Enter` | 纯前端 |
+| 标为无目标 | 右栏按钮 | 纯前端 |
+| 撤销 | 右栏按钮 / `Ctrl+Z` | 纯前端 |
+| 提交 | 右栏"提交并下一张" | `POST /api/annotations` |
+
+**改类、删除、拖顶点都不调后端**，只有提交才落盘 —— 这样一张图改 5 次 = 5 次本地操作 + 1 次请求，
+不会把网络往返摊进 300 ms 预算（`INTERFACE_ADDENDUM.md` §5 约定 1）。
+
+### 快捷键
+
+| 键 | 作用 |
+|---|---|
+| `←` `→` | 上一张 / 下一张 |
+| `Del` / `Backspace` | 删除选中实例 |
+| `Enter` | 整张确认 |
+| `Esc` | 取消选中 |
+| `Ctrl+Z` | 撤销 |
+| `F` | 自适应视图 |
+
+鼠标：滚轮缩放（以光标为锚点）、拖拽平移、双击自适应、点多边形选中。
+
+---
+
+## 操作日志
+
+右侧底部两个按钮：
+
+- **下载 ops.csv** —— 生成 `ts,image,op,instance,detail,n_ops_on_image,api_ms` 表头的 CSV
+- **复制 CSV** —— 同上，进剪贴板
+
+表头与 `src/m4_app.py:131` **逐字一致**，`src/m5_logstats.py` 可直接 `csv.DictReader` 读。
+`op` 词表严格限定在 `改类别` / `删实例` / `标为无目标` / `整张确认` / `撤销` / `提交` / `新画` / `拖边界`。
+
+> 后端 `POST /api/logs/ops` 尚未实现（P1 后半段）。在那之前日志只在前端内存里，
+> 靠上面两个按钮导出。接口好了之后在 `store.ts` 的 `logOp()` 里补上报即可。
+
+---
+
+## 目录
 
 ```
-frontend/
-├── README.md
-├── package.json
-├── src/
-│   ├── api/        # 调 backend 的封装
-│   ├── components/ # 标注画布、工具栏
-│   └── pages/
-└── public/
+src/
+├── main.tsx                    # 挂载 + antd 深色主题
+├── App.tsx                     # 三栏布局 + 启动屏 + toast
+├── api.ts                      # 带类型的 API 客户端
+├── store.ts                    # Zustand：队列 / 当前图 / 实例 / 撤销 / 日志
+├── types.ts                    # 与契约一一对应的类型
+├── colors.ts                   # 34 类黄金角配色
+├── styles.css                  # 除 antd Select 外全部手写
+├── hooks/useHotkeys.ts
+└── components/
+    ├── TopBar.tsx              # 数据集模式 / 设备 / 时延 / 翻页 / 缩放
+    ├── QueuePanel.tsx          # 左栏队列
+    ├── CanvasStage.tsx         # Konva 画布：图片 + 多边形 + 顶点
+    └── InspectorPanel.tsx      # 右栏实例列表 + 动作 + 统计 + 导出
 ```
+
+---
+
+## 关于参考 X-AnyLabeling
+
+可以，而且是**应该**参考的 —— 但要分清哪些抄、哪些不抄。
+
+**抄这三样：**
+
+1. **数据格式**（`anylabeling/views/labeling/label_file.py` + `shape.py`）。
+   `LabelFile` 的 JSON 是事实标准：
+   `{version, flags, shapes[], imagePath, imageData, imageHeight, imageWidth}`，
+   每个 shape 是 `{label, score, points, group_id, difficult, shape_type, flags, description, attributes, kie_linking}`。
+   我们内部用归一化坐标，但**导入导出时按它的结构序列化** ——
+   这样队友拿桌面版 X-AnyLabeling 人工标的数据能直接进流水线，交付时也好看。
+2. **交互约定**：`Ctrl+Z` 撤销、`Del` 删除、滚轮缩放、双击自适应 —— 这是标注工具的肌肉记忆。
+3. **`shape_type` 的取值**（`polygon` / `rectangle` / `point` …），别自己发明一套。
+
+**不抄的两样：**
+
+1. **坐标约定**。X-AnyLabeling 的 `points` 是**绝对像素**（源码里没有任何 normalize）。
+   我们的契约是**归一化**（`INTERFACE_ADDENDUM.md` §2.6）。
+   互转就是 `× width / ÷ width`，但**必须封成一个转换函数**；混用一次就会出现
+   "多边形整体偏移一个屏幕"这种最难查的 bug。
+2. **整体架构**。它是 PyQt 桌面应用（`QGraphicsScene`），我们是 React + Konva。
+   把 `label_widget.py`（上万行）搬过来只会把前端拖死。
+
+**值得后续补**（按性价比排）：
+
+- 导入/导出 X-AnyLabeling JSON（约半天，直接换来"与桌面工具互通"这个卖点）
+- 手画多边形 + 拖顶点（P1 兜底路径；`/api/refine` 落地后优先级会降）
+- 撤销栈目前存整份快照，实例上千时应改成 patch
+
+---
+
+## 已知取舍
+
+- **打包 827 kB（gzip 266 kB）**，大头是 antd + konva。本机跑无感；
+  要压的话把 antd 换成自写的 34 项搜索下拉，估计能省 ~400 kB。
+- **`npm run build` 在受限 shell 里会 `spawn EPERM`**（Vite 8 的 `windowsSafeRealPathSync` 要 exec 子进程），
+  用 `vite build --configLoader native` 可绕过。正常 PowerShell 里 `npm run dev` / `npm run build` 都没问题。
