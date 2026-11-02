@@ -63,6 +63,47 @@ export function CanvasStage() {
   /** 上一次右键的时间与位置，用来识别「双击右键」（浏览器不给 button=2 的 dblclick） */
   const rclickRef = useRef<{ t: number; x: number; y: number } | null>(null)
 
+  // ---- 中键（滚轮按住）拖拽平移
+  // Konva 的 dragButtons 默认就含中键，但 Windows 上浏览器会把中键 mousedown
+  // 当成「自动滚动」，把后续 mousemove 吃掉，所以干脆自己接管：
+  // 容器上 preventDefault 挡掉自动滚动，再在 window 上跟 mousemove/mouseup。
+  // Konva 那边的拖拽则限定成只认左键（dragButtons={[0]}），避免两边同时平移。
+  useEffect(() => {
+    const el = stageRef.current?.container()
+    if (!el || size.width === 0) return
+
+    let start: { x: number; y: number; tx: number; ty: number } | null = null
+
+    const onDown = (e: MouseEvent) => {
+      if (e.button !== 1) return
+      e.preventDefault() // 挡掉自动滚动光标与后续默认行为
+      const v = useStore.getState()
+      start = { x: e.clientX, y: e.clientY, tx: v.tx, ty: v.ty }
+      el.style.cursor = 'grabbing'
+    }
+    const onMove = (e: MouseEvent) => {
+      if (!start) return
+      e.preventDefault()
+      setViewport({ tx: start.tx + (e.clientX - start.x), ty: start.ty + (e.clientY - start.y) })
+    }
+    const onUp = (e: MouseEvent) => {
+      if (e.button !== 1 || !start) return
+      start = null
+      // 交回给按模式定的光标，别把 React 内联的那份清空
+      const m = useStore.getState().mode
+      el.style.cursor = m === 'draw' ? 'crosshair' : m === 'refine' ? 'copy' : 'default'
+    }
+
+    el.addEventListener('mousedown', onDown)
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      el.removeEventListener('mousedown', onDown)
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+  }, [size.width, setViewport])
+
   // ---- 容器尺寸
   useEffect(() => {
     const el = wrapRef.current
@@ -309,6 +350,9 @@ export function CanvasStage() {
               scaleX={scale}
               scaleY={scale}
               draggable
+              /* 只让左键触发 Konva 拖拽；中键平移由上面的 DOM 监听接管，
+                 否则中键会被两边各平移一次，动得比鼠标快一倍 */
+              dragButtons={[0]}
               onDragEnd={(e) =>
                 setViewport({ tx: e.target.x(), ty: e.target.y() })
               }
