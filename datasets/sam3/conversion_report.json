@@ -1,0 +1,450 @@
+{
+  "task": "Task-SAM3-001 · COCO 转换",
+  "splits": {
+    "train": {
+      "file": "datasets/sam3/plantseg34_train.json",
+      "images": 5367,
+      "annotations": 38496,
+      "categories": 34,
+      "noun_phrases": 115,
+      "dropped": 0,
+      "malformed_lines": 0,
+      "size_mb": 21.71,
+      "area_rel_err": {
+        "mean": 0.083,
+        "p95": 0.2621,
+        "max": 1.3332
+      },
+      "bbox_out_of_image": 0,
+      "images_per_class": {
+        "Wheat": 798,
+        "Tomato": 460,
+        "Soybean": 356,
+        "Citrus": 291,
+        "Corn": 289,
+        "Grape": 280,
+        "Apple": 274,
+        "Cucumber": 265,
+        "Banana": 244,
+        "Peach": 195,
+        "Zucchini": 192,
+        "Coffee": 135,
+        "Cabbage": 121,
+        "Bell pepper": 116,
+        "Garlic": 111,
+        "Potato": 103,
+        "Bean": 98,
+        "Blueberry": 97,
+        "Tobacco": 97,
+        "Squash": 96,
+        "Plum": 84,
+        "Rice": 78,
+        "Carrot": 74,
+        "Broccoli": 64,
+        "Cherry": 62,
+        "Eggplant": 60,
+        "Raspberry": 55,
+        "Ginger": 54,
+        "Lettuce": 49,
+        "Maple": 40,
+        "Cauliflower": 39,
+        "Strawberry": 33,
+        "Celery": 29,
+        "Basil": 28
+      },
+      "identity_check": {
+        "matched": 38496,
+        "missing_in_coco": 0,
+        "extra_in_coco": 0,
+        "exact": true
+      }
+    },
+    "val": {
+      "file": "datasets/sam3/plantseg34_val.json",
+      "images": 846,
+      "annotations": 6454,
+      "categories": 34,
+      "noun_phrases": 115,
+      "dropped": 0,
+      "malformed_lines": 0,
+      "size_mb": 3.61,
+      "area_rel_err": {
+        "mean": 0.089,
+        "p95": 0.2892,
+        "max": 0.8064
+      },
+      "bbox_out_of_image": 0,
+      "images_per_class": {
+        "Wheat": 137,
+        "Tomato": 74,
+        "Apple": 46,
+        "Corn": 46,
+        "Soybean": 46,
+        "Grape": 44,
+        "Citrus": 42,
+        "Cucumber": 40,
+        "Banana": 36,
+        "Peach": 32,
+        "Zucchini": 32,
+        "Bell pepper": 24,
+        "Cabbage": 22,
+        "Coffee": 21,
+        "Blueberry": 18,
+        "Garlic": 17,
+        "Bean": 16,
+        "Potato": 16,
+        "Squash": 13,
+        "Eggplant": 12,
+        "Carrot": 11,
+        "Cherry": 11,
+        "Plum": 11,
+        "Tobacco": 11,
+        "Broccoli": 10,
+        "Raspberry": 10,
+        "Ginger": 9,
+        "Lettuce": 8,
+        "Maple": 7,
+        "Cauliflower": 6,
+        "Rice": 6,
+        "Strawberry": 6,
+        "Basil": 3,
+        "Celery": 3
+      },
+      "identity_check": {
+        "matched": 6454,
+        "missing_in_coco": 0,
+        "extra_in_coco": 0,
+        "exact": true
+      }
+    }
+  },
+  "test_policy": "test 未转换，保持独立，不参与提示词或模型训练",
+  "preview": {
+    "n": 20,
+    "dir": "experiments/sam3_conversion_preview",
+    "min_reparse_iou": 0.76923,
+    "mean_reparse_iou": 0.92504,
+    "rows": [
+      {
+        "preview": "experiments/sam3_conversion_preview/00_cabbage_black_rot_Google_0070.jpg",
+        "image": "cabbage_black_rot_Google_0070.jpg",
+        "host": "Cabbage",
+        "disease": "cabbage black rot",
+        "noun_phrase": "cabbage black rot lesions on cabbage",
+        "area": 157.5,
+        "bbox": [
+          116.0,
+          57.0,
+          21.0,
+          19.0
+        ],
+        "reparse_iou": 0.89706,
+        "reparse_rel_err": 0.10294
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/01_apple_scab_google_0074.jpg",
+        "image": "apple_scab_google_0074.jpg",
+        "host": "Apple",
+        "disease": "apple scab",
+        "noun_phrase": "apple scab lesions on apple",
+        "area": 980.0,
+        "bbox": [
+          376.0,
+          293.0,
+          47.0,
+          32.0
+        ],
+        "reparse_iou": 0.92823,
+        "reparse_rel_err": 0.07177
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/02_cucumber_bacterial_wilt_google_0189.jpg",
+        "image": "cucumber_bacterial_wilt_google_0189.jpg",
+        "host": "Cucumber",
+        "disease": "cucumber bacterial wilt",
+        "noun_phrase": "cucumber bacterial wilt lesions on cucumber",
+        "area": 75441.57,
+        "bbox": [
+          0.0,
+          39.0,
+          358.0,
+          229.0
+        ],
+        "reparse_iou": 0.99379,
+        "reparse_rel_err": 0.00621
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/03_corn_northern_leaf_blight_google_0038.jpg",
+        "image": "corn_northern_leaf_blight_google_0038.jpg",
+        "host": "Corn",
+        "disease": "corn northern leaf blight",
+        "noun_phrase": "corn northern leaf blight lesions on corn",
+        "area": 464.49,
+        "bbox": [
+          519.0,
+          237.0,
+          38.0,
+          21.0
+        ],
+        "reparse_iou": 0.90962,
+        "reparse_rel_err": 0.09038
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/04_coffee_leaf_rust_google_0017.jpg",
+        "image": "coffee_leaf_rust_google_0017.jpg",
+        "host": "Coffee",
+        "disease": "coffee leaf rust",
+        "noun_phrase": "coffee leaf rust lesions on coffee",
+        "area": 721.0,
+        "bbox": [
+          92.0,
+          328.0,
+          34.0,
+          34.0
+        ],
+        "reparse_iou": 0.94898,
+        "reparse_rel_err": 0.05102
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/05_celery_early_blight_8.jpg",
+        "image": "celery_early_blight_8.jpg",
+        "host": "Celery",
+        "disease": "celery early blight",
+        "noun_phrase": "celery early blight lesions on celery",
+        "area": 405.0,
+        "bbox": [
+          273.0,
+          479.0,
+          19.0,
+          34.0
+        ],
+        "reparse_iou": 0.95415,
+        "reparse_rel_err": 0.04585
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/06_broccoli_ring_spot_Google_0117.jpg",
+        "image": "broccoli_ring_spot_Google_0117.jpg",
+        "host": "Broccoli",
+        "disease": "broccoli ring spot",
+        "noun_phrase": "broccoli ring spot lesions on broccoli",
+        "area": 38565.54,
+        "bbox": [
+          160.0,
+          52.0,
+          206.0,
+          239.0
+        ],
+        "reparse_iou": 0.99214,
+        "reparse_rel_err": 0.00786
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/07_wheat_stripe_rust_Baidu_0086.jpg",
+        "image": "wheat_stripe_rust_Baidu_0086.jpg",
+        "host": "Wheat",
+        "disease": "wheat stripe rust",
+        "noun_phrase": "wheat stripe rust lesions on wheat",
+        "area": 806.5,
+        "bbox": [
+          366.0,
+          190.0,
+          74.0,
+          46.0
+        ],
+        "reparse_iou": 0.91344,
+        "reparse_rel_err": 0.08656
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/08_broccoli_alternaria_leaf_spot_Bing_0004.jpg",
+        "image": "broccoli_alternaria_leaf_spot_Bing_0004.jpg",
+        "host": "Broccoli",
+        "disease": "broccoli alternaria leaf spot",
+        "noun_phrase": "broccoli alternaria leaf spot lesions on broccoli",
+        "area": 45.0,
+        "bbox": [
+          400.0,
+          265.0,
+          8.0,
+          9.0
+        ],
+        "reparse_iou": 0.76923,
+        "reparse_rel_err": 0.23077
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/09_strawberry_leaf_scorch_google_0016.jpg",
+        "image": "strawberry_leaf_scorch_google_0016.jpg",
+        "host": "Strawberry",
+        "disease": "strawberry leaf scorch",
+        "noun_phrase": "strawberry leaf scorch lesions on strawberry",
+        "area": 667.0,
+        "bbox": [
+          404.0,
+          49.0,
+          25.0,
+          37.0
+        ],
+        "reparse_iou": 0.93827,
+        "reparse_rel_err": 0.06173
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/10_apple_scab_google_0259.jpg",
+        "image": "apple_scab_google_0259.jpg",
+        "host": "Apple",
+        "disease": "apple scab",
+        "noun_phrase": "apple scab lesions on apple",
+        "area": 36.0,
+        "bbox": [
+          302.0,
+          545.0,
+          7.0,
+          8.0
+        ],
+        "reparse_iou": 1.0,
+        "reparse_rel_err": 0.0
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/11_apple_scab_google_0191.jpg",
+        "image": "apple_scab_google_0191.jpg",
+        "host": "Apple",
+        "disease": "apple scab",
+        "noun_phrase": "apple scab lesions on apple",
+        "area": 113.5,
+        "bbox": [
+          14.0,
+          177.0,
+          16.0,
+          11.0
+        ],
+        "reparse_iou": 0.875,
+        "reparse_rel_err": 0.125
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/12_broccoli_alternaria_leaf_spot_Bing_0091.jpg",
+        "image": "broccoli_alternaria_leaf_spot_Bing_0091.jpg",
+        "host": "Broccoli",
+        "disease": "broccoli alternaria leaf spot",
+        "noun_phrase": "broccoli alternaria leaf spot lesions on broccoli",
+        "area": 606.49,
+        "bbox": [
+          462.0,
+          496.0,
+          30.0,
+          28.0
+        ],
+        "reparse_iou": 0.90059,
+        "reparse_rel_err": 0.09941
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/13_coffee_leaf_rust_13.jpg",
+        "image": "coffee_leaf_rust_13.jpg",
+        "host": "Coffee",
+        "disease": "coffee leaf rust",
+        "noun_phrase": "coffee leaf rust lesions on coffee",
+        "area": 92.0,
+        "bbox": [
+          127.0,
+          181.0,
+          10.0,
+          12.0
+        ],
+        "reparse_iou": 0.80488,
+        "reparse_rel_err": 0.19512
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/14_corn_gray_leaf_spot_google_0006.jpg",
+        "image": "corn_gray_leaf_spot_google_0006.jpg",
+        "host": "Corn",
+        "disease": "corn gray leaf spot",
+        "noun_phrase": "corn gray leaf spot lesions on corn",
+        "area": 4593.48,
+        "bbox": [
+          3.0,
+          305.0,
+          47.0,
+          151.0
+        ],
+        "reparse_iou": 0.97277,
+        "reparse_rel_err": 0.02723
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/15_wheat_bacterial_leaf_streak_(black_chaff)_Bing_0003.jpg",
+        "image": "wheat_bacterial_leaf_streak_(black_chaff)_Bing_0003.jpg",
+        "host": "Wheat",
+        "disease": "wheat bacterial leaf streak (black chaff)",
+        "noun_phrase": "wheat bacterial leaf streak (black chaff) lesions on wheat",
+        "area": 6774.52,
+        "bbox": [
+          993.0,
+          480.0,
+          173.0,
+          81.0
+        ],
+        "reparse_iou": 0.95557,
+        "reparse_rel_err": 0.04443
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/16_apple_scab_google_0111.jpg",
+        "image": "apple_scab_google_0111.jpg",
+        "host": "Apple",
+        "disease": "apple scab",
+        "noun_phrase": "apple scab lesions on apple",
+        "area": 2478.99,
+        "bbox": [
+          372.0,
+          486.0,
+          61.0,
+          89.0
+        ],
+        "reparse_iou": 0.99224,
+        "reparse_rel_err": 0.00776
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/17_zucchini_downy_mildew_Bing_0005.jpg",
+        "image": "zucchini_downy_mildew_Bing_0005.jpg",
+        "host": "Zucchini",
+        "disease": "zucchini downy mildew",
+        "noun_phrase": "zucchini downy mildew lesions on zucchini",
+        "area": 2105.53,
+        "bbox": [
+          0.0,
+          781.0,
+          51.0,
+          57.0
+        ],
+        "reparse_iou": 0.95546,
+        "reparse_rel_err": 0.04454
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/18_citrus_canker_google_0135.jpg",
+        "image": "citrus_canker_google_0135.jpg",
+        "host": "Citrus",
+        "disease": "citrus canker",
+        "noun_phrase": "citrus canker lesions on citrus",
+        "area": 319.5,
+        "bbox": [
+          69.0,
+          42.0,
+          19.0,
+          23.0
+        ],
+        "reparse_iou": 0.8883,
+        "reparse_rel_err": 0.1117
+      },
+      {
+        "preview": "experiments/sam3_conversion_preview/19_wheat_stripe_rust_Baidu_0064.jpg",
+        "image": "wheat_stripe_rust_Baidu_0064.jpg",
+        "host": "Wheat",
+        "disease": "wheat stripe rust",
+        "noun_phrase": "wheat stripe rust lesions on wheat",
+        "area": 1935.49,
+        "bbox": [
+          341.0,
+          708.0,
+          86.0,
+          185.0
+        ],
+        "reparse_iou": 0.91107,
+        "reparse_rel_err": 0.08893
+      }
+    ]
+  }
+}

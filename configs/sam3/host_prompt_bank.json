@@ -1,0 +1,1489 @@
+{
+  "task": "Task-SAM3-001 · 提示词库",
+  "version": "v1",
+  "semantics": {
+    "class_level": "host_plant",
+    "instance_target": "disease_lesion_region",
+    "verified_by": "experiments/sam3_data_audit.md"
+  },
+  "rules": {
+    "no_cross_class_traversal": "每张图只用其自身 host（及自身 disease）的短语，不跑 34 类全量",
+    "host_is_not_disease": "host 名称（如 apple / tomato）只能作为器官所属主体出现，不能单独作为病害短语；单用 host 名属于目标错配",
+    "confidence_is_not_accuracy": "模型置信度不能代替真实准确率，候选短语的取舍必须以 val 上的 mask AP / Dice 为准",
+    "organ_not_assumed": "短语中的 leaves 为任务给定形式；审计显示部分实例位于果实，器官词需按 val 实测结果调整，不得默认",
+    "no_fabrication": "所有病害名均来自 dataset_plantseg_115/classes.json 的 Disease 字段，且被文件名前缀 100% 覆盖，无人工补充"
+  },
+  "baselines": {
+    "S0_zero_shot_species_prompt": {
+      "file": "experiments/sam3_probe_p0.md",
+      "setting": "裸类名（apple / soybean …）零样本，conf=0.01，imgsz=1008",
+      "hit_rate": "52.2%（70/134）",
+      "note": "提示词指向整株/整果，与病斑标注目标错配，仅作基线保留"
+    },
+    "S1_zero_shot_tuned_species": {
+      "file": "experiments/sam3_probe_p0.md",
+      "setting": "每类 best-of-5 变体（含 leaf/plant/leaves），val 846 张全量",
+      "mask_mAP50": 0.0254,
+      "dice_matched": 0.8449,
+      "note": "仍为物种级提示，未针对病斑；保留为 S1"
+    }
+  },
+  "prompt_templates": {
+    "host_level": [
+      "disease lesions on {host} leaves",
+      "leaf disease spots on {host} leaves",
+      "abnormal diseased regions on {host} leaves",
+      "disease lesions on {host}"
+    ],
+    "disease_level": [
+      "{disease} lesions on {host} leaves",
+      "{disease} lesions on {host}",
+      "{disease} spots on {host} fruit"
+    ]
+  },
+  "hosts": [
+    {
+      "class_id": 0,
+      "host": "Apple",
+      "host_level_phrases": [
+        "disease lesions on apple leaves",
+        "leaf disease spots on apple leaves",
+        "abnormal diseased regions on apple leaves",
+        "disease lesions on apple"
+      ],
+      "diseases": [
+        {
+          "name": "apple scab",
+          "observed_instances": 1673,
+          "phrases": [
+            "apple scab lesions on apple leaves",
+            "apple scab lesions on apple",
+            "apple scab spots on apple fruit"
+          ]
+        },
+        {
+          "name": "apple rust",
+          "observed_instances": 792,
+          "phrases": [
+            "apple rust lesions on apple leaves",
+            "apple rust lesions on apple",
+            "apple rust spots on apple fruit"
+          ]
+        },
+        {
+          "name": "apple mosaic virus",
+          "observed_instances": 343,
+          "phrases": [
+            "apple mosaic virus lesions on apple leaves",
+            "apple mosaic virus lesions on apple",
+            "apple mosaic virus spots on apple fruit"
+          ]
+        },
+        {
+          "name": "apple black rot",
+          "observed_instances": 291,
+          "phrases": [
+            "apple black rot lesions on apple leaves",
+            "apple black rot lesions on apple",
+            "apple black rot spots on apple fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 1,
+      "host": "Banana",
+      "host_level_phrases": [
+        "disease lesions on banana leaves",
+        "leaf disease spots on banana leaves",
+        "abnormal diseased regions on banana leaves",
+        "disease lesions on banana"
+      ],
+      "diseases": [
+        {
+          "name": "banana anthracnose",
+          "observed_instances": 505,
+          "phrases": [
+            "banana anthracnose lesions on banana leaves",
+            "banana anthracnose lesions on banana",
+            "banana anthracnose spots on banana fruit"
+          ]
+        },
+        {
+          "name": "banana black leaf streak",
+          "observed_instances": 457,
+          "phrases": [
+            "banana black leaf streak lesions on banana leaves",
+            "banana black leaf streak lesions on banana",
+            "banana black leaf streak spots on banana fruit"
+          ]
+        },
+        {
+          "name": "banana cigar end rot",
+          "observed_instances": 345,
+          "phrases": [
+            "banana cigar end rot lesions on banana leaves",
+            "banana cigar end rot lesions on banana",
+            "banana cigar end rot spots on banana fruit"
+          ]
+        },
+        {
+          "name": "banana bunchy top",
+          "observed_instances": 261,
+          "phrases": [
+            "banana bunchy top lesions on banana leaves",
+            "banana bunchy top lesions on banana",
+            "banana bunchy top spots on banana fruit"
+          ]
+        },
+        {
+          "name": "banana panama disease",
+          "observed_instances": 238,
+          "phrases": [
+            "banana panama disease lesions on banana leaves",
+            "banana panama disease lesions on banana",
+            "banana panama disease spots on banana fruit"
+          ]
+        },
+        {
+          "name": "banana cordana leaf spot",
+          "observed_instances": 172,
+          "phrases": [
+            "banana cordana leaf spot lesions on banana leaves",
+            "banana cordana leaf spot lesions on banana",
+            "banana cordana leaf spot spots on banana fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 2,
+      "host": "Basil",
+      "host_level_phrases": [
+        "disease lesions on basil leaves",
+        "leaf disease spots on basil leaves",
+        "abnormal diseased regions on basil leaves",
+        "disease lesions on basil"
+      ],
+      "diseases": [
+        {
+          "name": "basil downy mildew",
+          "observed_instances": 172,
+          "phrases": [
+            "basil downy mildew lesions on basil leaves",
+            "basil downy mildew lesions on basil",
+            "basil downy mildew spots on basil fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 3,
+      "host": "Bean",
+      "host_level_phrases": [
+        "disease lesions on bean leaves",
+        "leaf disease spots on bean leaves",
+        "abnormal diseased regions on bean leaves",
+        "disease lesions on bean"
+      ],
+      "diseases": [
+        {
+          "name": "bean halo blight",
+          "observed_instances": 367,
+          "phrases": [
+            "bean halo blight lesions on bean leaves",
+            "bean halo blight lesions on bean",
+            "bean halo blight spots on bean fruit"
+          ]
+        },
+        {
+          "name": "bean rust",
+          "observed_instances": 170,
+          "phrases": [
+            "bean rust lesions on bean leaves",
+            "bean rust lesions on bean",
+            "bean rust spots on bean fruit"
+          ]
+        },
+        {
+          "name": "bean mosaic virus",
+          "observed_instances": 71,
+          "phrases": [
+            "bean mosaic virus lesions on bean leaves",
+            "bean mosaic virus lesions on bean",
+            "bean mosaic virus spots on bean fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 4,
+      "host": "Bell pepper",
+      "host_level_phrases": [
+        "disease lesions on bell pepper leaves",
+        "leaf disease spots on bell pepper leaves",
+        "abnormal diseased regions on bell pepper leaves",
+        "disease lesions on bell pepper"
+      ],
+      "diseases": [
+        {
+          "name": "bell pepper bacterial spot",
+          "observed_instances": 966,
+          "phrases": [
+            "bell pepper bacterial spot lesions on bell pepper leaves",
+            "bell pepper bacterial spot lesions on bell pepper",
+            "bell pepper bacterial spot spots on bell pepper fruit"
+          ]
+        },
+        {
+          "name": "bell pepper frogeye leaf spot",
+          "observed_instances": 491,
+          "phrases": [
+            "bell pepper frogeye leaf spot lesions on bell pepper leaves",
+            "bell pepper frogeye leaf spot lesions on bell pepper",
+            "bell pepper frogeye leaf spot spots on bell pepper fruit"
+          ]
+        },
+        {
+          "name": "bell pepper blossom end rot",
+          "observed_instances": 179,
+          "phrases": [
+            "bell pepper blossom end rot lesions on bell pepper leaves",
+            "bell pepper blossom end rot lesions on bell pepper",
+            "bell pepper blossom end rot spots on bell pepper fruit"
+          ]
+        },
+        {
+          "name": "bell pepper powdery mildew",
+          "observed_instances": 71,
+          "phrases": [
+            "bell pepper powdery mildew lesions on bell pepper leaves",
+            "bell pepper powdery mildew lesions on bell pepper",
+            "bell pepper powdery mildew spots on bell pepper fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 5,
+      "host": "Blueberry",
+      "host_level_phrases": [
+        "disease lesions on blueberry leaves",
+        "leaf disease spots on blueberry leaves",
+        "abnormal diseased regions on blueberry leaves",
+        "disease lesions on blueberry"
+      ],
+      "diseases": [
+        {
+          "name": "blueberry rust",
+          "observed_instances": 415,
+          "phrases": [
+            "blueberry rust lesions on blueberry leaves",
+            "blueberry rust lesions on blueberry",
+            "blueberry rust spots on blueberry fruit"
+          ]
+        },
+        {
+          "name": "blueberry scorch",
+          "observed_instances": 198,
+          "phrases": [
+            "blueberry scorch lesions on blueberry leaves",
+            "blueberry scorch lesions on blueberry",
+            "blueberry scorch spots on blueberry fruit"
+          ]
+        },
+        {
+          "name": "blueberry mummy berry",
+          "observed_instances": 68,
+          "phrases": [
+            "blueberry mummy berry lesions on blueberry leaves",
+            "blueberry mummy berry lesions on blueberry",
+            "blueberry mummy berry spots on blueberry fruit"
+          ]
+        },
+        {
+          "name": "blueberry botrytis blight",
+          "observed_instances": 60,
+          "phrases": [
+            "blueberry botrytis blight lesions on blueberry leaves",
+            "blueberry botrytis blight lesions on blueberry",
+            "blueberry botrytis blight spots on blueberry fruit"
+          ]
+        },
+        {
+          "name": "blueberry anthracnose",
+          "observed_instances": 53,
+          "phrases": [
+            "blueberry anthracnose lesions on blueberry leaves",
+            "blueberry anthracnose lesions on blueberry",
+            "blueberry anthracnose spots on blueberry fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 6,
+      "host": "Broccoli",
+      "host_level_phrases": [
+        "disease lesions on broccoli leaves",
+        "leaf disease spots on broccoli leaves",
+        "abnormal diseased regions on broccoli leaves",
+        "disease lesions on broccoli"
+      ],
+      "diseases": [
+        {
+          "name": "broccoli alternaria leaf spot",
+          "observed_instances": 1101,
+          "phrases": [
+            "broccoli alternaria leaf spot lesions on broccoli leaves",
+            "broccoli alternaria leaf spot lesions on broccoli",
+            "broccoli alternaria leaf spot spots on broccoli fruit"
+          ]
+        },
+        {
+          "name": "broccoli downy mildew",
+          "observed_instances": 235,
+          "phrases": [
+            "broccoli downy mildew lesions on broccoli leaves",
+            "broccoli downy mildew lesions on broccoli",
+            "broccoli downy mildew spots on broccoli fruit"
+          ]
+        },
+        {
+          "name": "broccoli ring spot",
+          "observed_instances": 147,
+          "phrases": [
+            "broccoli ring spot lesions on broccoli leaves",
+            "broccoli ring spot lesions on broccoli",
+            "broccoli ring spot spots on broccoli fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 7,
+      "host": "Cabbage",
+      "host_level_phrases": [
+        "disease lesions on cabbage leaves",
+        "leaf disease spots on cabbage leaves",
+        "abnormal diseased regions on cabbage leaves",
+        "disease lesions on cabbage"
+      ],
+      "diseases": [
+        {
+          "name": "cabbage black rot",
+          "observed_instances": 689,
+          "phrases": [
+            "cabbage black rot lesions on cabbage leaves",
+            "cabbage black rot lesions on cabbage",
+            "cabbage black rot spots on cabbage fruit"
+          ]
+        },
+        {
+          "name": "cabbage downy mildew",
+          "observed_instances": 466,
+          "phrases": [
+            "cabbage downy mildew lesions on cabbage leaves",
+            "cabbage downy mildew lesions on cabbage",
+            "cabbage downy mildew spots on cabbage fruit"
+          ]
+        },
+        {
+          "name": "cabbage alternaria leaf spot",
+          "observed_instances": 429,
+          "phrases": [
+            "cabbage alternaria leaf spot lesions on cabbage leaves",
+            "cabbage alternaria leaf spot lesions on cabbage",
+            "cabbage alternaria leaf spot spots on cabbage fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 8,
+      "host": "Carrot",
+      "host_level_phrases": [
+        "disease lesions on carrot leaves",
+        "leaf disease spots on carrot leaves",
+        "abnormal diseased regions on carrot leaves",
+        "disease lesions on carrot"
+      ],
+      "diseases": [
+        {
+          "name": "carrot alternaria leaf blight",
+          "observed_instances": 543,
+          "phrases": [
+            "carrot alternaria leaf blight lesions on carrot leaves",
+            "carrot alternaria leaf blight lesions on carrot",
+            "carrot alternaria leaf blight spots on carrot fruit"
+          ]
+        },
+        {
+          "name": "carrot cavity spot",
+          "observed_instances": 345,
+          "phrases": [
+            "carrot cavity spot lesions on carrot leaves",
+            "carrot cavity spot lesions on carrot",
+            "carrot cavity spot spots on carrot fruit"
+          ]
+        },
+        {
+          "name": "carrot cercospora leaf blight",
+          "observed_instances": 282,
+          "phrases": [
+            "carrot cercospora leaf blight lesions on carrot leaves",
+            "carrot cercospora leaf blight lesions on carrot",
+            "carrot cercospora leaf blight spots on carrot fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 9,
+      "host": "Cauliflower",
+      "host_level_phrases": [
+        "disease lesions on cauliflower leaves",
+        "leaf disease spots on cauliflower leaves",
+        "abnormal diseased regions on cauliflower leaves",
+        "disease lesions on cauliflower"
+      ],
+      "diseases": [
+        {
+          "name": "cauliflower alternaria leaf spot",
+          "observed_instances": 330,
+          "phrases": [
+            "cauliflower alternaria leaf spot lesions on cauliflower leaves",
+            "cauliflower alternaria leaf spot lesions on cauliflower",
+            "cauliflower alternaria leaf spot spots on cauliflower fruit"
+          ]
+        },
+        {
+          "name": "cauliflower bacterial soft rot",
+          "observed_instances": 42,
+          "phrases": [
+            "cauliflower bacterial soft rot lesions on cauliflower leaves",
+            "cauliflower bacterial soft rot lesions on cauliflower",
+            "cauliflower bacterial soft rot spots on cauliflower fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 10,
+      "host": "Celery",
+      "host_level_phrases": [
+        "disease lesions on celery leaves",
+        "leaf disease spots on celery leaves",
+        "abnormal diseased regions on celery leaves",
+        "disease lesions on celery"
+      ],
+      "diseases": [
+        {
+          "name": "celery early blight",
+          "observed_instances": 553,
+          "phrases": [
+            "celery early blight lesions on celery leaves",
+            "celery early blight lesions on celery",
+            "celery early blight spots on celery fruit"
+          ]
+        },
+        {
+          "name": "celery anthracnose",
+          "observed_instances": 77,
+          "phrases": [
+            "celery anthracnose lesions on celery leaves",
+            "celery anthracnose lesions on celery",
+            "celery anthracnose spots on celery fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 11,
+      "host": "Cherry",
+      "host_level_phrases": [
+        "disease lesions on cherry leaves",
+        "leaf disease spots on cherry leaves",
+        "abnormal diseased regions on cherry leaves",
+        "disease lesions on cherry"
+      ],
+      "diseases": [
+        {
+          "name": "cherry leaf spot",
+          "observed_instances": 1687,
+          "phrases": [
+            "cherry leaf spot lesions on cherry leaves",
+            "cherry leaf spot lesions on cherry",
+            "cherry leaf spot spots on cherry fruit"
+          ]
+        },
+        {
+          "name": "cherry powdery mildew",
+          "observed_instances": 135,
+          "phrases": [
+            "cherry powdery mildew lesions on cherry leaves",
+            "cherry powdery mildew lesions on cherry",
+            "cherry powdery mildew spots on cherry fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 12,
+      "host": "Citrus",
+      "host_level_phrases": [
+        "disease lesions on citrus leaves",
+        "leaf disease spots on citrus leaves",
+        "abnormal diseased regions on citrus leaves",
+        "disease lesions on citrus"
+      ],
+      "diseases": [
+        {
+          "name": "citrus canker",
+          "observed_instances": 3824,
+          "phrases": [
+            "citrus canker lesions on citrus leaves",
+            "citrus canker lesions on citrus",
+            "citrus canker spots on citrus fruit"
+          ]
+        },
+        {
+          "name": "citrus greening disease",
+          "observed_instances": 528,
+          "phrases": [
+            "citrus greening disease lesions on citrus leaves",
+            "citrus greening disease lesions on citrus",
+            "citrus greening disease spots on citrus fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 13,
+      "host": "Coffee",
+      "host_level_phrases": [
+        "disease lesions on coffee leaves",
+        "leaf disease spots on coffee leaves",
+        "abnormal diseased regions on coffee leaves",
+        "disease lesions on coffee"
+      ],
+      "diseases": [
+        {
+          "name": "coffee leaf rust",
+          "observed_instances": 1080,
+          "phrases": [
+            "coffee leaf rust lesions on coffee leaves",
+            "coffee leaf rust lesions on coffee",
+            "coffee leaf rust spots on coffee fruit"
+          ]
+        },
+        {
+          "name": "coffee berry blotch",
+          "observed_instances": 667,
+          "phrases": [
+            "coffee berry blotch lesions on coffee leaves",
+            "coffee berry blotch lesions on coffee",
+            "coffee berry blotch spots on coffee fruit"
+          ]
+        },
+        {
+          "name": "coffee brown eye spot",
+          "observed_instances": 309,
+          "phrases": [
+            "coffee brown eye spot lesions on coffee leaves",
+            "coffee brown eye spot lesions on coffee",
+            "coffee brown eye spot spots on coffee fruit"
+          ]
+        },
+        {
+          "name": "coffee black rot",
+          "observed_instances": 31,
+          "phrases": [
+            "coffee black rot lesions on coffee leaves",
+            "coffee black rot lesions on coffee",
+            "coffee black rot spots on coffee fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 14,
+      "host": "Corn",
+      "host_level_phrases": [
+        "disease lesions on corn leaves",
+        "leaf disease spots on corn leaves",
+        "abnormal diseased regions on corn leaves",
+        "disease lesions on corn"
+      ],
+      "diseases": [
+        {
+          "name": "corn gray leaf spot",
+          "observed_instances": 835,
+          "phrases": [
+            "corn gray leaf spot lesions on corn leaves",
+            "corn gray leaf spot lesions on corn",
+            "corn gray leaf spot spots on corn fruit"
+          ]
+        },
+        {
+          "name": "corn northern leaf blight",
+          "observed_instances": 813,
+          "phrases": [
+            "corn northern leaf blight lesions on corn leaves",
+            "corn northern leaf blight lesions on corn",
+            "corn northern leaf blight spots on corn fruit"
+          ]
+        },
+        {
+          "name": "corn rust",
+          "observed_instances": 455,
+          "phrases": [
+            "corn rust lesions on corn leaves",
+            "corn rust lesions on corn",
+            "corn rust spots on corn fruit"
+          ]
+        },
+        {
+          "name": "corn smut",
+          "observed_instances": 203,
+          "phrases": [
+            "corn smut lesions on corn leaves",
+            "corn smut lesions on corn",
+            "corn smut spots on corn fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 15,
+      "host": "Cucumber",
+      "host_level_phrases": [
+        "disease lesions on cucumber leaves",
+        "leaf disease spots on cucumber leaves",
+        "abnormal diseased regions on cucumber leaves",
+        "disease lesions on cucumber"
+      ],
+      "diseases": [
+        {
+          "name": "cucumber angular leaf spot",
+          "observed_instances": 1612,
+          "phrases": [
+            "cucumber angular leaf spot lesions on cucumber leaves",
+            "cucumber angular leaf spot lesions on cucumber",
+            "cucumber angular leaf spot spots on cucumber fruit"
+          ]
+        },
+        {
+          "name": "cucumber powdery mildew",
+          "observed_instances": 889,
+          "phrases": [
+            "cucumber powdery mildew lesions on cucumber leaves",
+            "cucumber powdery mildew lesions on cucumber",
+            "cucumber powdery mildew spots on cucumber fruit"
+          ]
+        },
+        {
+          "name": "cucumber bacterial wilt",
+          "observed_instances": 472,
+          "phrases": [
+            "cucumber bacterial wilt lesions on cucumber leaves",
+            "cucumber bacterial wilt lesions on cucumber",
+            "cucumber bacterial wilt spots on cucumber fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 16,
+      "host": "Eggplant",
+      "host_level_phrases": [
+        "disease lesions on eggplant leaves",
+        "leaf disease spots on eggplant leaves",
+        "abnormal diseased regions on eggplant leaves",
+        "disease lesions on eggplant"
+      ],
+      "diseases": [
+        {
+          "name": "eggplant cercospora leaf spot",
+          "observed_instances": 812,
+          "phrases": [
+            "eggplant cercospora leaf spot lesions on eggplant leaves",
+            "eggplant cercospora leaf spot lesions on eggplant",
+            "eggplant cercospora leaf spot spots on eggplant fruit"
+          ]
+        },
+        {
+          "name": "eggplant phomopsis fruit rot",
+          "observed_instances": 89,
+          "phrases": [
+            "eggplant phomopsis fruit rot lesions on eggplant leaves",
+            "eggplant phomopsis fruit rot lesions on eggplant",
+            "eggplant phomopsis fruit rot spots on eggplant fruit"
+          ]
+        },
+        {
+          "name": "eggplant phytophthora blight",
+          "observed_instances": 44,
+          "phrases": [
+            "eggplant phytophthora blight lesions on eggplant leaves",
+            "eggplant phytophthora blight lesions on eggplant",
+            "eggplant phytophthora blight spots on eggplant fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 17,
+      "host": "Garlic",
+      "host_level_phrases": [
+        "disease lesions on garlic leaves",
+        "leaf disease spots on garlic leaves",
+        "abnormal diseased regions on garlic leaves",
+        "disease lesions on garlic"
+      ],
+      "diseases": [
+        {
+          "name": "garlic rust",
+          "observed_instances": 721,
+          "phrases": [
+            "garlic rust lesions on garlic leaves",
+            "garlic rust lesions on garlic",
+            "garlic rust spots on garlic fruit"
+          ]
+        },
+        {
+          "name": "garlic leaf blight",
+          "observed_instances": 414,
+          "phrases": [
+            "garlic leaf blight lesions on garlic leaves",
+            "garlic leaf blight lesions on garlic",
+            "garlic leaf blight spots on garlic fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 18,
+      "host": "Ginger",
+      "host_level_phrases": [
+        "disease lesions on ginger leaves",
+        "leaf disease spots on ginger leaves",
+        "abnormal diseased regions on ginger leaves",
+        "disease lesions on ginger"
+      ],
+      "diseases": [
+        {
+          "name": "ginger leaf spot",
+          "observed_instances": 399,
+          "phrases": [
+            "ginger leaf spot lesions on ginger leaves",
+            "ginger leaf spot lesions on ginger",
+            "ginger leaf spot spots on ginger fruit"
+          ]
+        },
+        {
+          "name": "ginger sheath blight",
+          "observed_instances": 356,
+          "phrases": [
+            "ginger sheath blight lesions on ginger leaves",
+            "ginger sheath blight lesions on ginger",
+            "ginger sheath blight spots on ginger fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 19,
+      "host": "Grape",
+      "host_level_phrases": [
+        "disease lesions on grape leaves",
+        "leaf disease spots on grape leaves",
+        "abnormal diseased regions on grape leaves",
+        "disease lesions on grape"
+      ],
+      "diseases": [
+        {
+          "name": "grape black rot",
+          "observed_instances": 917,
+          "phrases": [
+            "grape black rot lesions on grape leaves",
+            "grape black rot lesions on grape",
+            "grape black rot spots on grape fruit"
+          ]
+        },
+        {
+          "name": "grape downy mildew",
+          "observed_instances": 780,
+          "phrases": [
+            "grape downy mildew lesions on grape leaves",
+            "grape downy mildew lesions on grape",
+            "grape downy mildew spots on grape fruit"
+          ]
+        },
+        {
+          "name": "grape leaf spot",
+          "observed_instances": 383,
+          "phrases": [
+            "grape leaf spot lesions on grape leaves",
+            "grape leaf spot lesions on grape",
+            "grape leaf spot spots on grape fruit"
+          ]
+        },
+        {
+          "name": "grapevine leafroll disease",
+          "observed_instances": 68,
+          "phrases": [
+            "grapevine leafroll disease lesions on grape leaves",
+            "grapevine leafroll disease lesions on grape",
+            "grapevine leafroll disease spots on grape fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 20,
+      "host": "Lettuce",
+      "host_level_phrases": [
+        "disease lesions on lettuce leaves",
+        "leaf disease spots on lettuce leaves",
+        "abnormal diseased regions on lettuce leaves",
+        "disease lesions on lettuce"
+      ],
+      "diseases": [
+        {
+          "name": "lettuce downy mildew",
+          "observed_instances": 141,
+          "phrases": [
+            "lettuce downy mildew lesions on lettuce leaves",
+            "lettuce downy mildew lesions on lettuce",
+            "lettuce downy mildew spots on lettuce fruit"
+          ]
+        },
+        {
+          "name": "lettuce mosaic virus",
+          "observed_instances": 106,
+          "phrases": [
+            "lettuce mosaic virus lesions on lettuce leaves",
+            "lettuce mosaic virus lesions on lettuce",
+            "lettuce mosaic virus spots on lettuce fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 21,
+      "host": "Maple",
+      "host_level_phrases": [
+        "disease lesions on maple leaves",
+        "leaf disease spots on maple leaves",
+        "abnormal diseased regions on maple leaves",
+        "disease lesions on maple"
+      ],
+      "diseases": [
+        {
+          "name": "maple tar spot",
+          "observed_instances": 791,
+          "phrases": [
+            "maple tar spot lesions on maple leaves",
+            "maple tar spot lesions on maple",
+            "maple tar spot spots on maple fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 22,
+      "host": "Peach",
+      "host_level_phrases": [
+        "disease lesions on peach leaves",
+        "leaf disease spots on peach leaves",
+        "abnormal diseased regions on peach leaves",
+        "disease lesions on peach"
+      ],
+      "diseases": [
+        {
+          "name": "peach leaf curl",
+          "observed_instances": 586,
+          "phrases": [
+            "peach leaf curl lesions on peach leaves",
+            "peach leaf curl lesions on peach",
+            "peach leaf curl spots on peach fruit"
+          ]
+        },
+        {
+          "name": "peach scab",
+          "observed_instances": 206,
+          "phrases": [
+            "peach scab lesions on peach leaves",
+            "peach scab lesions on peach",
+            "peach scab spots on peach fruit"
+          ]
+        },
+        {
+          "name": "peach brown rot",
+          "observed_instances": 149,
+          "phrases": [
+            "peach brown rot lesions on peach leaves",
+            "peach brown rot lesions on peach",
+            "peach brown rot spots on peach fruit"
+          ]
+        },
+        {
+          "name": "peach anthracnose",
+          "observed_instances": 35,
+          "phrases": [
+            "peach anthracnose lesions on peach leaves",
+            "peach anthracnose lesions on peach",
+            "peach anthracnose spots on peach fruit"
+          ]
+        },
+        {
+          "name": "peach rust",
+          "observed_instances": 21,
+          "phrases": [
+            "peach rust lesions on peach leaves",
+            "peach rust lesions on peach",
+            "peach rust spots on peach fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 23,
+      "host": "Plum",
+      "host_level_phrases": [
+        "disease lesions on plum leaves",
+        "leaf disease spots on plum leaves",
+        "abnormal diseased regions on plum leaves",
+        "disease lesions on plum"
+      ],
+      "diseases": [
+        {
+          "name": "plum pox virus",
+          "observed_instances": 143,
+          "phrases": [
+            "plum pox virus lesions on plum leaves",
+            "plum pox virus lesions on plum",
+            "plum pox virus spots on plum fruit"
+          ]
+        },
+        {
+          "name": "plum pocket disease",
+          "observed_instances": 96,
+          "phrases": [
+            "plum pocket disease lesions on plum leaves",
+            "plum pocket disease lesions on plum",
+            "plum pocket disease spots on plum fruit"
+          ]
+        },
+        {
+          "name": "plum brown rot",
+          "observed_instances": 60,
+          "phrases": [
+            "plum brown rot lesions on plum leaves",
+            "plum brown rot lesions on plum",
+            "plum brown rot spots on plum fruit"
+          ]
+        },
+        {
+          "name": "plum bacterial spot",
+          "observed_instances": 53,
+          "phrases": [
+            "plum bacterial spot lesions on plum leaves",
+            "plum bacterial spot lesions on plum",
+            "plum bacterial spot spots on plum fruit"
+          ]
+        },
+        {
+          "name": "plum rust",
+          "observed_instances": 34,
+          "phrases": [
+            "plum rust lesions on plum leaves",
+            "plum rust lesions on plum",
+            "plum rust spots on plum fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 24,
+      "host": "Potato",
+      "host_level_phrases": [
+        "disease lesions on potato leaves",
+        "leaf disease spots on potato leaves",
+        "abnormal diseased regions on potato leaves",
+        "disease lesions on potato"
+      ],
+      "diseases": [
+        {
+          "name": "potato early blight",
+          "observed_instances": 433,
+          "phrases": [
+            "potato early blight lesions on potato leaves",
+            "potato early blight lesions on potato",
+            "potato early blight spots on potato fruit"
+          ]
+        },
+        {
+          "name": "potato late blight",
+          "observed_instances": 421,
+          "phrases": [
+            "potato late blight lesions on potato leaves",
+            "potato late blight lesions on potato",
+            "potato late blight spots on potato fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 25,
+      "host": "Raspberry",
+      "host_level_phrases": [
+        "disease lesions on raspberry leaves",
+        "leaf disease spots on raspberry leaves",
+        "abnormal diseased regions on raspberry leaves",
+        "disease lesions on raspberry"
+      ],
+      "diseases": [
+        {
+          "name": "raspberry leaf spot",
+          "observed_instances": 183,
+          "phrases": [
+            "raspberry leaf spot lesions on raspberry leaves",
+            "raspberry leaf spot lesions on raspberry",
+            "raspberry leaf spot spots on raspberry fruit"
+          ]
+        },
+        {
+          "name": "raspberry yellow rust",
+          "observed_instances": 172,
+          "phrases": [
+            "raspberry yellow rust lesions on raspberry leaves",
+            "raspberry yellow rust lesions on raspberry",
+            "raspberry yellow rust spots on raspberry fruit"
+          ]
+        },
+        {
+          "name": "raspberry fire blight",
+          "observed_instances": 79,
+          "phrases": [
+            "raspberry fire blight lesions on raspberry leaves",
+            "raspberry fire blight lesions on raspberry",
+            "raspberry fire blight spots on raspberry fruit"
+          ]
+        },
+        {
+          "name": "raspberry gray mold",
+          "observed_instances": 42,
+          "phrases": [
+            "raspberry gray mold lesions on raspberry leaves",
+            "raspberry gray mold lesions on raspberry",
+            "raspberry gray mold spots on raspberry fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 26,
+      "host": "Rice",
+      "host_level_phrases": [
+        "disease lesions on rice leaves",
+        "leaf disease spots on rice leaves",
+        "abnormal diseased regions on rice leaves",
+        "disease lesions on rice"
+      ],
+      "diseases": [
+        {
+          "name": "rice blast",
+          "observed_instances": 677,
+          "phrases": [
+            "rice blast lesions on rice leaves",
+            "rice blast lesions on rice",
+            "rice blast spots on rice fruit"
+          ]
+        },
+        {
+          "name": "rice sheath blight",
+          "observed_instances": 270,
+          "phrases": [
+            "rice sheath blight lesions on rice leaves",
+            "rice sheath blight lesions on rice",
+            "rice sheath blight spots on rice fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 27,
+      "host": "Soybean",
+      "host_level_phrases": [
+        "disease lesions on soybean leaves",
+        "leaf disease spots on soybean leaves",
+        "abnormal diseased regions on soybean leaves",
+        "disease lesions on soybean"
+      ],
+      "diseases": [
+        {
+          "name": "soybean frog eye leaf spot",
+          "observed_instances": 1566,
+          "phrases": [
+            "soybean frog eye leaf spot lesions on soybean leaves",
+            "soybean frog eye leaf spot lesions on soybean",
+            "soybean frog eye leaf spot spots on soybean fruit"
+          ]
+        },
+        {
+          "name": "soybean mosaic",
+          "observed_instances": 293,
+          "phrases": [
+            "soybean mosaic lesions on soybean leaves",
+            "soybean mosaic lesions on soybean",
+            "soybean mosaic spots on soybean fruit"
+          ]
+        },
+        {
+          "name": "soybean downy mildew",
+          "observed_instances": 222,
+          "phrases": [
+            "soybean downy mildew lesions on soybean leaves",
+            "soybean downy mildew lesions on soybean",
+            "soybean downy mildew spots on soybean fruit"
+          ]
+        },
+        {
+          "name": "soybean rust",
+          "observed_instances": 198,
+          "phrases": [
+            "soybean rust lesions on soybean leaves",
+            "soybean rust lesions on soybean",
+            "soybean rust spots on soybean fruit"
+          ]
+        },
+        {
+          "name": "soybean bacterial blight",
+          "observed_instances": 180,
+          "phrases": [
+            "soybean bacterial blight lesions on soybean leaves",
+            "soybean bacterial blight lesions on soybean",
+            "soybean bacterial blight spots on soybean fruit"
+          ]
+        },
+        {
+          "name": "soybean brown spot",
+          "observed_instances": 178,
+          "phrases": [
+            "soybean brown spot lesions on soybean leaves",
+            "soybean brown spot lesions on soybean",
+            "soybean brown spot spots on soybean fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 28,
+      "host": "Squash",
+      "host_level_phrases": [
+        "disease lesions on squash leaves",
+        "leaf disease spots on squash leaves",
+        "abnormal diseased regions on squash leaves",
+        "disease lesions on squash"
+      ],
+      "diseases": [
+        {
+          "name": "squash powdery mildew",
+          "observed_instances": 255,
+          "phrases": [
+            "squash powdery mildew lesions on squash leaves",
+            "squash powdery mildew lesions on squash",
+            "squash powdery mildew spots on squash fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 29,
+      "host": "Strawberry",
+      "host_level_phrases": [
+        "disease lesions on strawberry leaves",
+        "leaf disease spots on strawberry leaves",
+        "abnormal diseased regions on strawberry leaves",
+        "disease lesions on strawberry"
+      ],
+      "diseases": [
+        {
+          "name": "strawberry leaf scorch",
+          "observed_instances": 354,
+          "phrases": [
+            "strawberry leaf scorch lesions on strawberry leaves",
+            "strawberry leaf scorch lesions on strawberry",
+            "strawberry leaf scorch spots on strawberry fruit"
+          ]
+        },
+        {
+          "name": "strawberry anthracnose",
+          "observed_instances": 122,
+          "phrases": [
+            "strawberry anthracnose lesions on strawberry leaves",
+            "strawberry anthracnose lesions on strawberry",
+            "strawberry anthracnose spots on strawberry fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 30,
+      "host": "Tobacco",
+      "host_level_phrases": [
+        "disease lesions on tobacco leaves",
+        "leaf disease spots on tobacco leaves",
+        "abnormal diseased regions on tobacco leaves",
+        "disease lesions on tobacco"
+      ],
+      "diseases": [
+        {
+          "name": "tobacco brown spot",
+          "observed_instances": 928,
+          "phrases": [
+            "tobacco brown spot lesions on tobacco leaves",
+            "tobacco brown spot lesions on tobacco",
+            "tobacco brown spot spots on tobacco fruit"
+          ]
+        },
+        {
+          "name": "tobacco blue mold",
+          "observed_instances": 371,
+          "phrases": [
+            "tobacco blue mold lesions on tobacco leaves",
+            "tobacco blue mold lesions on tobacco",
+            "tobacco blue mold spots on tobacco fruit"
+          ]
+        },
+        {
+          "name": "tobacco frogeye leaf spot",
+          "observed_instances": 324,
+          "phrases": [
+            "tobacco frogeye leaf spot lesions on tobacco leaves",
+            "tobacco frogeye leaf spot lesions on tobacco",
+            "tobacco frogeye leaf spot spots on tobacco fruit"
+          ]
+        },
+        {
+          "name": "tobacco mosaic virus",
+          "observed_instances": 34,
+          "phrases": [
+            "tobacco mosaic virus lesions on tobacco leaves",
+            "tobacco mosaic virus lesions on tobacco",
+            "tobacco mosaic virus spots on tobacco fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 31,
+      "host": "Tomato",
+      "host_level_phrases": [
+        "disease lesions on tomato leaves",
+        "leaf disease spots on tomato leaves",
+        "abnormal diseased regions on tomato leaves",
+        "disease lesions on tomato"
+      ],
+      "diseases": [
+        {
+          "name": "tomato early blight",
+          "observed_instances": 1711,
+          "phrases": [
+            "tomato early blight lesions on tomato leaves",
+            "tomato early blight lesions on tomato",
+            "tomato early blight spots on tomato fruit"
+          ]
+        },
+        {
+          "name": "tomato bacterial leaf spot",
+          "observed_instances": 1351,
+          "phrases": [
+            "tomato bacterial leaf spot lesions on tomato leaves",
+            "tomato bacterial leaf spot lesions on tomato",
+            "tomato bacterial leaf spot spots on tomato fruit"
+          ]
+        },
+        {
+          "name": "tomato septoria leaf spot",
+          "observed_instances": 1316,
+          "phrases": [
+            "tomato septoria leaf spot lesions on tomato leaves",
+            "tomato septoria leaf spot lesions on tomato",
+            "tomato septoria leaf spot spots on tomato fruit"
+          ]
+        },
+        {
+          "name": "tomato yellow leaf curl virus",
+          "observed_instances": 682,
+          "phrases": [
+            "tomato yellow leaf curl virus lesions on tomato leaves",
+            "tomato yellow leaf curl virus lesions on tomato",
+            "tomato yellow leaf curl virus spots on tomato fruit"
+          ]
+        },
+        {
+          "name": "tomato leaf mold",
+          "observed_instances": 617,
+          "phrases": [
+            "tomato leaf mold lesions on tomato leaves",
+            "tomato leaf mold lesions on tomato",
+            "tomato leaf mold spots on tomato fruit"
+          ]
+        },
+        {
+          "name": "tomato late blight",
+          "observed_instances": 333,
+          "phrases": [
+            "tomato late blight lesions on tomato leaves",
+            "tomato late blight lesions on tomato",
+            "tomato late blight spots on tomato fruit"
+          ]
+        },
+        {
+          "name": "tomato mosaic virus",
+          "observed_instances": 323,
+          "phrases": [
+            "tomato mosaic virus lesions on tomato leaves",
+            "tomato mosaic virus lesions on tomato",
+            "tomato mosaic virus spots on tomato fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 32,
+      "host": "Wheat",
+      "host_level_phrases": [
+        "disease lesions on wheat leaves",
+        "leaf disease spots on wheat leaves",
+        "abnormal diseased regions on wheat leaves",
+        "disease lesions on wheat"
+      ],
+      "diseases": [
+        {
+          "name": "wheat stripe rust",
+          "observed_instances": 1462,
+          "phrases": [
+            "wheat stripe rust lesions on wheat leaves",
+            "wheat stripe rust lesions on wheat",
+            "wheat stripe rust spots on wheat fruit"
+          ]
+        },
+        {
+          "name": "wheat head scab",
+          "observed_instances": 871,
+          "phrases": [
+            "wheat head scab lesions on wheat leaves",
+            "wheat head scab lesions on wheat",
+            "wheat head scab spots on wheat fruit"
+          ]
+        },
+        {
+          "name": "wheat septoria blotch",
+          "observed_instances": 731,
+          "phrases": [
+            "wheat septoria blotch lesions on wheat leaves",
+            "wheat septoria blotch lesions on wheat",
+            "wheat septoria blotch spots on wheat fruit"
+          ]
+        },
+        {
+          "name": "wheat powdery mildew",
+          "observed_instances": 598,
+          "phrases": [
+            "wheat powdery mildew lesions on wheat leaves",
+            "wheat powdery mildew lesions on wheat",
+            "wheat powdery mildew spots on wheat fruit"
+          ]
+        },
+        {
+          "name": "wheat stem rust",
+          "observed_instances": 590,
+          "phrases": [
+            "wheat stem rust lesions on wheat leaves",
+            "wheat stem rust lesions on wheat",
+            "wheat stem rust spots on wheat fruit"
+          ]
+        },
+        {
+          "name": "wheat bacterial leaf streak (black chaff)",
+          "observed_instances": 392,
+          "phrases": [
+            "wheat bacterial leaf streak (black chaff) lesions on wheat leaves",
+            "wheat bacterial leaf streak (black chaff) lesions on wheat",
+            "wheat bacterial leaf streak (black chaff) spots on wheat fruit"
+          ]
+        },
+        {
+          "name": "wheat leaf rust",
+          "observed_instances": 293,
+          "phrases": [
+            "wheat leaf rust lesions on wheat leaves",
+            "wheat leaf rust lesions on wheat",
+            "wheat leaf rust spots on wheat fruit"
+          ]
+        },
+        {
+          "name": "wheat loose smut",
+          "observed_instances": 278,
+          "phrases": [
+            "wheat loose smut lesions on wheat leaves",
+            "wheat loose smut lesions on wheat",
+            "wheat loose smut spots on wheat fruit"
+          ]
+        }
+      ]
+    },
+    {
+      "class_id": 33,
+      "host": "Zucchini",
+      "host_level_phrases": [
+        "disease lesions on zucchini leaves",
+        "leaf disease spots on zucchini leaves",
+        "abnormal diseased regions on zucchini leaves",
+        "disease lesions on zucchini"
+      ],
+      "diseases": [
+        {
+          "name": "zucchini powdery mildew",
+          "observed_instances": 1139,
+          "phrases": [
+            "zucchini powdery mildew lesions on zucchini leaves",
+            "zucchini powdery mildew lesions on zucchini",
+            "zucchini powdery mildew spots on zucchini fruit"
+          ]
+        },
+        {
+          "name": "zucchini downy mildew",
+          "observed_instances": 1121,
+          "phrases": [
+            "zucchini downy mildew lesions on zucchini leaves",
+            "zucchini downy mildew lesions on zucchini",
+            "zucchini downy mildew spots on zucchini fruit"
+          ]
+        },
+        {
+          "name": "zucchini bacterial wilt",
+          "observed_instances": 199,
+          "phrases": [
+            "zucchini bacterial wilt lesions on zucchini leaves",
+            "zucchini bacterial wilt lesions on zucchini",
+            "zucchini bacterial wilt spots on zucchini fruit"
+          ]
+        },
+        {
+          "name": "zucchini yellow mosaic virus",
+          "observed_instances": 149,
+          "phrases": [
+            "zucchini yellow mosaic virus lesions on zucchini leaves",
+            "zucchini yellow mosaic virus lesions on zucchini",
+            "zucchini yellow mosaic virus spots on zucchini fruit"
+          ]
+        }
+      ]
+    }
+  ]
+}

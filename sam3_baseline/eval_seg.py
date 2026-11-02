@@ -79,11 +79,9 @@ def mean_dice(gt_path, pred_path, iou_gate=0.5):
             iou = float(mask_utils.iou([prle], [grle], [0])[0][0])
             if iou > best_iou:
                 best_iou = iou
-                inter = float(mask_utils.area(mask_utils.merge([prle, grle], True)))
-                union = float(mask_utils.area(prle)) + garea - inter
-                best = (2 * inter / union) if union > 0 else 0.0
         if best_iou >= iou_gate:
-            dices.append(best)
+            # Dice = 2I/(|A|+|B|) = 2*IoU/(1+IoU)，避免 merge 语义歧义
+            dices.append(2.0 * best_iou / (1.0 + best_iou))
     return float(np.mean(dices)) if dices else 0.0, len(dices)
 
 

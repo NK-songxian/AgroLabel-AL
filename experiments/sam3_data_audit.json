@@ -1,0 +1,2143 @@
+{
+  "task": "Task-SAM3-001 · 数据语义核查",
+  "dataset_root": "F:/_plantseg/dataset_plantseg_34",
+  "metadata_root": "F:/_plantseg/dataset_plantseg_115",
+  "semantics": {
+    "class_level": "host_plant",
+    "class_source": "PlantSeg Metadata.csv (Plant/Disease/Index) 的 Plant 字段",
+    "instance_target": "disease_lesion_region",
+    "evidence": [
+      "单实例掩码面积占全图中位数 0.0025，p90 0.0561 —— 远小于整叶/整果（通常 >0.15）",
+      "样例叠加图显示标注贴合果实/叶片上的坏死斑块，未包住整片叶子",
+      "classes.json 标注 mode=host，115 类版本为 Plant___Disease 组合，可直接取 Disease 字段"
+    ],
+    "correction_note": "此前依据类名判定'34 类无病斑、病斑提示词不适用'，属只看类名未看标注内容；标注目标确为病斑，病斑级提示词成立。"
+  },
+  "splits": {
+    "train": {
+      "images": 5367,
+      "instances": 38496,
+      "images_without_instance": 0
+    },
+    "val": {
+      "images": 846,
+      "instances": 6454,
+      "images_without_instance": 0
+    },
+    "test": {
+      "images": 1560,
+      "instances": 11049,
+      "images_without_instance": 0
+    }
+  },
+  "overall_area_ratio": {
+    "mean": 0.02912,
+    "median": 0.00253,
+    "p10": 0.00028,
+    "p90": 0.0561,
+    "max": 0.99335,
+    "n": 55999
+  },
+  "checks": {
+    "malformed_label_lines": 0,
+    "classes_with_zero_instances": [],
+    "images_with_multi_class": 0,
+    "disease_parse_coverage": "100% (train/val/test 文件名均可解析到 115 类病害)"
+  },
+  "classes": [
+    {
+      "class_id": 0,
+      "name": "Apple",
+      "images": {
+        "train": 274,
+        "val": 46,
+        "test": 81
+      },
+      "instances": {
+        "train": 2176,
+        "val": 414,
+        "test": 509
+      },
+      "instances_total": 3099,
+      "area_ratio": {
+        "mean": 0.0174,
+        "median": 0.00171,
+        "p10": 0.00025,
+        "p90": 0.03652
+      },
+      "diseases": [
+        {
+          "name": "apple scab",
+          "instances": 1673
+        },
+        {
+          "name": "apple rust",
+          "instances": 792
+        },
+        {
+          "name": "apple mosaic virus",
+          "instances": 343
+        },
+        {
+          "name": "apple black rot",
+          "instances": 291
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 1,
+      "name": "Banana",
+      "images": {
+        "train": 244,
+        "val": 36,
+        "test": 74
+      },
+      "instances": {
+        "train": 1446,
+        "val": 205,
+        "test": 327
+      },
+      "instances_total": 1978,
+      "area_ratio": {
+        "mean": 0.04829,
+        "median": 0.00355,
+        "p10": 0.00037,
+        "p90": 0.10655
+      },
+      "diseases": [
+        {
+          "name": "banana anthracnose",
+          "instances": 505
+        },
+        {
+          "name": "banana black leaf streak",
+          "instances": 457
+        },
+        {
+          "name": "banana cigar end rot",
+          "instances": 345
+        },
+        {
+          "name": "banana bunchy top",
+          "instances": 261
+        },
+        {
+          "name": "banana panama disease",
+          "instances": 238
+        },
+        {
+          "name": "banana cordana leaf spot",
+          "instances": 172
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 2,
+      "name": "Basil",
+      "images": {
+        "train": 28,
+        "val": 3,
+        "test": 10
+      },
+      "instances": {
+        "train": 114,
+        "val": 8,
+        "test": 50
+      },
+      "instances_total": 172,
+      "area_ratio": {
+        "mean": 0.03844,
+        "median": 0.00752,
+        "p10": 0.00036,
+        "p90": 0.11879
+      },
+      "diseases": [
+        {
+          "name": "basil downy mildew",
+          "instances": 172
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 3,
+      "name": "Bean",
+      "images": {
+        "train": 98,
+        "val": 16,
+        "test": 30
+      },
+      "instances": {
+        "train": 427,
+        "val": 69,
+        "test": 112
+      },
+      "instances_total": 608,
+      "area_ratio": {
+        "mean": 0.09628,
+        "median": 0.01198,
+        "p10": 0.00136,
+        "p90": 0.2685
+      },
+      "diseases": [
+        {
+          "name": "bean halo blight",
+          "instances": 367
+        },
+        {
+          "name": "bean rust",
+          "instances": 170
+        },
+        {
+          "name": "bean mosaic virus",
+          "instances": 71
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 4,
+      "name": "Bell pepper",
+      "images": {
+        "train": 116,
+        "val": 24,
+        "test": 36
+      },
+      "instances": {
+        "train": 1026,
+        "val": 275,
+        "test": 406
+      },
+      "instances_total": 1707,
+      "area_ratio": {
+        "mean": 0.00797,
+        "median": 0.0011,
+        "p10": 0.00034,
+        "p90": 0.01237
+      },
+      "diseases": [
+        {
+          "name": "bell pepper bacterial spot",
+          "instances": 966
+        },
+        {
+          "name": "bell pepper frogeye leaf spot",
+          "instances": 491
+        },
+        {
+          "name": "bell pepper blossom end rot",
+          "instances": 179
+        },
+        {
+          "name": "bell pepper powdery mildew",
+          "instances": 71
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 5,
+      "name": "Blueberry",
+      "images": {
+        "train": 97,
+        "val": 18,
+        "test": 27
+      },
+      "instances": {
+        "train": 487,
+        "val": 70,
+        "test": 237
+      },
+      "instances_total": 794,
+      "area_ratio": {
+        "mean": 0.02198,
+        "median": 0.00582,
+        "p10": 0.00048,
+        "p90": 0.04641
+      },
+      "diseases": [
+        {
+          "name": "blueberry rust",
+          "instances": 415
+        },
+        {
+          "name": "blueberry scorch",
+          "instances": 198
+        },
+        {
+          "name": "blueberry mummy berry",
+          "instances": 68
+        },
+        {
+          "name": "blueberry botrytis blight",
+          "instances": 60
+        },
+        {
+          "name": "blueberry anthracnose",
+          "instances": 53
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 6,
+      "name": "Broccoli",
+      "images": {
+        "train": 64,
+        "val": 10,
+        "test": 17
+      },
+      "instances": {
+        "train": 1042,
+        "val": 148,
+        "test": 293
+      },
+      "instances_total": 1483,
+      "area_ratio": {
+        "mean": 0.01049,
+        "median": 0.00103,
+        "p10": 0.00014,
+        "p90": 0.01287
+      },
+      "diseases": [
+        {
+          "name": "broccoli alternaria leaf spot",
+          "instances": 1101
+        },
+        {
+          "name": "broccoli downy mildew",
+          "instances": 235
+        },
+        {
+          "name": "broccoli ring spot",
+          "instances": 147
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 7,
+      "name": "Cabbage",
+      "images": {
+        "train": 121,
+        "val": 22,
+        "test": 38
+      },
+      "instances": {
+        "train": 1000,
+        "val": 223,
+        "test": 361
+      },
+      "instances_total": 1584,
+      "area_ratio": {
+        "mean": 0.0191,
+        "median": 0.00311,
+        "p10": 0.00052,
+        "p90": 0.03658
+      },
+      "diseases": [
+        {
+          "name": "cabbage black rot",
+          "instances": 689
+        },
+        {
+          "name": "cabbage downy mildew",
+          "instances": 466
+        },
+        {
+          "name": "cabbage alternaria leaf spot",
+          "instances": 429
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 8,
+      "name": "Carrot",
+      "images": {
+        "train": 74,
+        "val": 11,
+        "test": 20
+      },
+      "instances": {
+        "train": 798,
+        "val": 87,
+        "test": 285
+      },
+      "instances_total": 1170,
+      "area_ratio": {
+        "mean": 0.0106,
+        "median": 0.00273,
+        "p10": 0.00067,
+        "p90": 0.01835
+      },
+      "diseases": [
+        {
+          "name": "carrot alternaria leaf blight",
+          "instances": 543
+        },
+        {
+          "name": "carrot cavity spot",
+          "instances": 345
+        },
+        {
+          "name": "carrot cercospora leaf blight",
+          "instances": 282
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 9,
+      "name": "Cauliflower",
+      "images": {
+        "train": 39,
+        "val": 6,
+        "test": 8
+      },
+      "instances": {
+        "train": 279,
+        "val": 54,
+        "test": 39
+      },
+      "instances_total": 372,
+      "area_ratio": {
+        "mean": 0.03036,
+        "median": 0.00512,
+        "p10": 0.0012,
+        "p90": 0.06499
+      },
+      "diseases": [
+        {
+          "name": "cauliflower alternaria leaf spot",
+          "instances": 330
+        },
+        {
+          "name": "cauliflower bacterial soft rot",
+          "instances": 42
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 10,
+      "name": "Celery",
+      "images": {
+        "train": 29,
+        "val": 3,
+        "test": 8
+      },
+      "instances": {
+        "train": 498,
+        "val": 35,
+        "test": 97
+      },
+      "instances_total": 630,
+      "area_ratio": {
+        "mean": 0.00423,
+        "median": 0.00149,
+        "p10": 0.00035,
+        "p90": 0.01064
+      },
+      "diseases": [
+        {
+          "name": "celery early blight",
+          "instances": 553
+        },
+        {
+          "name": "celery anthracnose",
+          "instances": 77
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 11,
+      "name": "Cherry",
+      "images": {
+        "train": 62,
+        "val": 11,
+        "test": 18
+      },
+      "instances": {
+        "train": 1399,
+        "val": 139,
+        "test": 284
+      },
+      "instances_total": 1822,
+      "area_ratio": {
+        "mean": 0.00722,
+        "median": 0.00028,
+        "p10": 6e-05,
+        "p90": 0.00678
+      },
+      "diseases": [
+        {
+          "name": "cherry leaf spot",
+          "instances": 1687
+        },
+        {
+          "name": "cherry powdery mildew",
+          "instances": 135
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 12,
+      "name": "Citrus",
+      "images": {
+        "train": 291,
+        "val": 42,
+        "test": 83
+      },
+      "instances": {
+        "train": 2938,
+        "val": 536,
+        "test": 878
+      },
+      "instances_total": 4352,
+      "area_ratio": {
+        "mean": 0.00879,
+        "median": 0.00188,
+        "p10": 0.00038,
+        "p90": 0.01736
+      },
+      "diseases": [
+        {
+          "name": "citrus canker",
+          "instances": 3824
+        },
+        {
+          "name": "citrus greening disease",
+          "instances": 528
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 13,
+      "name": "Coffee",
+      "images": {
+        "train": 135,
+        "val": 21,
+        "test": 40
+      },
+      "instances": {
+        "train": 1418,
+        "val": 225,
+        "test": 444
+      },
+      "instances_total": 2087,
+      "area_ratio": {
+        "mean": 0.01227,
+        "median": 0.00105,
+        "p10": 0.00018,
+        "p90": 0.01713
+      },
+      "diseases": [
+        {
+          "name": "coffee leaf rust",
+          "instances": 1080
+        },
+        {
+          "name": "coffee berry blotch",
+          "instances": 667
+        },
+        {
+          "name": "coffee brown eye spot",
+          "instances": 309
+        },
+        {
+          "name": "coffee black rot",
+          "instances": 31
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 14,
+      "name": "Corn",
+      "images": {
+        "train": 289,
+        "val": 46,
+        "test": 84
+      },
+      "instances": {
+        "train": 1640,
+        "val": 247,
+        "test": 419
+      },
+      "instances_total": 2306,
+      "area_ratio": {
+        "mean": 0.04577,
+        "median": 0.00407,
+        "p10": 0.00056,
+        "p90": 0.11845
+      },
+      "diseases": [
+        {
+          "name": "corn gray leaf spot",
+          "instances": 835
+        },
+        {
+          "name": "corn northern leaf blight",
+          "instances": 813
+        },
+        {
+          "name": "corn rust",
+          "instances": 455
+        },
+        {
+          "name": "corn smut",
+          "instances": 203
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 15,
+      "name": "Cucumber",
+      "images": {
+        "train": 265,
+        "val": 40,
+        "test": 78
+      },
+      "instances": {
+        "train": 1951,
+        "val": 296,
+        "test": 726
+      },
+      "instances_total": 2973,
+      "area_ratio": {
+        "mean": 0.04305,
+        "median": 0.00239,
+        "p10": 0.00022,
+        "p90": 0.0823
+      },
+      "diseases": [
+        {
+          "name": "cucumber angular leaf spot",
+          "instances": 1612
+        },
+        {
+          "name": "cucumber powdery mildew",
+          "instances": 889
+        },
+        {
+          "name": "cucumber bacterial wilt",
+          "instances": 472
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 16,
+      "name": "Eggplant",
+      "images": {
+        "train": 60,
+        "val": 12,
+        "test": 20
+      },
+      "instances": {
+        "train": 679,
+        "val": 115,
+        "test": 151
+      },
+      "instances_total": 945,
+      "area_ratio": {
+        "mean": 0.01523,
+        "median": 0.00163,
+        "p10": 0.0004,
+        "p90": 0.01734
+      },
+      "diseases": [
+        {
+          "name": "eggplant cercospora leaf spot",
+          "instances": 812
+        },
+        {
+          "name": "eggplant phomopsis fruit rot",
+          "instances": 89
+        },
+        {
+          "name": "eggplant phytophthora blight",
+          "instances": 44
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 17,
+      "name": "Garlic",
+      "images": {
+        "train": 111,
+        "val": 17,
+        "test": 31
+      },
+      "instances": {
+        "train": 809,
+        "val": 119,
+        "test": 207
+      },
+      "instances_total": 1135,
+      "area_ratio": {
+        "mean": 0.01449,
+        "median": 0.00226,
+        "p10": 0.00059,
+        "p90": 0.03179
+      },
+      "diseases": [
+        {
+          "name": "garlic rust",
+          "instances": 721
+        },
+        {
+          "name": "garlic leaf blight",
+          "instances": 414
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 18,
+      "name": "Ginger",
+      "images": {
+        "train": 54,
+        "val": 9,
+        "test": 18
+      },
+      "instances": {
+        "train": 509,
+        "val": 84,
+        "test": 162
+      },
+      "instances_total": 755,
+      "area_ratio": {
+        "mean": 0.00567,
+        "median": 0.00114,
+        "p10": 0.0002,
+        "p90": 0.01121
+      },
+      "diseases": [
+        {
+          "name": "ginger leaf spot",
+          "instances": 399
+        },
+        {
+          "name": "ginger sheath blight",
+          "instances": 356
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 19,
+      "name": "Grape",
+      "images": {
+        "train": 280,
+        "val": 44,
+        "test": 76
+      },
+      "instances": {
+        "train": 1437,
+        "val": 223,
+        "test": 488
+      },
+      "instances_total": 2148,
+      "area_ratio": {
+        "mean": 0.04163,
+        "median": 0.00613,
+        "p10": 0.0008,
+        "p90": 0.10288
+      },
+      "diseases": [
+        {
+          "name": "grape black rot",
+          "instances": 917
+        },
+        {
+          "name": "grape downy mildew",
+          "instances": 780
+        },
+        {
+          "name": "grape leaf spot",
+          "instances": 383
+        },
+        {
+          "name": "grapevine leafroll disease",
+          "instances": 68
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 20,
+      "name": "Lettuce",
+      "images": {
+        "train": 49,
+        "val": 8,
+        "test": 19
+      },
+      "instances": {
+        "train": 176,
+        "val": 15,
+        "test": 56
+      },
+      "instances_total": 247,
+      "area_ratio": {
+        "mean": 0.09415,
+        "median": 0.0204,
+        "p10": 0.00315,
+        "p90": 0.27677
+      },
+      "diseases": [
+        {
+          "name": "lettuce downy mildew",
+          "instances": 141
+        },
+        {
+          "name": "lettuce mosaic virus",
+          "instances": 106
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 21,
+      "name": "Maple",
+      "images": {
+        "train": 40,
+        "val": 7,
+        "test": 11
+      },
+      "instances": {
+        "train": 623,
+        "val": 92,
+        "test": 76
+      },
+      "instances_total": 791,
+      "area_ratio": {
+        "mean": 0.00691,
+        "median": 0.0016,
+        "p10": 0.0005,
+        "p90": 0.01182
+      },
+      "diseases": [
+        {
+          "name": "maple tar spot",
+          "instances": 791
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 22,
+      "name": "Peach",
+      "images": {
+        "train": 195,
+        "val": 32,
+        "test": 60
+      },
+      "instances": {
+        "train": 747,
+        "val": 104,
+        "test": 146
+      },
+      "instances_total": 997,
+      "area_ratio": {
+        "mean": 0.05438,
+        "median": 0.01087,
+        "p10": 0.00077,
+        "p90": 0.18301
+      },
+      "diseases": [
+        {
+          "name": "peach leaf curl",
+          "instances": 586
+        },
+        {
+          "name": "peach scab",
+          "instances": 206
+        },
+        {
+          "name": "peach brown rot",
+          "instances": 149
+        },
+        {
+          "name": "peach anthracnose",
+          "instances": 35
+        },
+        {
+          "name": "peach rust",
+          "instances": 21
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 23,
+      "name": "Plum",
+      "images": {
+        "train": 84,
+        "val": 11,
+        "test": 25
+      },
+      "instances": {
+        "train": 257,
+        "val": 47,
+        "test": 82
+      },
+      "instances_total": 386,
+      "area_ratio": {
+        "mean": 0.07383,
+        "median": 0.02073,
+        "p10": 0.00218,
+        "p90": 0.19711
+      },
+      "diseases": [
+        {
+          "name": "plum pox virus",
+          "instances": 143
+        },
+        {
+          "name": "plum pocket disease",
+          "instances": 96
+        },
+        {
+          "name": "plum brown rot",
+          "instances": 60
+        },
+        {
+          "name": "plum bacterial spot",
+          "instances": 53
+        },
+        {
+          "name": "plum rust",
+          "instances": 34
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 24,
+      "name": "Potato",
+      "images": {
+        "train": 103,
+        "val": 16,
+        "test": 27
+      },
+      "instances": {
+        "train": 602,
+        "val": 55,
+        "test": 197
+      },
+      "instances_total": 854,
+      "area_ratio": {
+        "mean": 0.01952,
+        "median": 0.00474,
+        "p10": 0.00077,
+        "p90": 0.03713
+      },
+      "diseases": [
+        {
+          "name": "potato early blight",
+          "instances": 433
+        },
+        {
+          "name": "potato late blight",
+          "instances": 421
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 25,
+      "name": "Raspberry",
+      "images": {
+        "train": 55,
+        "val": 10,
+        "test": 12
+      },
+      "instances": {
+        "train": 383,
+        "val": 73,
+        "test": 20
+      },
+      "instances_total": 476,
+      "area_ratio": {
+        "mean": 0.03236,
+        "median": 0.00126,
+        "p10": 8e-05,
+        "p90": 0.08206
+      },
+      "diseases": [
+        {
+          "name": "raspberry leaf spot",
+          "instances": 183
+        },
+        {
+          "name": "raspberry yellow rust",
+          "instances": 172
+        },
+        {
+          "name": "raspberry fire blight",
+          "instances": 79
+        },
+        {
+          "name": "raspberry gray mold",
+          "instances": 42
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 26,
+      "name": "Rice",
+      "images": {
+        "train": 78,
+        "val": 6,
+        "test": 21
+      },
+      "instances": {
+        "train": 654,
+        "val": 77,
+        "test": 216
+      },
+      "instances_total": 947,
+      "area_ratio": {
+        "mean": 0.00975,
+        "median": 0.0014,
+        "p10": 0.00019,
+        "p90": 0.02512
+      },
+      "diseases": [
+        {
+          "name": "rice blast",
+          "instances": 677
+        },
+        {
+          "name": "rice sheath blight",
+          "instances": 270
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 27,
+      "name": "Soybean",
+      "images": {
+        "train": 356,
+        "val": 46,
+        "test": 98
+      },
+      "instances": {
+        "train": 1766,
+        "val": 374,
+        "test": 497
+      },
+      "instances_total": 2637,
+      "area_ratio": {
+        "mean": 0.07196,
+        "median": 0.00346,
+        "p10": 0.00047,
+        "p90": 0.24915
+      },
+      "diseases": [
+        {
+          "name": "soybean frog eye leaf spot",
+          "instances": 1566
+        },
+        {
+          "name": "soybean mosaic",
+          "instances": 293
+        },
+        {
+          "name": "soybean downy mildew",
+          "instances": 222
+        },
+        {
+          "name": "soybean rust",
+          "instances": 198
+        },
+        {
+          "name": "soybean bacterial blight",
+          "instances": 180
+        },
+        {
+          "name": "soybean brown spot",
+          "instances": 178
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 28,
+      "name": "Squash",
+      "images": {
+        "train": 96,
+        "val": 13,
+        "test": 35
+      },
+      "instances": {
+        "train": 170,
+        "val": 22,
+        "test": 63
+      },
+      "instances_total": 255,
+      "area_ratio": {
+        "mean": 0.30168,
+        "median": 0.21326,
+        "p10": 0.01421,
+        "p90": 0.70986
+      },
+      "diseases": [
+        {
+          "name": "squash powdery mildew",
+          "instances": 255
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 29,
+      "name": "Strawberry",
+      "images": {
+        "train": 33,
+        "val": 6,
+        "test": 10
+      },
+      "instances": {
+        "train": 315,
+        "val": 64,
+        "test": 97
+      },
+      "instances_total": 476,
+      "area_ratio": {
+        "mean": 0.01364,
+        "median": 0.00284,
+        "p10": 0.00037,
+        "p90": 0.03605
+      },
+      "diseases": [
+        {
+          "name": "strawberry leaf scorch",
+          "instances": 354
+        },
+        {
+          "name": "strawberry anthracnose",
+          "instances": 122
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 30,
+      "name": "Tobacco",
+      "images": {
+        "train": 97,
+        "val": 11,
+        "test": 26
+      },
+      "instances": {
+        "train": 1062,
+        "val": 231,
+        "test": 364
+      },
+      "instances_total": 1657,
+      "area_ratio": {
+        "mean": 0.02262,
+        "median": 0.00079,
+        "p10": 0.00015,
+        "p90": 0.01378
+      },
+      "diseases": [
+        {
+          "name": "tobacco brown spot",
+          "instances": 928
+        },
+        {
+          "name": "tobacco blue mold",
+          "instances": 371
+        },
+        {
+          "name": "tobacco frogeye leaf spot",
+          "instances": 324
+        },
+        {
+          "name": "tobacco mosaic virus",
+          "instances": 34
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 31,
+      "name": "Tomato",
+      "images": {
+        "train": 460,
+        "val": 74,
+        "test": 133
+      },
+      "instances": {
+        "train": 4231,
+        "val": 766,
+        "test": 1336
+      },
+      "instances_total": 6333,
+      "area_ratio": {
+        "mean": 0.01796,
+        "median": 0.00332,
+        "p10": 0.00034,
+        "p90": 0.03774
+      },
+      "diseases": [
+        {
+          "name": "tomato early blight",
+          "instances": 1711
+        },
+        {
+          "name": "tomato bacterial leaf spot",
+          "instances": 1351
+        },
+        {
+          "name": "tomato septoria leaf spot",
+          "instances": 1316
+        },
+        {
+          "name": "tomato yellow leaf curl virus",
+          "instances": 682
+        },
+        {
+          "name": "tomato leaf mold",
+          "instances": 617
+        },
+        {
+          "name": "tomato late blight",
+          "instances": 333
+        },
+        {
+          "name": "tomato mosaic virus",
+          "instances": 323
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 32,
+      "name": "Wheat",
+      "images": {
+        "train": 798,
+        "val": 137,
+        "test": 231
+      },
+      "instances": {
+        "train": 3552,
+        "val": 583,
+        "test": 1080
+      },
+      "instances_total": 5215,
+      "area_ratio": {
+        "mean": 0.03987,
+        "median": 0.0068,
+        "p10": 0.00056,
+        "p90": 0.09775
+      },
+      "diseases": [
+        {
+          "name": "wheat stripe rust",
+          "instances": 1462
+        },
+        {
+          "name": "wheat head scab",
+          "instances": 871
+        },
+        {
+          "name": "wheat septoria blotch",
+          "instances": 731
+        },
+        {
+          "name": "wheat powdery mildew",
+          "instances": 598
+        },
+        {
+          "name": "wheat stem rust",
+          "instances": 590
+        },
+        {
+          "name": "wheat bacterial leaf streak (black chaff)",
+          "instances": 392
+        },
+        {
+          "name": "wheat leaf rust",
+          "instances": 293
+        },
+        {
+          "name": "wheat loose smut",
+          "instances": 278
+        }
+      ],
+      "multi_class_images": 0
+    },
+    {
+      "class_id": 33,
+      "name": "Zucchini",
+      "images": {
+        "train": 192,
+        "val": 32,
+        "test": 55
+      },
+      "instances": {
+        "train": 1885,
+        "val": 379,
+        "test": 344
+      },
+      "instances_total": 2608,
+      "area_ratio": {
+        "mean": 0.03564,
+        "median": 0.00092,
+        "p10": 0.00012,
+        "p90": 0.07839
+      },
+      "diseases": [
+        {
+          "name": "zucchini powdery mildew",
+          "instances": 1139
+        },
+        {
+          "name": "zucchini downy mildew",
+          "instances": 1121
+        },
+        {
+          "name": "zucchini bacterial wilt",
+          "instances": 199
+        },
+        {
+          "name": "zucchini yellow mosaic virus",
+          "instances": 149
+        }
+      ],
+      "multi_class_images": 0
+    }
+  ],
+  "visual_samples": [
+    {
+      "class": "Apple",
+      "split": "train",
+      "file": "apple_scab_73.jpg",
+      "instances": 1,
+      "disease": "apple scab",
+      "vis": "experiments/sam3_sample_vis/00_Apple_0.jpg"
+    },
+    {
+      "class": "Apple",
+      "split": "train",
+      "file": "apple_black_rot_187.jpg",
+      "instances": 7,
+      "disease": "apple black rot",
+      "vis": "experiments/sam3_sample_vis/00_Apple_1.jpg"
+    },
+    {
+      "class": "Apple",
+      "split": "train",
+      "file": "apple_scab_google_0291.jpg",
+      "instances": 2,
+      "disease": "apple scab",
+      "vis": "experiments/sam3_sample_vis/00_Apple_2.jpg"
+    },
+    {
+      "class": "Banana",
+      "split": "train",
+      "file": "banana_black_leaf_streak_banana black sigatoka (52).jpg",
+      "instances": 1,
+      "disease": "banana black leaf streak",
+      "vis": "experiments/sam3_sample_vis/01_Banana_0.jpg"
+    },
+    {
+      "class": "Banana",
+      "split": "train",
+      "file": "banana_black_leaf_streak_Bing_0029.jpg",
+      "instances": 2,
+      "disease": "banana black leaf streak",
+      "vis": "experiments/sam3_sample_vis/01_Banana_1.jpg"
+    },
+    {
+      "class": "Banana",
+      "split": "train",
+      "file": "banana_panama_disease_google_0031.jpg",
+      "instances": 1,
+      "disease": "banana panama disease",
+      "vis": "experiments/sam3_sample_vis/01_Banana_2.jpg"
+    },
+    {
+      "class": "Basil",
+      "split": "train",
+      "file": "basil_downy_mildew_google_0023.jpg",
+      "instances": 8,
+      "disease": "basil downy mildew",
+      "vis": "experiments/sam3_sample_vis/02_Basil_0.jpg"
+    },
+    {
+      "class": "Basil",
+      "split": "train",
+      "file": "basil_downy_mildew_google_0057.jpg",
+      "instances": 5,
+      "disease": "basil downy mildew",
+      "vis": "experiments/sam3_sample_vis/02_Basil_1.jpg"
+    },
+    {
+      "class": "Basil",
+      "split": "train",
+      "file": "basil_downy_mildew_google_0184.jpg",
+      "instances": 4,
+      "disease": "basil downy mildew",
+      "vis": "experiments/sam3_sample_vis/02_Basil_2.jpg"
+    },
+    {
+      "class": "Bean",
+      "split": "train",
+      "file": "bean_rust_google_0105.jpg",
+      "instances": 2,
+      "disease": "bean rust",
+      "vis": "experiments/sam3_sample_vis/03_Bean_0.jpg"
+    },
+    {
+      "class": "Bean",
+      "split": "train",
+      "file": "bean_halo_blight_16.jpg",
+      "instances": 2,
+      "disease": "bean halo blight",
+      "vis": "experiments/sam3_sample_vis/03_Bean_1.jpg"
+    },
+    {
+      "class": "Bean",
+      "split": "train",
+      "file": "bean_rust_google_0033.jpg",
+      "instances": 1,
+      "disease": "bean rust",
+      "vis": "experiments/sam3_sample_vis/03_Bean_2.jpg"
+    },
+    {
+      "class": "Bell pepper",
+      "split": "train",
+      "file": "bell_pepper_blossom_end_rot_Bing_0257.jpg",
+      "instances": 1,
+      "disease": "bell pepper blossom end rot",
+      "vis": "experiments/sam3_sample_vis/04_Bell_pepper_0.jpg"
+    },
+    {
+      "class": "Bell pepper",
+      "split": "train",
+      "file": "bell_pepper_blossom_end_rot_Bing_0024.jpg",
+      "instances": 5,
+      "disease": "bell pepper blossom end rot",
+      "vis": "experiments/sam3_sample_vis/04_Bell_pepper_1.jpg"
+    },
+    {
+      "class": "Bell pepper",
+      "split": "train",
+      "file": "bell_pepper_blossom_end_rot_Bing_0001.jpg",
+      "instances": 1,
+      "disease": "bell pepper blossom end rot",
+      "vis": "experiments/sam3_sample_vis/04_Bell_pepper_2.jpg"
+    },
+    {
+      "class": "Blueberry",
+      "split": "train",
+      "file": "blueberry_botrytis_blight_Bing_0019.jpg",
+      "instances": 11,
+      "disease": "blueberry botrytis blight",
+      "vis": "experiments/sam3_sample_vis/05_Blueberry_0.jpg"
+    },
+    {
+      "class": "Blueberry",
+      "split": "train",
+      "file": "blueberry_anthracnose_Bing_0114.jpg",
+      "instances": 2,
+      "disease": "blueberry anthracnose",
+      "vis": "experiments/sam3_sample_vis/05_Blueberry_1.jpg"
+    },
+    {
+      "class": "Blueberry",
+      "split": "train",
+      "file": "blueberry_anthracnose_Bing_0003.jpg",
+      "instances": 1,
+      "disease": "blueberry anthracnose",
+      "vis": "experiments/sam3_sample_vis/05_Blueberry_2.jpg"
+    },
+    {
+      "class": "Broccoli",
+      "split": "train",
+      "file": "broccoli_downy_mildew_google_0246.jpg",
+      "instances": 1,
+      "disease": "broccoli downy mildew",
+      "vis": "experiments/sam3_sample_vis/06_Broccoli_0.jpg"
+    },
+    {
+      "class": "Broccoli",
+      "split": "train",
+      "file": "broccoli_alternaria_leaf_spot_Bing_0168.jpg",
+      "instances": 1,
+      "disease": "broccoli alternaria leaf spot",
+      "vis": "experiments/sam3_sample_vis/06_Broccoli_1.jpg"
+    },
+    {
+      "class": "Broccoli",
+      "split": "train",
+      "file": "broccoli_downy_mildew_37.jpg",
+      "instances": 6,
+      "disease": "broccoli downy mildew",
+      "vis": "experiments/sam3_sample_vis/06_Broccoli_2.jpg"
+    },
+    {
+      "class": "Cabbage",
+      "split": "train",
+      "file": "cabbage_black_rot_Bing_0178.jpg",
+      "instances": 1,
+      "disease": "cabbage black rot",
+      "vis": "experiments/sam3_sample_vis/07_Cabbage_0.jpg"
+    },
+    {
+      "class": "Cabbage",
+      "split": "train",
+      "file": "cabbage_black_rot_Bing_0218.jpg",
+      "instances": 7,
+      "disease": "cabbage black rot",
+      "vis": "experiments/sam3_sample_vis/07_Cabbage_1.jpg"
+    },
+    {
+      "class": "Cabbage",
+      "split": "train",
+      "file": "cabbage_black_rot_Bing_0062.jpg",
+      "instances": 3,
+      "disease": "cabbage black rot",
+      "vis": "experiments/sam3_sample_vis/07_Cabbage_2.jpg"
+    },
+    {
+      "class": "Carrot",
+      "split": "train",
+      "file": "carrot_cercospora_leaf_blight_Bing_0176.jpg",
+      "instances": 4,
+      "disease": "carrot cercospora leaf blight",
+      "vis": "experiments/sam3_sample_vis/08_Carrot_0.jpg"
+    },
+    {
+      "class": "Carrot",
+      "split": "train",
+      "file": "carrot_cercospora_leaf_blight_Bing_0034.jpg",
+      "instances": 14,
+      "disease": "carrot cercospora leaf blight",
+      "vis": "experiments/sam3_sample_vis/08_Carrot_1.jpg"
+    },
+    {
+      "class": "Carrot",
+      "split": "train",
+      "file": "carrot_alternaria_leaf_blight_Bing_0178.jpg",
+      "instances": 18,
+      "disease": "carrot alternaria leaf blight",
+      "vis": "experiments/sam3_sample_vis/08_Carrot_2.jpg"
+    },
+    {
+      "class": "Cauliflower",
+      "split": "train",
+      "file": "cauliflower_alternaria_leaf_spot_google_0004.jpg",
+      "instances": 3,
+      "disease": "cauliflower alternaria leaf spot",
+      "vis": "experiments/sam3_sample_vis/09_Cauliflower_0.jpg"
+    },
+    {
+      "class": "Cauliflower",
+      "split": "train",
+      "file": "cauliflower_alternaria_leaf_spot_google_0011.jpg",
+      "instances": 9,
+      "disease": "cauliflower alternaria leaf spot",
+      "vis": "experiments/sam3_sample_vis/09_Cauliflower_1.jpg"
+    },
+    {
+      "class": "Cauliflower",
+      "split": "train",
+      "file": "cauliflower_alternaria_leaf_spot_google_0057.jpg",
+      "instances": 1,
+      "disease": "cauliflower alternaria leaf spot",
+      "vis": "experiments/sam3_sample_vis/09_Cauliflower_2.jpg"
+    },
+    {
+      "class": "Celery",
+      "split": "train",
+      "file": "celery_early_blight_google_0007.jpg",
+      "instances": 16,
+      "disease": "celery early blight",
+      "vis": "experiments/sam3_sample_vis/10_Celery_0.jpg"
+    },
+    {
+      "class": "Celery",
+      "split": "train",
+      "file": "celery_early_blight_1.jpg",
+      "instances": 13,
+      "disease": "celery early blight",
+      "vis": "experiments/sam3_sample_vis/10_Celery_1.jpg"
+    },
+    {
+      "class": "Celery",
+      "split": "train",
+      "file": "celery_early_blight_16.jpg",
+      "instances": 5,
+      "disease": "celery early blight",
+      "vis": "experiments/sam3_sample_vis/10_Celery_2.jpg"
+    },
+    {
+      "class": "Cherry",
+      "split": "train",
+      "file": "cherry_leaf_spot_google_0125.jpg",
+      "instances": 17,
+      "disease": "cherry leaf spot",
+      "vis": "experiments/sam3_sample_vis/11_Cherry_0.jpg"
+    },
+    {
+      "class": "Cherry",
+      "split": "train",
+      "file": "cherry_leaf_spot_google_0199.jpg",
+      "instances": 95,
+      "disease": "cherry leaf spot",
+      "vis": "experiments/sam3_sample_vis/11_Cherry_1.jpg"
+    },
+    {
+      "class": "Cherry",
+      "split": "train",
+      "file": "cherry_leaf_spot_google_0236.jpg",
+      "instances": 1,
+      "disease": "cherry leaf spot",
+      "vis": "experiments/sam3_sample_vis/11_Cherry_2.jpg"
+    },
+    {
+      "class": "Citrus",
+      "split": "train",
+      "file": "citrus_canker_42.jpg",
+      "instances": 26,
+      "disease": "citrus canker",
+      "vis": "experiments/sam3_sample_vis/12_Citrus_0.jpg"
+    },
+    {
+      "class": "Citrus",
+      "split": "train",
+      "file": "citrus_canker_54.jpg",
+      "instances": 5,
+      "disease": "citrus canker",
+      "vis": "experiments/sam3_sample_vis/12_Citrus_1.jpg"
+    },
+    {
+      "class": "Citrus",
+      "split": "train",
+      "file": "citrus_canker_102.jpg",
+      "instances": 18,
+      "disease": "citrus canker",
+      "vis": "experiments/sam3_sample_vis/12_Citrus_2.jpg"
+    },
+    {
+      "class": "Coffee",
+      "split": "train",
+      "file": "coffee_brown_eye_spot_Bing_0007.jpg",
+      "instances": 8,
+      "disease": "coffee brown eye spot",
+      "vis": "experiments/sam3_sample_vis/13_Coffee_0.jpg"
+    },
+    {
+      "class": "Coffee",
+      "split": "train",
+      "file": "coffee_leaf_rust_75.jpg",
+      "instances": 5,
+      "disease": "coffee leaf rust",
+      "vis": "experiments/sam3_sample_vis/13_Coffee_1.jpg"
+    },
+    {
+      "class": "Coffee",
+      "split": "train",
+      "file": "coffee_berry_blotch_Bing_0028.jpg",
+      "instances": 9,
+      "disease": "coffee berry blotch",
+      "vis": "experiments/sam3_sample_vis/13_Coffee_2.jpg"
+    },
+    {
+      "class": "Corn",
+      "split": "train",
+      "file": "corn_smut_google_0056.jpg",
+      "instances": 6,
+      "disease": "corn smut",
+      "vis": "experiments/sam3_sample_vis/14_Corn_0.jpg"
+    },
+    {
+      "class": "Corn",
+      "split": "train",
+      "file": "corn_rust_google_0044.jpg",
+      "instances": 9,
+      "disease": "corn rust",
+      "vis": "experiments/sam3_sample_vis/14_Corn_1.jpg"
+    },
+    {
+      "class": "Corn",
+      "split": "train",
+      "file": "corn_smut_google_0223.jpg",
+      "instances": 1,
+      "disease": "corn smut",
+      "vis": "experiments/sam3_sample_vis/14_Corn_2.jpg"
+    },
+    {
+      "class": "Cucumber",
+      "split": "train",
+      "file": "cucumber_powdery_mildew_143.jpg",
+      "instances": 14,
+      "disease": "cucumber powdery mildew",
+      "vis": "experiments/sam3_sample_vis/15_Cucumber_0.jpg"
+    },
+    {
+      "class": "Cucumber",
+      "split": "train",
+      "file": "cucumber_angular_leaf_spot_104.jpg",
+      "instances": 1,
+      "disease": "cucumber angular leaf spot",
+      "vis": "experiments/sam3_sample_vis/15_Cucumber_1.jpg"
+    },
+    {
+      "class": "Cucumber",
+      "split": "train",
+      "file": "cucumber_angular_leaf_spot_google_0073.jpg",
+      "instances": 1,
+      "disease": "cucumber angular leaf spot",
+      "vis": "experiments/sam3_sample_vis/15_Cucumber_2.jpg"
+    },
+    {
+      "class": "Eggplant",
+      "split": "train",
+      "file": "eggplant_cercospora_leaf_spot_199.jpg",
+      "instances": 9,
+      "disease": "eggplant cercospora leaf spot",
+      "vis": "experiments/sam3_sample_vis/16_Eggplant_0.jpg"
+    },
+    {
+      "class": "Eggplant",
+      "split": "train",
+      "file": "eggplant_cercospora_leaf_spot_183.jpg",
+      "instances": 30,
+      "disease": "eggplant cercospora leaf spot",
+      "vis": "experiments/sam3_sample_vis/16_Eggplant_1.jpg"
+    },
+    {
+      "class": "Eggplant",
+      "split": "train",
+      "file": "eggplant_cercospora_leaf_spot_google_0003.jpg",
+      "instances": 24,
+      "disease": "eggplant cercospora leaf spot",
+      "vis": "experiments/sam3_sample_vis/16_Eggplant_2.jpg"
+    },
+    {
+      "class": "Garlic",
+      "split": "train",
+      "file": "garlic_leaf_blight_google_0010.jpg",
+      "instances": 1,
+      "disease": "garlic leaf blight",
+      "vis": "experiments/sam3_sample_vis/17_Garlic_0.jpg"
+    },
+    {
+      "class": "Garlic",
+      "split": "train",
+      "file": "garlic_leaf_blight_2.jpg",
+      "instances": 17,
+      "disease": "garlic leaf blight",
+      "vis": "experiments/sam3_sample_vis/17_Garlic_1.jpg"
+    },
+    {
+      "class": "Garlic",
+      "split": "train",
+      "file": "garlic_rust_178.jpg",
+      "instances": 2,
+      "disease": "garlic rust",
+      "vis": "experiments/sam3_sample_vis/17_Garlic_2.jpg"
+    },
+    {
+      "class": "Ginger",
+      "split": "train",
+      "file": "ginger_leaf_spot_1.jpg",
+      "instances": 17,
+      "disease": "ginger leaf spot",
+      "vis": "experiments/sam3_sample_vis/18_Ginger_0.jpg"
+    },
+    {
+      "class": "Ginger",
+      "split": "train",
+      "file": "ginger_sheath_blight_google_0006.jpg",
+      "instances": 9,
+      "disease": "ginger sheath blight",
+      "vis": "experiments/sam3_sample_vis/18_Ginger_1.jpg"
+    },
+    {
+      "class": "Ginger",
+      "split": "train",
+      "file": "ginger_sheath_blight_8.jpg",
+      "instances": 2,
+      "disease": "ginger sheath blight",
+      "vis": "experiments/sam3_sample_vis/18_Ginger_2.jpg"
+    },
+    {
+      "class": "Grape",
+      "split": "train",
+      "file": "grape_black_rot_google_0071.jpg",
+      "instances": 1,
+      "disease": "grape black rot",
+      "vis": "experiments/sam3_sample_vis/19_Grape_0.jpg"
+    },
+    {
+      "class": "Grape",
+      "split": "train",
+      "file": "grape_black_rot_google_0028.jpg",
+      "instances": 11,
+      "disease": "grape black rot",
+      "vis": "experiments/sam3_sample_vis/19_Grape_1.jpg"
+    },
+    {
+      "class": "Grape",
+      "split": "train",
+      "file": "grape_downy_mildew_google_0044.jpg",
+      "instances": 2,
+      "disease": "grape downy mildew",
+      "vis": "experiments/sam3_sample_vis/19_Grape_2.jpg"
+    },
+    {
+      "class": "Lettuce",
+      "split": "train",
+      "file": "lettuce_downy_mildew_62.jpg",
+      "instances": 1,
+      "disease": "lettuce downy mildew",
+      "vis": "experiments/sam3_sample_vis/20_Lettuce_0.jpg"
+    },
+    {
+      "class": "Lettuce",
+      "split": "train",
+      "file": "lettuce_downy_mildew_google_0024.jpg",
+      "instances": 2,
+      "disease": "lettuce downy mildew",
+      "vis": "experiments/sam3_sample_vis/20_Lettuce_1.jpg"
+    },
+    {
+      "class": "Lettuce",
+      "split": "train",
+      "file": "lettuce_mosaic_virus_203.jpg",
+      "instances": 3,
+      "disease": "lettuce mosaic virus",
+      "vis": "experiments/sam3_sample_vis/20_Lettuce_2.jpg"
+    },
+    {
+      "class": "Maple",
+      "split": "train",
+      "file": "maple_tar_spot_google_0039.jpg",
+      "instances": 49,
+      "disease": "maple tar spot",
+      "vis": "experiments/sam3_sample_vis/21_Maple_0.jpg"
+    },
+    {
+      "class": "Maple",
+      "split": "train",
+      "file": "maple_tar_spot_google_0051.jpg",
+      "instances": 14,
+      "disease": "maple tar spot",
+      "vis": "experiments/sam3_sample_vis/21_Maple_1.jpg"
+    },
+    {
+      "class": "Maple",
+      "split": "train",
+      "file": "maple_tar_spot_google_0019.jpg",
+      "instances": 3,
+      "disease": "maple tar spot",
+      "vis": "experiments/sam3_sample_vis/21_Maple_2.jpg"
+    },
+    {
+      "class": "Peach",
+      "split": "train",
+      "file": "peach_scab_Bing_0106.jpg",
+      "instances": 5,
+      "disease": "peach scab",
+      "vis": "experiments/sam3_sample_vis/22_Peach_0.jpg"
+    },
+    {
+      "class": "Peach",
+      "split": "train",
+      "file": "peach_leaf_curl_google_0197.jpg",
+      "instances": 2,
+      "disease": "peach leaf curl",
+      "vis": "experiments/sam3_sample_vis/22_Peach_1.jpg"
+    },
+    {
+      "class": "Peach",
+      "split": "train",
+      "file": "peach_brown_rot_Bing_0107.jpg",
+      "instances": 1,
+      "disease": "peach brown rot",
+      "vis": "experiments/sam3_sample_vis/22_Peach_2.jpg"
+    },
+    {
+      "class": "Plum",
+      "split": "train",
+      "file": "plum_brown_rot_Bing_0073.jpg",
+      "instances": 1,
+      "disease": "plum brown rot",
+      "vis": "experiments/sam3_sample_vis/23_Plum_0.jpg"
+    },
+    {
+      "class": "Plum",
+      "split": "train",
+      "file": "plum_brown_rot_Bing_0063.jpg",
+      "instances": 1,
+      "disease": "plum brown rot",
+      "vis": "experiments/sam3_sample_vis/23_Plum_1.jpg"
+    },
+    {
+      "class": "Plum",
+      "split": "train",
+      "file": "plum_pocket_disease_google_0031.jpg",
+      "instances": 2,
+      "disease": "plum pocket disease",
+      "vis": "experiments/sam3_sample_vis/23_Plum_2.jpg"
+    },
+    {
+      "class": "Potato",
+      "split": "train",
+      "file": "potato_late_blight_google_0160.jpg",
+      "instances": 1,
+      "disease": "potato late blight",
+      "vis": "experiments/sam3_sample_vis/24_Potato_0.jpg"
+    },
+    {
+      "class": "Potato",
+      "split": "train",
+      "file": "potato_late_blight_google_0030.jpg",
+      "instances": 2,
+      "disease": "potato late blight",
+      "vis": "experiments/sam3_sample_vis/24_Potato_1.jpg"
+    },
+    {
+      "class": "Potato",
+      "split": "train",
+      "file": "potato_early_blight_100.jpg",
+      "instances": 8,
+      "disease": "potato early blight",
+      "vis": "experiments/sam3_sample_vis/24_Potato_2.jpg"
+    },
+    {
+      "class": "Raspberry",
+      "split": "train",
+      "file": "raspberry_fire_blight_Bing_0127.jpg",
+      "instances": 5,
+      "disease": "raspberry fire blight",
+      "vis": "experiments/sam3_sample_vis/25_Raspberry_0.jpg"
+    },
+    {
+      "class": "Raspberry",
+      "split": "train",
+      "file": "raspberry_gray_mold_Google_0002.jpg",
+      "instances": 1,
+      "disease": "raspberry gray mold",
+      "vis": "experiments/sam3_sample_vis/25_Raspberry_1.jpg"
+    },
+    {
+      "class": "Raspberry",
+      "split": "train",
+      "file": "raspberry_yellow_rust_Google_0059.jpg",
+      "instances": 7,
+      "disease": "raspberry yellow rust",
+      "vis": "experiments/sam3_sample_vis/25_Raspberry_2.jpg"
+    },
+    {
+      "class": "Rice",
+      "split": "train",
+      "file": "rice_sheath_blight_6.jpg",
+      "instances": 6,
+      "disease": "rice sheath blight",
+      "vis": "experiments/sam3_sample_vis/26_Rice_0.jpg"
+    },
+    {
+      "class": "Rice",
+      "split": "train",
+      "file": "rice_blast_17.jpg",
+      "instances": 16,
+      "disease": "rice blast",
+      "vis": "experiments/sam3_sample_vis/26_Rice_1.jpg"
+    },
+    {
+      "class": "Rice",
+      "split": "train",
+      "file": "rice_sheath_blight_12.jpg",
+      "instances": 4,
+      "disease": "rice sheath blight",
+      "vis": "experiments/sam3_sample_vis/26_Rice_2.jpg"
+    },
+    {
+      "class": "Soybean",
+      "split": "train",
+      "file": "soybean_brown_spot_Bing_0034.jpg",
+      "instances": 3,
+      "disease": "soybean brown spot",
+      "vis": "experiments/sam3_sample_vis/27_Soybean_0.jpg"
+    },
+    {
+      "class": "Soybean",
+      "split": "train",
+      "file": "soybean_brown_spot_Bing_0070.jpg",
+      "instances": 10,
+      "disease": "soybean brown spot",
+      "vis": "experiments/sam3_sample_vis/27_Soybean_1.jpg"
+    },
+    {
+      "class": "Soybean",
+      "split": "train",
+      "file": "soybean_mosaic_Bing_0017.jpg",
+      "instances": 4,
+      "disease": "soybean mosaic",
+      "vis": "experiments/sam3_sample_vis/27_Soybean_2.jpg"
+    },
+    {
+      "class": "Squash",
+      "split": "train",
+      "file": "squash_powdery_mildew_google_0036.jpg",
+      "instances": 1,
+      "disease": "squash powdery mildew",
+      "vis": "experiments/sam3_sample_vis/28_Squash_0.jpg"
+    },
+    {
+      "class": "Squash",
+      "split": "train",
+      "file": "squash_powdery_mildew_2.jpg",
+      "instances": 2,
+      "disease": "squash powdery mildew",
+      "vis": "experiments/sam3_sample_vis/28_Squash_1.jpg"
+    },
+    {
+      "class": "Squash",
+      "split": "train",
+      "file": "squash_powdery_mildew_3.jpg",
+      "instances": 3,
+      "disease": "squash powdery mildew",
+      "vis": "experiments/sam3_sample_vis/28_Squash_2.jpg"
+    },
+    {
+      "class": "Strawberry",
+      "split": "train",
+      "file": "strawberry_anthracnose_google_0012.jpg",
+      "instances": 4,
+      "disease": "strawberry anthracnose",
+      "vis": "experiments/sam3_sample_vis/29_Strawberry_0.jpg"
+    },
+    {
+      "class": "Strawberry",
+      "split": "train",
+      "file": "strawberry_leaf_scorch_google_0000.jpg",
+      "instances": 14,
+      "disease": "strawberry leaf scorch",
+      "vis": "experiments/sam3_sample_vis/29_Strawberry_1.jpg"
+    },
+    {
+      "class": "Strawberry",
+      "split": "train",
+      "file": "strawberry_anthracnose_google_0060.jpg",
+      "instances": 2,
+      "disease": "strawberry anthracnose",
+      "vis": "experiments/sam3_sample_vis/29_Strawberry_2.jpg"
+    },
+    {
+      "class": "Tobacco",
+      "split": "train",
+      "file": "tobacco_blue_mold_Bing_0115.jpg",
+      "instances": 4,
+      "disease": "tobacco blue mold",
+      "vis": "experiments/sam3_sample_vis/30_Tobacco_0.jpg"
+    },
+    {
+      "class": "Tobacco",
+      "split": "train",
+      "file": "tobacco_mosaic_virus_9.jpg",
+      "instances": 2,
+      "disease": "tobacco mosaic virus",
+      "vis": "experiments/sam3_sample_vis/30_Tobacco_1.jpg"
+    },
+    {
+      "class": "Tobacco",
+      "split": "train",
+      "file": "tobacco_brown_spot_Bing_0019.jpg",
+      "instances": 79,
+      "disease": "tobacco brown spot",
+      "vis": "experiments/sam3_sample_vis/30_Tobacco_2.jpg"
+    },
+    {
+      "class": "Tomato",
+      "split": "train",
+      "file": "tomato_septoria_leaf_spot_google_0000.jpg",
+      "instances": 3,
+      "disease": "tomato septoria leaf spot",
+      "vis": "experiments/sam3_sample_vis/31_Tomato_0.jpg"
+    },
+    {
+      "class": "Tomato",
+      "split": "train",
+      "file": "tomato_late_blight_127.jpg",
+      "instances": 2,
+      "disease": "tomato late blight",
+      "vis": "experiments/sam3_sample_vis/31_Tomato_1.jpg"
+    },
+    {
+      "class": "Tomato",
+      "split": "train",
+      "file": "tomato_late_blight_google_0085.jpg",
+      "instances": 6,
+      "disease": "tomato late blight",
+      "vis": "experiments/sam3_sample_vis/31_Tomato_2.jpg"
+    },
+    {
+      "class": "Wheat",
+      "split": "train",
+      "file": "wheat_head_scab_Google_0097.jpg",
+      "instances": 4,
+      "disease": "wheat head scab",
+      "vis": "experiments/sam3_sample_vis/32_Wheat_0.jpg"
+    },
+    {
+      "class": "Wheat",
+      "split": "train",
+      "file": "wheat_loose_smut_Baidu_0004.jpg",
+      "instances": 1,
+      "disease": "wheat loose smut",
+      "vis": "experiments/sam3_sample_vis/32_Wheat_1.jpg"
+    },
+    {
+      "class": "Wheat",
+      "split": "train",
+      "file": "wheat_powdery_mildew_Bing_0053.jpg",
+      "instances": 2,
+      "disease": "wheat powdery mildew",
+      "vis": "experiments/sam3_sample_vis/32_Wheat_2.jpg"
+    },
+    {
+      "class": "Zucchini",
+      "split": "train",
+      "file": "zucchini_bacterial_wilt_Bing_0077.jpg",
+      "instances": 8,
+      "disease": "zucchini bacterial wilt",
+      "vis": "experiments/sam3_sample_vis/33_Zucchini_0.jpg"
+    },
+    {
+      "class": "Zucchini",
+      "split": "train",
+      "file": "zucchini_powdery_mildew_Bing_0355.jpg",
+      "instances": 3,
+      "disease": "zucchini powdery mildew",
+      "vis": "experiments/sam3_sample_vis/33_Zucchini_1.jpg"
+    },
+    {
+      "class": "Zucchini",
+      "split": "train",
+      "file": "zucchini_powdery_mildew_Bing_0254.jpg",
+      "instances": 15,
+      "disease": "zucchini powdery mildew",
+      "vis": "experiments/sam3_sample_vis/33_Zucchini_2.jpg"
+    }
+  ]
+}
