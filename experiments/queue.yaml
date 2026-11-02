@@ -5,6 +5,19 @@
 # B 系列训练结束后 GPU 才空出来，此时先做 F4/I-03/I-04 三组评测（几十分钟内出表），
 # 再进 F1/I-01/I-02 的 SAM3 微调链（每项数小时）。这样中途任何一次中断都已有可写进报告的数字。
 queue:
+  # ---------------- 提示对照（Z2b/Z3b）：把 Z2/Z3 的低分归因到"提示写法"上 ----------------
+  # 这两项与 Z2/Z3 唯一差异是 --prompt-source phrases（病征短语 vs 裸宿主名），
+  # 其余权重/数据/尺寸完全相同，构成干净的单变量对照。
+  - id: Z2b
+    name: Z2b YOLO-World 零样本（病征短语提示）
+    status: pending
+    command: "{py} src/m12_openvocab_eval.py --kind world --prompt-source phrases --weights {repo}/weights/yolov8x-worldv2.pt --data {repo}/data/plantseg34/data.yaml --split val --device 0 --out {repo}/runtime/logs/matrix/Z2b.json"
+
+  - id: Z3b
+    name: Z3b YOLOE-Seg 零样本（病征短语提示）
+    status: pending
+    command: "{py} src/m12_openvocab_eval.py --kind yoloe --prompt-source phrases --weights {repo}/weights/yoloe-11l-seg.pt --data {repo}/data/plantseg34/data.yaml --split val --device 0 --out {repo}/runtime/logs/matrix/Z3b.json"
+
   # ---------------- 评测：框提示 / 按需精修 / 解耦 ----------------
   - id: F4-gt
     name: F4 框提示 SAM3（GT 框，分割上限）

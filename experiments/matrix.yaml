@@ -97,6 +97,22 @@ experiments:
     command: "{py} src/m12_openvocab_eval.py --kind yoloe --weights {repo}/weights/yoloe-11l-seg.pt --data {data_yaml} --split val --device 0 --out {out}/Z3.json"
     note: 评估单类病斑掩码及提示敏感性。YOLOE 文本编码器 mobileclip_blt.ts 已上传(仓库根/weights)。
 
+  - id: Z2b
+    name: YOLO-World 零样本·病征短语提示（Z2 的提示对照）
+    phase: zeroshot
+    priority: recommended
+    status: todo
+    command: "{py} src/m12_openvocab_eval.py --kind world --prompt-source phrases --weights {repo}/weights/yolov8x-worldv2.pt --data {data_yaml} --split val --device 0 --out {out}/Z2b.json"
+    note: 与 Z2 唯一差异是提示词（host_prompt_bank 的 host_level_phrases vs 裸宿主名），其余完全相同，构成单变量对照。用于把 Z2 的 0.00378 归因到提示语义错配（物种名 vs 病斑），而非模型能力。
+
+  - id: Z3b
+    name: YOLOE-Seg 零样本·病征短语提示（Z3 的提示对照）
+    phase: zeroshot
+    priority: recommended
+    status: todo
+    command: "{py} src/m12_openvocab_eval.py --kind yoloe --prompt-source phrases --weights {repo}/weights/yoloe-11l-seg.pt --data {data_yaml} --split val --device 0 --out {out}/Z3b.json"
+    note: 同 Z2b，对应 Z3 的 0.00637 seg mAP50。
+
   # ---------------- 微调 F ----------------
   - id: F1
     name: SAM3 全参数微调（S2）
