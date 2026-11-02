@@ -88,3 +88,8 @@ out/
 # 例外：基线权重需随仓库分发（队友测试用）
 !weights/baseline_*.pt
 third_party/
+
+# 运行产物/统一归档目录（不入库）
+runtime/
+# 数据审计抽样图，可由 datasets_tools/sam3_data_audit.py 再生
+experiments/sam3_sample_vis/
