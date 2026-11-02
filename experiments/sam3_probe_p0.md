@@ -97,3 +97,48 @@ $PY -m sam3_baseline.zeroshot_infer --split val \
 $PY -m sam3_baseline.eval_seg --gt runs/sam3_zeroshot/val/gt.json \
   --pred runs/sam3_zeroshot/val/pred.json --out runs/sam3_zeroshot/val
 ```
+
+---
+
+## 2b. 34 类全量提示词搜索结果（per-class 4 张，best-of-5 变体）
+
+| 排名 | 类别 | tuned 提示 | conf |
+|---|---|---|---|
+| 1 | Raspberry | `raspberry` | 0.970 |
+| 2 | Citrus | `citrus leaves` | 0.964 |
+| 3 | Soybean | `soybean leaf` | 0.956 |
+| 4 | Cabbage | `cabbage plant` | 0.945 |
+| 5 | Banana | `banana` | 0.942 |
+| 6 | Bell pepper | `bell pepper` | 0.941 |
+| 7 | Rice | `rice leaves` | 0.940 |
+| 8 | Blueberry | `a blueberry leaf` | 0.939 |
+| 9 | Cherry | `cherry` | 0.936 |
+| 10 | Maple | `maple plant` | 0.936 |
+| 11 | Grape | `grape leaf` | 0.934 |
+| 12 | Coffee | `coffee plant` | 0.930 |
+| 13 | Plum | `plum plant` | 0.922 |
+| 14 | Corn | `a corn leaf` | 0.921 |
+| 15 | Zucchini | `zucchini plant` | 0.918 |
+| 16 | Strawberry | `strawberry` | 0.912 |
+| 17 | Basil | `basil leaf` | 0.910 |
+| 18 | Eggplant | `eggplant` | 0.902 |
+| 19 | Bean | `bean plant` | 0.900 |
+| 20 | Cauliflower | `cauliflower` | 0.900 |
+| 21 | Carrot | `carrot` | 0.896 |
+| 22 | Cucumber | `cucumber plant` | 0.891 |
+| 23 | Apple | `apple` | 0.885 |
+| 24 | Squash | `squash plant` | 0.879 |
+| 25 | Broccoli | `broccoli leaf` | 0.844 |
+| 26 | Tomato | `tomato` | 0.844 |
+| 27 | Lettuce | `lettuce plant` | 0.834 |
+| 28 | Potato | `potato plant` | 0.821 |
+| 29 | Tobacco | `tobacco leaf` | 0.651 |
+| 30 | Wheat | `wheat` | 0.647 |
+| 31 | Celery | `a celery leaf` | 0.440 |
+| 32 | Ginger | `ginger plant` | 0.189 |
+| 33 | Garlic | `garlic plant` | 0.115 |
+| 34 | Peach | `peach` | 0.078 |
+
+**28/34 类 conf ≥ 0.80；4/34 类 conf < 0.45（Celery/Garlic/Ginger/Peach 文本提示失效，需视觉样例）。**
+
+词库落盘：`configs/species_prompt_bank_tuned.json`（含 `tuned_prompt` / `tuned_conf`）

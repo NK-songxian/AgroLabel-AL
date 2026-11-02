@@ -1,0 +1,1192 @@
+[
+  {
+    "name": "Apple",
+    "prompt": "apple",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.885
+  },
+  {
+    "name": "Apple",
+    "prompt": "apple leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.286
+  },
+  {
+    "name": "Apple",
+    "prompt": "apple plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.542
+  },
+  {
+    "name": "Apple",
+    "prompt": "apple leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.635
+  },
+  {
+    "name": "Apple",
+    "prompt": "a apple leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.261
+  },
+  {
+    "name": "Banana",
+    "prompt": "banana",
+    "hit": 1,
+    "n_img": 4,
+    "max_conf": 0.942
+  },
+  {
+    "name": "Banana",
+    "prompt": "banana leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.661
+  },
+  {
+    "name": "Banana",
+    "prompt": "banana plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.852
+  },
+  {
+    "name": "Banana",
+    "prompt": "banana leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.348
+  },
+  {
+    "name": "Banana",
+    "prompt": "a banana leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.716
+  },
+  {
+    "name": "Basil",
+    "prompt": "basil",
+    "hit": 3,
+    "n_img": 3,
+    "max_conf": 0.14
+  },
+  {
+    "name": "Basil",
+    "prompt": "basil leaf",
+    "hit": 3,
+    "n_img": 3,
+    "max_conf": 0.91
+  },
+  {
+    "name": "Basil",
+    "prompt": "basil plant",
+    "hit": 3,
+    "n_img": 3,
+    "max_conf": 0.798
+  },
+  {
+    "name": "Basil",
+    "prompt": "basil leaves",
+    "hit": 3,
+    "n_img": 3,
+    "max_conf": 0.351
+  },
+  {
+    "name": "Basil",
+    "prompt": "a basil leaf",
+    "hit": 3,
+    "n_img": 3,
+    "max_conf": 0.908
+  },
+  {
+    "name": "Bean",
+    "prompt": "bean",
+    "hit": 1,
+    "n_img": 4,
+    "max_conf": 0.542
+  },
+  {
+    "name": "Bean",
+    "prompt": "bean leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.75
+  },
+  {
+    "name": "Bean",
+    "prompt": "bean plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.9
+  },
+  {
+    "name": "Bean",
+    "prompt": "bean leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.399
+  },
+  {
+    "name": "Bean",
+    "prompt": "a bean leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.409
+  },
+  {
+    "name": "Bell pepper",
+    "prompt": "bell pepper",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.941
+  },
+  {
+    "name": "Bell pepper",
+    "prompt": "bell pepper leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.159
+  },
+  {
+    "name": "Bell pepper",
+    "prompt": "bell pepper plant",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.571
+  },
+  {
+    "name": "Bell pepper",
+    "prompt": "bell pepper leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.269
+  },
+  {
+    "name": "Bell pepper",
+    "prompt": "a bell pepper leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.082
+  },
+  {
+    "name": "Blueberry",
+    "prompt": "blueberry",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.934
+  },
+  {
+    "name": "Blueberry",
+    "prompt": "blueberry leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.897
+  },
+  {
+    "name": "Blueberry",
+    "prompt": "blueberry plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.916
+  },
+  {
+    "name": "Blueberry",
+    "prompt": "blueberry leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.934
+  },
+  {
+    "name": "Blueberry",
+    "prompt": "a blueberry leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.939
+  },
+  {
+    "name": "Broccoli",
+    "prompt": "broccoli",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.811
+  },
+  {
+    "name": "Broccoli",
+    "prompt": "broccoli leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.844
+  },
+  {
+    "name": "Broccoli",
+    "prompt": "broccoli plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.758
+  },
+  {
+    "name": "Broccoli",
+    "prompt": "broccoli leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.708
+  },
+  {
+    "name": "Broccoli",
+    "prompt": "a broccoli leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.794
+  },
+  {
+    "name": "Cabbage",
+    "prompt": "cabbage",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.463
+  },
+  {
+    "name": "Cabbage",
+    "prompt": "cabbage leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.385
+  },
+  {
+    "name": "Cabbage",
+    "prompt": "cabbage plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.945
+  },
+  {
+    "name": "Cabbage",
+    "prompt": "cabbage leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.214
+  },
+  {
+    "name": "Cabbage",
+    "prompt": "a cabbage leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.504
+  },
+  {
+    "name": "Carrot",
+    "prompt": "carrot",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.896
+  },
+  {
+    "name": "Carrot",
+    "prompt": "carrot leaf",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.24
+  },
+  {
+    "name": "Carrot",
+    "prompt": "carrot plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.614
+  },
+  {
+    "name": "Carrot",
+    "prompt": "carrot leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.186
+  },
+  {
+    "name": "Carrot",
+    "prompt": "a carrot leaf",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.04
+  },
+  {
+    "name": "Cauliflower",
+    "prompt": "cauliflower",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.9
+  },
+  {
+    "name": "Cauliflower",
+    "prompt": "cauliflower leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.283
+  },
+  {
+    "name": "Cauliflower",
+    "prompt": "cauliflower plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.892
+  },
+  {
+    "name": "Cauliflower",
+    "prompt": "cauliflower leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.169
+  },
+  {
+    "name": "Cauliflower",
+    "prompt": "a cauliflower leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.182
+  },
+  {
+    "name": "Celery",
+    "prompt": "celery",
+    "hit": 2,
+    "n_img": 3,
+    "max_conf": 0.049
+  },
+  {
+    "name": "Celery",
+    "prompt": "celery leaf",
+    "hit": 3,
+    "n_img": 3,
+    "max_conf": 0.333
+  },
+  {
+    "name": "Celery",
+    "prompt": "celery plant",
+    "hit": 3,
+    "n_img": 3,
+    "max_conf": 0.294
+  },
+  {
+    "name": "Celery",
+    "prompt": "celery leaves",
+    "hit": 3,
+    "n_img": 3,
+    "max_conf": 0.379
+  },
+  {
+    "name": "Celery",
+    "prompt": "a celery leaf",
+    "hit": 3,
+    "n_img": 3,
+    "max_conf": 0.44
+  },
+  {
+    "name": "Cherry",
+    "prompt": "cherry",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.936
+  },
+  {
+    "name": "Cherry",
+    "prompt": "cherry leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.892
+  },
+  {
+    "name": "Cherry",
+    "prompt": "cherry plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.831
+  },
+  {
+    "name": "Cherry",
+    "prompt": "cherry leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.826
+  },
+  {
+    "name": "Cherry",
+    "prompt": "a cherry leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.556
+  },
+  {
+    "name": "Citrus",
+    "prompt": "citrus",
+    "hit": 1,
+    "n_img": 4,
+    "max_conf": 0.097
+  },
+  {
+    "name": "Citrus",
+    "prompt": "citrus leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.936
+  },
+  {
+    "name": "Citrus",
+    "prompt": "citrus plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.833
+  },
+  {
+    "name": "Citrus",
+    "prompt": "citrus leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.964
+  },
+  {
+    "name": "Citrus",
+    "prompt": "a citrus leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.914
+  },
+  {
+    "name": "Coffee",
+    "prompt": "coffee",
+    "hit": 0,
+    "n_img": 4,
+    "max_conf": 0.0
+  },
+  {
+    "name": "Coffee",
+    "prompt": "coffee leaf",
+    "hit": 0,
+    "n_img": 4,
+    "max_conf": 0.0
+  },
+  {
+    "name": "Coffee",
+    "prompt": "coffee plant",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.93
+  },
+  {
+    "name": "Coffee",
+    "prompt": "coffee leaves",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.103
+  },
+  {
+    "name": "Coffee",
+    "prompt": "a coffee leaf",
+    "hit": 0,
+    "n_img": 4,
+    "max_conf": 0.0
+  },
+  {
+    "name": "Corn",
+    "prompt": "corn",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.718
+  },
+  {
+    "name": "Corn",
+    "prompt": "corn leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.915
+  },
+  {
+    "name": "Corn",
+    "prompt": "corn plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.872
+  },
+  {
+    "name": "Corn",
+    "prompt": "corn leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.821
+  },
+  {
+    "name": "Corn",
+    "prompt": "a corn leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.921
+  },
+  {
+    "name": "Cucumber",
+    "prompt": "cucumber",
+    "hit": 1,
+    "n_img": 4,
+    "max_conf": 0.136
+  },
+  {
+    "name": "Cucumber",
+    "prompt": "cucumber leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.879
+  },
+  {
+    "name": "Cucumber",
+    "prompt": "cucumber plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.891
+  },
+  {
+    "name": "Cucumber",
+    "prompt": "cucumber leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.578
+  },
+  {
+    "name": "Cucumber",
+    "prompt": "a cucumber leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.883
+  },
+  {
+    "name": "Eggplant",
+    "prompt": "eggplant",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.902
+  },
+  {
+    "name": "Eggplant",
+    "prompt": "eggplant leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.778
+  },
+  {
+    "name": "Eggplant",
+    "prompt": "eggplant plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.772
+  },
+  {
+    "name": "Eggplant",
+    "prompt": "eggplant leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.432
+  },
+  {
+    "name": "Eggplant",
+    "prompt": "a eggplant leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.754
+  },
+  {
+    "name": "Garlic",
+    "prompt": "garlic",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.078
+  },
+  {
+    "name": "Garlic",
+    "prompt": "garlic leaf",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.022
+  },
+  {
+    "name": "Garlic",
+    "prompt": "garlic plant",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.115
+  },
+  {
+    "name": "Garlic",
+    "prompt": "garlic leaves",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.037
+  },
+  {
+    "name": "Garlic",
+    "prompt": "a garlic leaf",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.035
+  },
+  {
+    "name": "Ginger",
+    "prompt": "ginger",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.018
+  },
+  {
+    "name": "Ginger",
+    "prompt": "ginger leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.095
+  },
+  {
+    "name": "Ginger",
+    "prompt": "ginger plant",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.189
+  },
+  {
+    "name": "Ginger",
+    "prompt": "ginger leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.113
+  },
+  {
+    "name": "Ginger",
+    "prompt": "a ginger leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.116
+  },
+  {
+    "name": "Grape",
+    "prompt": "grape",
+    "hit": 1,
+    "n_img": 4,
+    "max_conf": 0.063
+  },
+  {
+    "name": "Grape",
+    "prompt": "grape leaf",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.934
+  },
+  {
+    "name": "Grape",
+    "prompt": "grape plant",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.656
+  },
+  {
+    "name": "Grape",
+    "prompt": "grape leaves",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.68
+  },
+  {
+    "name": "Grape",
+    "prompt": "a grape leaf",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.91
+  },
+  {
+    "name": "Lettuce",
+    "prompt": "lettuce",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.531
+  },
+  {
+    "name": "Lettuce",
+    "prompt": "lettuce leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.601
+  },
+  {
+    "name": "Lettuce",
+    "prompt": "lettuce plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.834
+  },
+  {
+    "name": "Lettuce",
+    "prompt": "lettuce leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.622
+  },
+  {
+    "name": "Lettuce",
+    "prompt": "a lettuce leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.588
+  },
+  {
+    "name": "Maple",
+    "prompt": "maple",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.818
+  },
+  {
+    "name": "Maple",
+    "prompt": "maple leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.923
+  },
+  {
+    "name": "Maple",
+    "prompt": "maple plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.936
+  },
+  {
+    "name": "Maple",
+    "prompt": "maple leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.671
+  },
+  {
+    "name": "Maple",
+    "prompt": "a maple leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.913
+  },
+  {
+    "name": "Peach",
+    "prompt": "peach",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.078
+  },
+  {
+    "name": "Peach",
+    "prompt": "peach leaf",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.012
+  },
+  {
+    "name": "Peach",
+    "prompt": "peach plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.042
+  },
+  {
+    "name": "Peach",
+    "prompt": "peach leaves",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.014
+  },
+  {
+    "name": "Peach",
+    "prompt": "a peach leaf",
+    "hit": 1,
+    "n_img": 4,
+    "max_conf": 0.027
+  },
+  {
+    "name": "Plum",
+    "prompt": "plum",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.061
+  },
+  {
+    "name": "Plum",
+    "prompt": "plum leaf",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.467
+  },
+  {
+    "name": "Plum",
+    "prompt": "plum plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.922
+  },
+  {
+    "name": "Plum",
+    "prompt": "plum leaves",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.809
+  },
+  {
+    "name": "Plum",
+    "prompt": "a plum leaf",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.597
+  },
+  {
+    "name": "Potato",
+    "prompt": "potato",
+    "hit": 1,
+    "n_img": 4,
+    "max_conf": 0.153
+  },
+  {
+    "name": "Potato",
+    "prompt": "potato leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.804
+  },
+  {
+    "name": "Potato",
+    "prompt": "potato plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.821
+  },
+  {
+    "name": "Potato",
+    "prompt": "potato leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.712
+  },
+  {
+    "name": "Potato",
+    "prompt": "a potato leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.775
+  },
+  {
+    "name": "Raspberry",
+    "prompt": "raspberry",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.97
+  },
+  {
+    "name": "Raspberry",
+    "prompt": "raspberry leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.754
+  },
+  {
+    "name": "Raspberry",
+    "prompt": "raspberry plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.945
+  },
+  {
+    "name": "Raspberry",
+    "prompt": "raspberry leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.645
+  },
+  {
+    "name": "Raspberry",
+    "prompt": "a raspberry leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.755
+  },
+  {
+    "name": "Rice",
+    "prompt": "rice",
+    "hit": 1,
+    "n_img": 4,
+    "max_conf": 0.014
+  },
+  {
+    "name": "Rice",
+    "prompt": "rice leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.919
+  },
+  {
+    "name": "Rice",
+    "prompt": "rice plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.92
+  },
+  {
+    "name": "Rice",
+    "prompt": "rice leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.94
+  },
+  {
+    "name": "Rice",
+    "prompt": "a rice leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.936
+  },
+  {
+    "name": "Soybean",
+    "prompt": "soybean",
+    "hit": 0,
+    "n_img": 4,
+    "max_conf": 0.0
+  },
+  {
+    "name": "Soybean",
+    "prompt": "soybean leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.956
+  },
+  {
+    "name": "Soybean",
+    "prompt": "soybean plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.206
+  },
+  {
+    "name": "Soybean",
+    "prompt": "soybean leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.93
+  },
+  {
+    "name": "Soybean",
+    "prompt": "a soybean leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.954
+  },
+  {
+    "name": "Squash",
+    "prompt": "squash",
+    "hit": 1,
+    "n_img": 4,
+    "max_conf": 0.858
+  },
+  {
+    "name": "Squash",
+    "prompt": "squash leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.745
+  },
+  {
+    "name": "Squash",
+    "prompt": "squash plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.879
+  },
+  {
+    "name": "Squash",
+    "prompt": "squash leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.25
+  },
+  {
+    "name": "Squash",
+    "prompt": "a squash leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.542
+  },
+  {
+    "name": "Strawberry",
+    "prompt": "strawberry",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.912
+  },
+  {
+    "name": "Strawberry",
+    "prompt": "strawberry leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.874
+  },
+  {
+    "name": "Strawberry",
+    "prompt": "strawberry plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.877
+  },
+  {
+    "name": "Strawberry",
+    "prompt": "strawberry leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.844
+  },
+  {
+    "name": "Strawberry",
+    "prompt": "a strawberry leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.888
+  },
+  {
+    "name": "Tobacco",
+    "prompt": "tobacco",
+    "hit": 1,
+    "n_img": 4,
+    "max_conf": 0.029
+  },
+  {
+    "name": "Tobacco",
+    "prompt": "tobacco leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.651
+  },
+  {
+    "name": "Tobacco",
+    "prompt": "tobacco plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.618
+  },
+  {
+    "name": "Tobacco",
+    "prompt": "tobacco leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.223
+  },
+  {
+    "name": "Tobacco",
+    "prompt": "a tobacco leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.554
+  },
+  {
+    "name": "Tomato",
+    "prompt": "tomato",
+    "hit": 2,
+    "n_img": 4,
+    "max_conf": 0.844
+  },
+  {
+    "name": "Tomato",
+    "prompt": "tomato leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.725
+  },
+  {
+    "name": "Tomato",
+    "prompt": "tomato plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.622
+  },
+  {
+    "name": "Tomato",
+    "prompt": "tomato leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.584
+  },
+  {
+    "name": "Tomato",
+    "prompt": "a tomato leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.648
+  },
+  {
+    "name": "Wheat",
+    "prompt": "wheat",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.647
+  },
+  {
+    "name": "Wheat",
+    "prompt": "wheat leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.44
+  },
+  {
+    "name": "Wheat",
+    "prompt": "wheat plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.553
+  },
+  {
+    "name": "Wheat",
+    "prompt": "wheat leaves",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.517
+  },
+  {
+    "name": "Wheat",
+    "prompt": "a wheat leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.586
+  },
+  {
+    "name": "Zucchini",
+    "prompt": "zucchini",
+    "hit": 1,
+    "n_img": 4,
+    "max_conf": 0.044
+  },
+  {
+    "name": "Zucchini",
+    "prompt": "zucchini leaf",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.848
+  },
+  {
+    "name": "Zucchini",
+    "prompt": "zucchini plant",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.918
+  },
+  {
+    "name": "Zucchini",
+    "prompt": "zucchini leaves",
+    "hit": 3,
+    "n_img": 4,
+    "max_conf": 0.12
+  },
+  {
+    "name": "Zucchini",
+    "prompt": "a zucchini leaf",
+    "hit": 4,
+    "n_img": 4,
+    "max_conf": 0.66
+  }
+]
