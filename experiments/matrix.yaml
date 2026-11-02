@@ -113,6 +113,23 @@ experiments:
     command: "{py} src/m12_openvocab_eval.py --kind yoloe --prompt-source phrases --weights {repo}/weights/yoloe-11l-seg.pt --data {data_yaml} --split val --device 0 --out {out}/Z3b.json"
     note: 同 Z2b，对应 Z3 的 0.00637 seg mAP50。
 
+  # ---------------- 提示词工程扫描 ----------------
+  - id: Z2s
+    name: YOLO-World 提示词扫描（7 模板族）
+    phase: zeroshot
+    priority: recommended
+    status: todo
+    command: "{py} src/m14_prompt_sweep.py --kind world --weights {repo}/weights/yolov8x-worldv2.pt --data {data_yaml} --split val --device 0 --out {out}"
+    note: 7 族单变量消融（病征词族/句法/粒度），含 species_only 基线锚点。判读要点：量级由"有无病征词"决定；病害级提示 dice↑但召回↓、AP 可能↓，需同时看 mAP50 与 dice。
+
+  - id: Z3s
+    name: YOLOE-Seg 提示词扫描（7 模板族）
+    phase: zeroshot
+    priority: recommended
+    status: todo
+    command: "{py} src/m14_prompt_sweep.py --kind yoloe --weights {repo}/weights/yoloe-11l-seg.pt --data {data_yaml} --split val --device 0 --out {out}"
+    note: 同 Z2s，额外有 seg 指标。与 SAM3 侧的 host_0/disease_0/species_tuned 扫描（experiments/sam3_s1/sweep.json）交叉验证提示工程结论是否跨模型成立。
+
   # ---------------- 微调 F ----------------
   - id: F1
     name: SAM3 全参数微调（S2）

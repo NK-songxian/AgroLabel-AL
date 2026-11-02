@@ -18,6 +18,19 @@ queue:
     status: pending
     command: "{py} src/m12_openvocab_eval.py --kind yoloe --prompt-source phrases --weights {repo}/weights/yoloe-11l-seg.pt --data {repo}/data/plantseg34/data.yaml --split val --device 0 --out {repo}/runtime/logs/matrix/Z3b.json"
 
+  # ---------------- 提示词工程扫描（Z2s/Z3s）：7 个模板族单变量消融 ----------------
+  # 已有实证：病征词决定量级（0.17 vs 0.04），具体度决定 dice/召回权衡。
+  # 模型只加载一次，7 族全跑约 10-15 分钟。
+  - id: Z2s
+    name: Z2s YOLO-World 提示词扫描（7 族）
+    status: pending
+    command: "{py} src/m14_prompt_sweep.py --kind world --weights {repo}/weights/yolov8x-worldv2.pt --data {repo}/data/plantseg34/data.yaml --split val --device 0 --out {repo}/experiments/matrix/Z2s"
+
+  - id: Z3s
+    name: Z3s YOLOE-Seg 提示词扫描（7 族）
+    status: pending
+    command: "{py} src/m14_prompt_sweep.py --kind yoloe --weights {repo}/weights/yoloe-11l-seg.pt --data {repo}/data/plantseg34/data.yaml --split val --device 0 --out {repo}/experiments/matrix/Z3s"
+
   # ---------------- 评测：框提示 / 按需精修 / 解耦 ----------------
   - id: F4-gt
     name: F4 框提示 SAM3（GT 框，分割上限）
