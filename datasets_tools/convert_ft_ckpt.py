@@ -21,6 +21,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 import torch
 
@@ -28,7 +29,7 @@ import torch
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--ft", required=True, help="训练产出的 checkpoint.pt")
-    ap.add_argument("--base", default="/root/autodl-tmp/Ryan/sam3.pt", help="原始发布权重")
+    ap.add_argument("--base", default=str(Path(__file__).resolve().parents[1] / "weights" / "sam3.pt"), help="原始发布权重")
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
 

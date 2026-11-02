@@ -69,7 +69,7 @@ PATCHED = """    def forward(self, x):
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--repo", default="/root/autodl-tmp/Ryan/sam3_repo")
+    ap.add_argument("--repo", default=str(Path(__file__).resolve().parents[1] / "third_party" / "sam3_repo"))
     args = ap.parse_args()
 
     # --- patch 1: 训练时 trunk MLP 走非融合路径 ---

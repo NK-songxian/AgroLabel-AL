@@ -21,13 +21,13 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# 云端默认路径（AutoDL Pro6000 实例）
-DEF_ROOT = "/root/autodl-tmp/Ryan/data_plantseg34"
-DEF_COCO = "/root/autodl-tmp/Ryan/ArgoLable-AL/datasets/sam3"
-# 默认把 run 写进项目内 runtime/runs（不再散落在 /root/autodl-tmp/Ryan/runs）
+# 全部改为仓库相对路径：本地/云端同一份代码都能跑（数据/权重/第三方源码放在仓库内）
+DEF_ROOT = str(REPO_ROOT / "data" / "plantseg34")
+DEF_COCO = str(REPO_ROOT / "datasets" / "sam3")
+# 默认把 run 写进项目内 runtime/runs
 DEF_LOGDIR = str(REPO_ROOT / "runtime" / "runs")
-DEF_CKPT = "/root/autodl-tmp/Ryan/sam3.pt"
-DEF_BPE = "/root/autodl-tmp/Ryan/sam3_repo/sam3/assets/bpe_simple_vocab_16e6.txt.gz"
+DEF_CKPT = str(REPO_ROOT / "weights" / "sam3.pt")
+DEF_BPE = str(REPO_ROOT / "third_party" / "sam3_repo" / "sam3" / "assets" / "bpe_simple_vocab_16e6.txt.gz")
 
 
 def build_prompts(bank_path: Path, phrase_index: int, level: str) -> str:

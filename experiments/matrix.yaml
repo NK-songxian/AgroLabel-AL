@@ -7,10 +7,10 @@
 meta:
   name: AgroLabel-AL 模型实验矩阵
   protocol: docs/模型实验作战手册.html
-  data_root_cloud: /root/autodl-tmp/Ryan/data_plantseg34
+  data_root_cloud: "{repo}/data/plantseg34"
   data_root_local: F:/_plantseg/dataset_plantseg_34
   weights: weights/baseline_yolov8nseg_plantseg34_best.pt
-  sam3_weights: /root/autodl-tmp/Ryan/sam3.pt
+  sam3_weights: "{repo}/weights/sam3.pt"
   splits: { train: 5367, val: 846, test: 1560 }
   metrics: [mask_mAP50, mask_mAP50_95, mask_mAP75, instance_recall, boundary_f1, matched_dice]
   eval_note: 验证集选模型/阈值，测试集锁定后只评一次；AP 与 YOLO 框 AP 不混比。
@@ -82,9 +82,9 @@ experiments:
     name: SAM3 全参数微调（S2）
     phase: finetune
     priority: resource
-    status: running
-    command: cd /root/autodl-tmp/Ryan/sam3_repo && python sam3/train/train.py -c configs/plantseg34/plantseg34_s2.yaml --use-cluster 0 --num-gpus 1
-    note: 进行中。配置生成见 datasets_tools/sam3_make_ft_config.py；评测用 convert_ft_ckpt.py + prompt_sweep。
+    status: paused
+    command: cd {repo}/third_party/sam3_repo && python sam3/train/train.py -c configs/plantseg34/plantseg34_s2.yaml --use-cluster 0 --num-gpus 1
+    note: 2026-11-02 已停止并清理本次训练产物；34 类内置口径 AP50=0.084（oracle-host 口径 0.325，不可混比）。重跑前用 datasets_tools/sam3_make_ft_config.py 重新生成配置。
 
   - id: F2
     name: YOLOE-Seg 微调

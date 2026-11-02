@@ -49,19 +49,23 @@ def busy_procs() -> list[str]:
 
 
 def resolve(tpl: str, meta: dict, out_dir: Path, data_root_override: str | None) -> str:
-    cloud = meta.get("data_root_cloud", "")
+    """解析命令占位符。数据根优先用仓库内 data/plantseg34（本地/云端一致）。"""
+    inrepo = ROOT / "data" / "plantseg34"
     local = meta.get("data_root_local", "")
     if data_root_override:
         data_root = data_root_override
-    elif cloud and Path(cloud).exists():
-        data_root = cloud
+    elif inrepo.is_dir():
+        data_root = str(inrepo)
+    elif meta.get("data_root_cloud") and Path(meta["data_root_cloud"]).exists():
+        data_root = meta["data_root_cloud"]
     else:
         data_root = local
+    sam3_weights = str(meta.get("sam3_weights", "")).replace("{repo}", str(ROOT))
     return (
         tpl.replace("{repo}", str(ROOT))
         .replace("{data_root}", str(data_root))
         .replace("{data_yaml}", str(Path(data_root) / "data.yaml"))
-        .replace("{sam3_weights}", str(meta.get("sam3_weights", "")))
+        .replace("{sam3_weights}", sam3_weights)
         .replace("{weights}", str(meta.get("weights", "")))
         .replace("{out}", str(out_dir))
     )

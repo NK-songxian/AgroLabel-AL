@@ -108,3 +108,5 @@ experiments/matrix_state.json
 .npmrc
 # 沙箱权限诊断脚本的恢复记录，仅本机有意义
 .acl-recovery/
+# 数据集搬入仓库内（大文件不入库）
+data/plantseg34/
