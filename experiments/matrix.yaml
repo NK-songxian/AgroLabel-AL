@@ -35,22 +35,40 @@ experiments:
     note: 与 B0 比分辨率收益；batch 变化需记录。
 
   - id: B2
-    name: YOLOv8s-seg 640
+    name: YOLOv8x-seg 640
     phase: baseline
     priority: must
     status: todo
-    needs: [train, yolov8s-seg.pt]
-    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolov8s-seg.pt --imgsz 640 --epochs 150 --name b2_v8s_640 --project {out}/runs"
-    note: 与 B0 比模型规模收益。
+    needs: [train, yolov8x-seg.pt]
+    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolov8x-seg.pt --imgsz 640 --epochs 150 --name b2_v8x_640 --project {out}/runs"
+    note: 原设计为 v8s，官方 v8s-seg 权重在内网拿不到，改用 v8x（规模档位由 s 提到 x）；与 B0 比模型规模收益。
 
   - id: B3
-    name: YOLOv8s-seg 960
+    name: YOLOv8x-seg 960
     phase: baseline
     priority: must
     status: todo
-    needs: [train, yolov8s-seg.pt]
-    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolov8s-seg.pt --imgsz 960 --epochs 150 --name b3_v8s_960 --project {out}/runs"
-    note: 规模×分辨率交互。
+    needs: [train, yolov8x-seg.pt]
+    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolov8x-seg.pt --imgsz 960 --epochs 150 --name b3_v8x_960 --project {out}/runs"
+    note: 规模×分辨率交互（v8x @960）。
+
+  - id: B4
+    name: YOLO26x-seg 640
+    phase: baseline
+    priority: extended
+    status: todo
+    needs: [train, yolo26x-seg.pt]
+    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolo26x-seg.pt --imgsz 640 --epochs 150 --name b4_y26x_640 --project {out}/runs"
+    note: 换代对照（26x vs 8x，同为 x 规模、640）。与 B2 配对比较。
+
+  - id: B5
+    name: YOLO26x-seg 960
+    phase: baseline
+    priority: extended
+    status: todo
+    needs: [train, yolo26x-seg.pt]
+    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolo26x-seg.pt --imgsz 960 --epochs 150 --name b5_y26x_960 --project {out}/runs"
+    note: 换代 × 分辨率（26x @960）。与 B3 配对比较。
 
   # ---------------- 零样本 Z ----------------
   - id: Z1
