@@ -146,3 +146,32 @@ KeyError: 'masks'
 | 日志 | `/root/autodl-tmp/Ryan/runs/sam3_s2_full_ft_host/` |
 
 预计 10 epoch ≈ 22 h。
+
+## 7. 训练完怎么评（与 S1 同口径）
+
+训练产物 `checkpoints/checkpoint.pt` 的键**不带前缀**（`backbone.…`），
+而发布权重 `sam3.pt` 是扁平 dict、键带 `detector.` / `tracker.` 前缀，推理侧按前缀解析。
+所以必须先转换：
+
+```bash
+python datasets_tools/convert_ft_ckpt.py \
+    --ft    /root/autodl-tmp/Ryan/runs/sam3_s2_full_ft_host/checkpoints/checkpoint.pt \
+    --base  /root/autodl-tmp/Ryan/sam3.pt \
+    --out   /root/autodl-tmp/Ryan/runs/sam3_s2_full_ft_host/sam3_s2.pt
+```
+
+- 训练模型没有 `backbone.vision_backbone.sam2_convs.*`（那是实例交互分支，
+  `enable_inst_interactivity=False` 时不构建），转换时这 22 个键沿用 base 原值，
+  推理侧才能按原结构加载。
+- 已用冒烟权重实测：转换后 Ultralytics `SAM3SemanticPredictor` 能正常加载并出 mask。
+
+评测命令（与 S1 完全相同的脚本、imgsz、conf、提示词）：
+
+```bash
+python -m sam3_baseline.prompt_sweep \
+    --data-root /root/autodl-tmp/Ryan/data_plantseg34 \
+    --ckpt /root/autodl-tmp/Ryan/runs/sam3_s2_full_ft_host/sam3_s2.pt \
+    --variants host_0 --imgsz 1008 --conf 0.01 \
+    --out experiments/sam3_s2
+```
+
