@@ -22,7 +22,7 @@ experiments:
     phase: baseline
     priority: must
     status: todo
-    command: {py} src/m6_editcost.py --data {data_yaml} --split val --weights {weights} --imgsz 640 --device 0 --out-dir {out}
+    command: "{py} src/m6_editcost.py --data {data_yaml} --split val --weights {weights} --imgsz 640 --device 0 --out-dir {out}"
     note: 统一权重/配置/分割口径，解释历史 0.0568 / 0.2492 / 0.287 的差异来源。
 
   - id: B1
@@ -31,7 +31,7 @@ experiments:
     priority: must
     status: todo
     needs: [train]
-    command: {py} training/train_seg_baseline.py --model yolov8n-seg.pt --imgsz 960 --epochs 150 --name b1_v8n_960 --project {out}/runs
+    command: "{py} training/train_seg_baseline.py --model yolov8n-seg.pt --imgsz 960 --epochs 150 --name b1_v8n_960 --project {out}/runs"
     note: 与 B0 比分辨率收益；batch 变化需记录。
 
   - id: B2
@@ -40,7 +40,7 @@ experiments:
     priority: must
     status: todo
     needs: [train, yolov8s-seg.pt]
-    command: {py} training/train_seg_baseline.py --model yolov8s-seg.pt --imgsz 640 --epochs 150 --name b2_v8s_640 --project {out}/runs
+    command: "{py} training/train_seg_baseline.py --model yolov8s-seg.pt --imgsz 640 --epochs 150 --name b2_v8s_640 --project {out}/runs"
     note: 与 B0 比模型规模收益。
 
   - id: B3
@@ -49,7 +49,7 @@ experiments:
     priority: must
     status: todo
     needs: [train, yolov8s-seg.pt]
-    command: {py} training/train_seg_baseline.py --model yolov8s-seg.pt --imgsz 960 --epochs 150 --name b3_v8s_960 --project {out}/runs
+    command: "{py} training/train_seg_baseline.py --model yolov8s-seg.pt --imgsz 960 --epochs 150 --name b3_v8s_960 --project {out}/runs"
     note: 规模×分辨率交互。
 
   # ---------------- 零样本 Z ----------------
@@ -58,7 +58,7 @@ experiments:
     phase: zeroshot
     priority: must
     status: done
-    command: {py} -m sam3_baseline.prompt_sweep --split val --data-root {data_root} --ckpt {sam3_weights} --out {out} --variants host_0 --imgsz 1008
+    command: "{py} -m sam3_baseline.prompt_sweep --split val --data-root {data_root} --ckpt {sam3_weights} --out {out} --variants host_0 --imgsz 1008"
     note: 已完成 S0/S1；全 846 张 mAP50=0.1709，200 子集=0.2146（见 experiments/sam3_s1/sweep.json）。
 
   - id: Z2
@@ -83,7 +83,7 @@ experiments:
     phase: finetune
     priority: resource
     status: paused
-    command: cd {repo}/third_party/sam3_repo && {py} sam3/train/train.py -c configs/plantseg34/plantseg34_s2.yaml --use-cluster 0 --num-gpus 1
+    command: "cd {repo}/third_party/sam3_repo && {py} sam3/train/train.py -c configs/plantseg34/plantseg34_s2.yaml --use-cluster 0 --num-gpus 1"
     note: 2026-11-02 已停止并清理本次训练产物；34 类内置口径 AP50=0.084（oracle-host 口径 0.325，不可混比）。重跑前用 datasets_tools/sam3_make_ft_config.py 重新生成配置。
 
   - id: F2
