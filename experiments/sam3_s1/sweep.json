@@ -1,0 +1,84 @@
+{
+  "split": "val",
+  "images": 846,
+  "table": [
+    {
+      "variant": "species_tuned",
+      "mask_mAP50": 0.0376,
+      "mask_mAP50_95": 0.0141,
+      "instance_recall": 0.1026,
+      "instance_coverage": 0.1026,
+      "matched_dice": 0.8538,
+      "boundary_f1": 0.5134,
+      "n_pred": 31184,
+      "n_matched": 662
+    },
+    {
+      "variant": "host_0",
+      "mask_mAP50": 0.1709,
+      "mask_mAP50_95": 0.0747,
+      "instance_recall": 0.4713,
+      "instance_coverage": 0.4713,
+      "matched_dice": 0.8274,
+      "boundary_f1": 0.7396,
+      "n_pred": 53702,
+      "n_matched": 3042
+    },
+    {
+      "variant": "disease_0",
+      "mask_mAP50": 0.1417,
+      "mask_mAP50_95": 0.0664,
+      "instance_recall": 0.3698,
+      "instance_coverage": 0.3698,
+      "matched_dice": 0.8431,
+      "boundary_f1": 0.7367,
+      "n_pred": 39601,
+      "n_matched": 2387
+    },
+    {
+      "variant": "disease_1",
+      "mask_mAP50": 0.1308,
+      "mask_mAP50_95": 0.0591,
+      "instance_recall": 0.3178,
+      "instance_coverage": 0.3178,
+      "matched_dice": 0.8424,
+      "boundary_f1": 0.7234,
+      "n_pred": 27367,
+      "n_matched": 2051
+    }
+  ],
+  "prompt_used": {
+    "species_tuned": {
+      "wheat": 137,
+      "tomato": 74,
+      "apple": 46,
+      "a corn leaf": 46,
+      "soybean leaf": 46,
+      "grape leaf": 44
+    },
+    "host_0": {
+      "disease lesions on wheat leaves": 137,
+      "disease lesions on tomato leaves": 74,
+      "disease lesions on apple leaves": 46,
+      "disease lesions on corn leaves": 46,
+      "disease lesions on soybean leaves": 46,
+      "disease lesions on grape leaves": 44
+    },
+    "disease_0": {
+      "citrus canker lesions on citrus leaves": 33,
+      "wheat head scab lesions on wheat leaves": 25,
+      "wheat stripe rust lesions on wheat leaves": 25,
+      "wheat powdery mildew lesions on wheat leaves": 24,
+      "grape downy mildew lesions on grape leaves": 21,
+      "wheat septoria blotch lesions on wheat leaves": 19
+    },
+    "disease_1": {
+      "citrus canker lesions on citrus": 33,
+      "wheat head scab lesions on wheat": 25,
+      "wheat stripe rust lesions on wheat": 25,
+      "wheat powdery mildew lesions on wheat": 24,
+      "grape downy mildew lesions on grape": 21,
+      "wheat septoria blotch lesions on wheat": 19
+    }
+  }
+}

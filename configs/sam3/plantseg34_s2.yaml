@@ -1,0 +1,386 @@
+# @package _global_
+# 由 datasets_tools/sam3_make_ft_config.py 生成，不要手改。
+# 实验名: s2_full_ft_host
+# 提示词级别: host / phrase_index=0
+# 说明: 数据侧为 PlantSeg-34（34 寄主，实例目标=病斑 region），已转 COCO 绝对像素坐标。
+defaults:
+  - _self_
+
+paths:
+  plantseg_root: /root/autodl-tmp/Ryan/data_plantseg34
+  coco_root: /root/autodl-tmp/Ryan/ArgoLable-AL/datasets/sam3
+  experiment_log_dir: /root/autodl-tmp/Ryan/runs\sam3_s2_full_ft_host
+  bpe_path: /root/autodl-tmp/Ryan/sam3_repo/sam3/assets/bpe_simple_vocab_16e6.txt.gz
+  pretrained_ckpt: /root/autodl-tmp/Ryan/sam3.pt
+
+plantseg_train:
+  supercategory: plantseg34
+  num_images: null
+  prompts: '[{"id": 1, "name": "disease lesions on apple leaves", "supercategory": "Apple"}, {"id": 2, "name": "disease lesions on banana leaves", "supercategory": "Banana"}, {"id": 3, "name": "disease lesions on basil leaves", "supercategory": "Basil"}, {"id": 4, "name": "disease lesions on bean leaves", "supercategory": "Bean"}, {"id": 5, "name": "disease lesions on bell pepper leaves", "supercategory": "Bell pepper"}, {"id": 6, "name": "disease lesions on blueberry leaves", "supercategory": "Blueberry"}, {"id": 7, "name": "disease lesions on broccoli leaves", "supercategory": "Broccoli"}, {"id": 8, "name": "disease lesions on cabbage leaves", "supercategory": "Cabbage"}, {"id": 9, "name": "disease lesions on carrot leaves", "supercategory": "Carrot"}, {"id": 10, "name": "disease lesions on cauliflower leaves", "supercategory": "Cauliflower"}, {"id": 11, "name": "disease lesions on celery leaves", "supercategory": "Celery"}, {"id": 12, "name": "disease lesions on cherry leaves", "supercategory": "Cherry"}, {"id": 13, "name": "disease lesions on citrus leaves", "supercategory": "Citrus"}, {"id": 14, "name": "disease lesions on coffee leaves", "supercategory": "Coffee"}, {"id": 15, "name": "disease lesions on corn leaves", "supercategory": "Corn"}, {"id": 16, "name": "disease lesions on cucumber leaves", "supercategory": "Cucumber"}, {"id": 17, "name": "disease lesions on eggplant leaves", "supercategory": "Eggplant"}, {"id": 18, "name": "disease lesions on garlic leaves", "supercategory": "Garlic"}, {"id": 19, "name": "disease lesions on ginger leaves", "supercategory": "Ginger"}, {"id": 20, "name": "disease lesions on grape leaves", "supercategory": "Grape"}, {"id": 21, "name": "disease lesions on lettuce leaves", "supercategory": "Lettuce"}, {"id": 22, "name": "disease lesions on maple leaves", "supercategory": "Maple"}, {"id": 23, "name": "disease lesions on peach leaves", "supercategory": "Peach"}, {"id": 24, "name": "disease lesions on plum leaves", "supercategory": "Plum"}, {"id": 25, "name": "disease lesions on potato leaves", "supercategory": "Potato"}, {"id": 26, "name": "disease lesions on raspberry leaves", "supercategory": "Raspberry"}, {"id": 27, "name": "disease lesions on rice leaves", "supercategory": "Rice"}, {"id": 28, "name": "disease lesions on soybean leaves", "supercategory": "Soybean"}, {"id": 29, "name": "disease lesions on squash leaves", "supercategory": "Squash"}, {"id": 30, "name": "disease lesions on strawberry leaves", "supercategory": "Strawberry"}, {"id": 31, "name": "disease lesions on tobacco leaves", "supercategory": "Tobacco"}, {"id": 32, "name": "disease lesions on tomato leaves", "supercategory": "Tomato"}, {"id": 33, "name": "disease lesions on wheat leaves", "supercategory": "Wheat"}, {"id": 34, "name": "disease lesions on zucchini leaves", "supercategory": "Zucchini"}]'
+
+  train_transforms:
+    - _target_: sam3.train.transforms.basic_for_api.ComposeAPI
+      transforms:
+        - _target_: sam3.train.transforms.filter_query_transforms.FlexibleFilterFindGetQueries
+          query_filter:
+            _target_: sam3.train.transforms.filter_query_transforms.FilterCrowds
+        - _target_: sam3.train.transforms.point_sampling.RandomizeInputBbox
+          box_noise_std: 0.1
+          box_noise_max: 20
+        - _target_: sam3.train.transforms.segmentation.DecodeRle
+        - _target_: sam3.train.transforms.basic_for_api.RandomResizeAPI
+          sizes:
+            _target_: sam3.train.transforms.basic.get_random_resize_scales
+            size: ${scratch.resolution}
+            min_size: 480
+            rounded: false
+          max_size:
+            _target_: sam3.train.transforms.basic.get_random_resize_max_size
+            size: ${scratch.resolution}
+          square: true
+          consistent_transform: ${scratch.consistent_transform}
+        - _target_: sam3.train.transforms.basic_for_api.PadToSizeAPI
+          size: ${scratch.resolution}
+          consistent_transform: ${scratch.consistent_transform}
+        - _target_: sam3.train.transforms.basic_for_api.ToTensorAPI
+        - _target_: sam3.train.transforms.filter_query_transforms.FlexibleFilterFindGetQueries
+          query_filter:
+            _target_: sam3.train.transforms.filter_query_transforms.FilterEmptyTargets
+        - _target_: sam3.train.transforms.basic_for_api.NormalizeAPI
+          mean: ${scratch.train_norm_mean}
+          std: ${scratch.train_norm_std}
+        - _target_: sam3.train.transforms.filter_query_transforms.FlexibleFilterFindGetQueries
+          query_filter:
+            _target_: sam3.train.transforms.filter_query_transforms.FilterEmptyTargets
+    - _target_: sam3.train.transforms.filter_query_transforms.FlexibleFilterFindGetQueries
+      query_filter:
+        _target_: sam3.train.transforms.filter_query_transforms.FilterFindQueriesWithTooManyOut
+        max_num_objects: ${scratch.max_ann_per_img}
+
+  val_transforms:
+    - _target_: sam3.train.transforms.basic_for_api.ComposeAPI
+      transforms:
+        # 官方 roboflow/odinw 的 val 流程没有 DecodeRle（它们验证时不带 mask），
+        # 我们做分割评测必须先把 RLE 解成张量，否则 resize 会 KeyError: (None, None)。
+        - _target_: sam3.train.transforms.segmentation.DecodeRle
+        - _target_: sam3.train.transforms.basic_for_api.RandomResizeAPI
+          sizes: ${scratch.resolution}
+          max_size:
+            _target_: sam3.train.transforms.basic.get_random_resize_max_size
+            size: ${scratch.resolution}
+          square: true
+          consistent_transform: False
+        - _target_: sam3.train.transforms.basic_for_api.ToTensorAPI
+        - _target_: sam3.train.transforms.basic_for_api.NormalizeAPI
+          mean: ${scratch.train_norm_mean}
+          std: ${scratch.train_norm_std}
+
+  loss:
+    _target_: sam3.train.loss.sam3_loss.Sam3LossWrapper
+    matcher: ${scratch.matcher}
+    o2m_weight: 2.0
+    o2m_matcher:
+      _target_: sam3.train.matcher.BinaryOneToManyMatcher
+      alpha: 0.3
+      threshold: 0.4
+      topk: 4
+    use_o2m_matcher_on_o2m_aux: false
+    loss_fns_find:
+      - _target_: sam3.train.loss.loss_fns.Boxes
+        weight_dict:
+          loss_bbox: 5.0
+          loss_giou: 2.0
+      - _target_: sam3.train.loss.loss_fns.IABCEMdetr
+        weak_loss: False
+        weight_dict:
+          loss_ce: 20.0
+          presence_loss: 20.0
+        pos_weight: 10.0
+        alpha: 0.25
+        gamma: 2
+        use_presence: True
+        pos_focal: false
+        pad_n_queries: 200
+        pad_scale_pos: 1.0
+      - _target_: sam3.train.loss.loss_fns.Masks
+        focal_alpha: 0.25
+        focal_gamma: 2.0
+        weight_dict:
+          loss_mask: 200.0
+          loss_dice: 10.0
+        compute_aux: false
+    loss_fn_semantic_seg: null
+    scale_by_find_batch_size: ${scratch.scale_by_find_batch_size}
+
+scratch:
+  enable_segmentation: True
+  d_model: 256
+  pos_embed:
+    _target_: sam3.model.position_encoding.PositionEmbeddingSine
+    num_pos_feats: ${scratch.d_model}
+    normalize: true
+    scale: null
+    temperature: 10000
+
+  use_presence_eval: True
+  original_box_postprocessor:
+    _target_: sam3.eval.postprocessors.PostProcessImage
+    # 必须显式给 segm：PostProcessImage 仅在 iou_type=="segm" 时才产出 masks 字段，
+    # 否则 PredictionDumper.prepare_for_coco_segmentation 会 KeyError: 'masks'。
+    iou_type: "segm"
+    max_dets_per_img: -1
+    use_original_ids: true
+    use_original_sizes_box: true
+    use_original_sizes_mask: true
+    use_presence: ${scratch.use_presence_eval}
+
+  matcher:
+    _target_: sam3.train.matcher.BinaryHungarianMatcherV2
+    focal: true
+    cost_class: 2.0
+    cost_bbox: 5.0
+    cost_giou: 2.0
+    alpha: 0.25
+    gamma: 2
+    stable: False
+  scale_by_find_batch_size: True
+
+  resolution: 1008
+  consistent_transform: False
+  max_ann_per_img: 200
+
+  train_norm_mean: [0.5, 0.5, 0.5]
+  train_norm_std: [0.5, 0.5, 0.5]
+  val_norm_mean: [0.5, 0.5, 0.5]
+  val_norm_std: [0.5, 0.5, 0.5]
+
+  num_train_workers: 10
+  num_val_workers: 2
+  max_data_epochs: 10
+  target_epoch_size: 1500
+  hybrid_repeats: 1
+  gather_pred_via_filesys: false
+
+  # 微调尺度：官方 FT 配方用 lr_scale=0.1
+  lr_scale: 0.1
+  lr_transformer: ${times:8e-4,${scratch.lr_scale}}
+  lr_vision_backbone: ${times:2.5e-4,${scratch.lr_scale}}
+  lr_language_backbone: ${times:5e-5,${scratch.lr_scale}}
+  lrd_vision_backbone: 0.9
+  wd: 0.1
+  scheduler_timescale: 20
+  scheduler_warmup: 20
+  scheduler_cooldown: 20
+
+  val_batch_size: 1
+  collate_fn_val:
+    _target_: sam3.train.data.collator.collate_fn_api
+    _partial_: true
+    repeats: ${scratch.hybrid_repeats}
+    dict_key: plantseg34
+    with_seg_masks: ${scratch.enable_segmentation}
+
+  gradient_accumulation_steps: 1
+  train_batch_size: 1
+  collate_fn:
+    _target_: sam3.train.data.collator.collate_fn_api
+    _partial_: true
+    repeats: ${scratch.hybrid_repeats}
+    dict_key: all
+    with_seg_masks: ${scratch.enable_segmentation}
+  # 每个 datapoint 携带的类别查询数。1=每图只问 1 个类别（最省显存，图会重复 34 次）；
+  # 34=每图一次问满 34 类（含负样本，最贵）。
+  category_chunk_size: 34
+
+trainer:
+  _target_: sam3.train.trainer.Trainer
+  skip_saving_ckpts: false
+  empty_gpu_mem_cache_after_eval: true
+  skip_first_val: true
+  max_epochs: 10
+  accelerator: cuda
+  seed_value: 123
+  val_epoch_freq: 2
+  mode: train
+  gradient_accumulation_steps: ${scratch.gradient_accumulation_steps}
+
+  distributed:
+    backend: nccl
+    find_unused_parameters: True
+    gradient_as_bucket_view: True
+
+  loss:
+    all: ${plantseg_train.loss}
+    default:
+      _target_: sam3.train.loss.sam3_loss.DummyLoss
+
+  data:
+    train:
+      _target_: sam3.train.data.torch_dataset.TorchDataset
+      dataset:
+        _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+        limit_ids: ${plantseg_train.num_images}
+        transforms: ${plantseg_train.train_transforms}
+        load_segmentation: ${scratch.enable_segmentation}
+        max_ann_per_img: 500000
+        multiplier: 1
+        max_train_queries: 50000
+        max_val_queries: 50000
+        training: true
+        use_caching: False
+        img_folder: ${paths.plantseg_root}/images/train/
+        ann_file: ${paths.coco_root}/plantseg34_train.json
+        coco_json_loader:
+          _target_: sam3.train.data.coco_json_loaders.COCO_FROM_JSON
+          prompts: ${plantseg_train.prompts}
+          include_negatives: true
+          category_chunk_size: ${scratch.category_chunk_size}
+          _partial_: true
+      shuffle: True
+      batch_size: ${scratch.train_batch_size}
+      num_workers: ${scratch.num_train_workers}
+      pin_memory: True
+      drop_last: True
+      collate_fn: ${scratch.collate_fn}
+
+    val:
+      _target_: sam3.train.data.torch_dataset.TorchDataset
+      dataset:
+        _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+        limit_ids: 150
+        transforms: ${plantseg_train.val_transforms}
+        load_segmentation: ${scratch.enable_segmentation}
+        max_ann_per_img: 100000
+        multiplier: 1
+        max_train_queries: 50000
+        max_val_queries: 50000
+        training: false
+        use_caching: False
+        img_folder: ${paths.plantseg_root}/images/val/
+        ann_file: ${paths.coco_root}/plantseg34_val.json
+        coco_json_loader:
+          _target_: sam3.train.data.coco_json_loaders.COCO_FROM_JSON
+          prompts: ${plantseg_train.prompts}
+          include_negatives: false
+          category_chunk_size: ${scratch.category_chunk_size}
+          _partial_: true
+      shuffle: False
+      batch_size: ${scratch.val_batch_size}
+      num_workers: ${scratch.num_val_workers}
+      pin_memory: True
+      drop_last: False
+      collate_fn: ${scratch.collate_fn_val}
+
+  model:
+    _target_: sam3.model_builder.build_sam3_image_model
+    bpe_path: ${paths.bpe_path}
+    checkpoint_path: ${paths.pretrained_ckpt}
+    load_from_HF: false
+    device: cpus
+    eval_mode: false
+    enable_segmentation: ${scratch.enable_segmentation}
+
+  meters:
+    val:
+      plantseg34:
+        segm:
+          _target_: sam3.eval.coco_writer.PredictionDumper
+          iou_type: "segm"
+          dump_dir: ${launcher.experiment_log_dir}/dumps/plantseg34/segm
+          merge_predictions: True
+          postprocessor: ${scratch.original_box_postprocessor}
+          gather_pred_via_filesys: ${scratch.gather_pred_via_filesys}
+          maxdets: 100
+          pred_file_evaluators:
+            - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
+              gt_path: ${paths.coco_root}/plantseg34_val.json
+              tide: False
+              iou_type: "segm"
+
+  optim:
+    amp:
+      enabled: True
+      amp_dtype: bfloat16
+
+    optimizer:
+      _target_: torch.optim.AdamW
+
+    gradient_clip:
+      _target_: sam3.train.optim.optimizer.GradientClipper
+      max_norm: 0.1
+      norm_type: 2
+
+    param_group_modifiers:
+      - _target_: sam3.train.optim.optimizer.layer_decay_param_modifier
+        _partial_: true
+        layer_decay_value: ${scratch.lrd_vision_backbone}
+        apply_to: 'backbone.vision_backbone.trunk'
+        overrides:
+          - pattern: '*pos_embed*'
+            value: 1.0
+
+    options:
+      lr:
+        - scheduler:
+            _target_: sam3.train.optim.schedulers.InverseSquareRootParamScheduler
+            base_lr: ${scratch.lr_transformer}
+            timescale: ${scratch.scheduler_timescale}
+            warmup_steps: ${scratch.scheduler_warmup}
+            cooldown_steps: ${scratch.scheduler_cooldown}
+        - scheduler:
+            _target_: sam3.train.optim.schedulers.InverseSquareRootParamScheduler
+            base_lr: ${scratch.lr_vision_backbone}
+            timescale: ${scratch.scheduler_timescale}
+            warmup_steps: ${scratch.scheduler_warmup}
+            cooldown_steps: ${scratch.scheduler_cooldown}
+          param_names:
+            - 'backbone.vision_backbone.*'
+        - scheduler:
+            _target_: sam3.train.optim.schedulers.InverseSquareRootParamScheduler
+            base_lr: ${scratch.lr_language_backbone}
+            timescale: ${scratch.scheduler_timescale}
+            warmup_steps: ${scratch.scheduler_warmup}
+            cooldown_steps: ${scratch.scheduler_cooldown}
+          param_names:
+            - 'backbone.language_backbone.*'
+
+      weight_decay:
+        - scheduler:
+            _target_: fvcore.common.param_scheduler.ConstantParamScheduler
+            value: ${scratch.wd}
+        - scheduler:
+            _target_: fvcore.common.param_scheduler.ConstantParamScheduler
+            value: 0.0
+          param_names:
+            - '*bias*'
+          module_cls_names: ['torch.nn.LayerNorm']
+
+  checkpoint:
+    save_dir: ${launcher.experiment_log_dir}/checkpoints
+    save_freq: 0
+
+  logging:
+    tensorboard_writer:
+      _target_: sam3.train.utils.logger.make_tensorboard_logger
+      log_dir: ${launcher.experiment_log_dir}/tensorboard
+      flush_secs: 120
+      should_log: True
+    wandb_writer: null
+    log_dir: ${launcher.experiment_log_dir}/logs/${plantseg_train.supercategory}
+    log_freq: 10
+
+launcher:
+  num_nodes: 1
+  gpus_per_node: 1
+  experiment_log_dir: ${paths.experiment_log_dir}
+  multiprocessing_context: forkserver
+
+submitit:
+  account: null
+  partition: null
+  qos: null
+  timeout_hour: 72
+  use_cluster: False
+  cpus_per_task: 10
+  port_range: [10000, 65000]
+  constraint: null
