@@ -182,7 +182,12 @@ npm run build
 
 ## 5. 模型侧已在本地跑通（P2 不再被阻塞）
 
-交接文档说"`inference/`、`active_learning/` 尚未实现"，但**权重是在仓库里的**：
+> 交接文档当时说"`inference/`、`active_learning/` 尚未实现"。**这两个现在都已实现**：
+> `inference/predict.py`（含 `predict_response` / `refine`）与 `active_learning/select.py`
+> 都是可直接 import 的函数，后端已经在调。本节记录的是当时代码还没到位时、
+> 用仓库里的权重先把推理跑通的验证过程。
+
+但**权重一直是放在仓库里的**：
 
 ```
 weights/baseline_yolov8nseg_plantseg34_best.pt   6.5 MB   YOLOv8n-seg · 34 类

@@ -24,7 +24,7 @@
 .\.venv\Scripts\python.exe backend\tests\smoke_test.py
 ```
 
-当前状态：**46 项断言全部通过**。
+当前状态：**106 项断言全部通过**。
 
 ---
 
@@ -170,17 +170,32 @@ backend/
 │   ├── catalog.py          # 图像索引（manifest / demo）
 │   └── predictor.py        # YOLO 封装 + 多边形简化 + pred 缓存
 └── tests/
-    └── smoke_test.py       # 46 项断言，仅依赖标准库
+    └── smoke_test.py       # 106 项断言，仅依赖标准库
 ```
 
 ---
 
 ## 与模型侧的关系
 
-**本服务不 import `src/` 里的任何模块。** 它直接加载 `weights/` 下的 `.pt` 用 ultralytics 推理。
+分两种：
 
-这样做是因为 `src/` 里的脚本（`m1_infer.py` 等）都是带 argparse 的 CLI，不是库函数，
-与其包一层 subprocess（多一次进程启动 + 序列化开销，300 ms 预算扛不住），不如直接用同一套 ultralytics API。
+**已经用上模型侧的可调用实现**（推荐，口径与模型侧一致）：
 
-等模型侧把 `inference/predict()` 和 `active_learning/select()` 做成可 import 的函数，
-`model_bridge/predictor.py` 换实现即可，对外契约不变。
+| 接口 | 调用的函数 |
+|---|---|
+| `POST /api/sample` | `active_learning/select.py::select()` |
+| `POST /api/refine` | `inference/predict.py::refine()` |
+| `POST /api/edit-cost` | `src/m6_editcost.py::edit_ops()` |
+
+**`POST /api/predict` 仍是本服务自己的封装**（`model_bridge/predictor.py`）。
+
+原因：`src/` 里的脚本（`m1_infer.py` 等）都是带 argparse 的 CLI，包一层 subprocess
+多一次进程启动 + 序列化开销，300 ms 预算扛不住。而 `inference/predict.py` 出现得比
+后端晚，当时先按同一套 ultralytics API 写了一份。
+
+> ⚠️ **这是一笔待还的技术债**：现在有两套 predict 实现并存
+> （本服务的 `predictor.py` 与模型侧的 `inference/predict.py`）。
+> 模型侧将来加 HAFM / P2 分支时，本服务不会自动跟着变，
+> 会出现"模型侧指标是新的、接口返回是旧的"。
+> 还法：把 `predictor.py` 的推理部分换成调 `predict_response()`，
+> 只保留 `pred_cache` 与 Catalog 这两块本服务独有的职责。

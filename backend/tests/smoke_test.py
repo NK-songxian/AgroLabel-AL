@@ -117,6 +117,11 @@ def main() -> int:
     check("offset 生效", p2["items"][0]["image_id"] != first_id,
           p2["items"][0]["image_id"])
 
+    st, _, _ = http("GET", "/api/images?order=class")
+    check("order=class -> 200", st == 200, str(st))
+    st, _, _ = http("GET", "/api/images?order=score_desc")
+    check("未实现的 order=score_desc -> 400（不静默忽略）", st == 400, str(st))
+
     # ---------------------------------------------------- file
     print("\n[4] GET /api/images/{id}/file")
     st, hdr, raw = http("GET", f"/api/images/{first_id}/file")
@@ -285,6 +290,11 @@ def main() -> int:
 
     # ---------------------------------------------------- 操作日志
     print("\n[8] POST /api/logs/ops")
+    # 先记下 ops.csv 原有大小：测试结束后要截回去，否则测试行会混进
+    # 真实实验的 m5 统计里（"smoke_img" 这种假数据最难排查）
+    ops_csv = root / "out" / "logs" / "ops.csv"
+    ops_size_before = ops_csv.stat().st_size if ops_csv.is_file() else 0
+
     ev = [
         {"ts": "2026-11-02 18:00:01", "image": "smoke_img", "op": "改类别",
          "instance": 0, "detail": "Apple -> Tomato", "n_ops_on_image": 1, "api_ms": "20.5"},
@@ -434,6 +444,14 @@ def main() -> int:
         for f in test_arm_dir.glob("*"):
             f.unlink()
         test_arm_dir.rmdir()
+
+    # 把 ops.csv 截回测试前的大小（只有追加，所以截断是安全的）
+    if ops_csv.is_file():
+        if ops_size_before == 0:
+            ops_csv.unlink()
+        elif ops_csv.stat().st_size > ops_size_before:
+            with open(ops_csv, "r+b") as f:
+                f.truncate(ops_size_before)
 
     # ---------------------------------------------------- 汇总
     print("\n" + "=" * 64)

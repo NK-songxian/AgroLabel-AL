@@ -43,6 +43,16 @@ def list_images(
     if id_list is not None and len(id_list) > MAX_LIMIT:
         raise HTTPException(400, f"ids 最多 {MAX_LIMIT} 个，收到 {len(id_list)}")
 
+    # 契约 §2.1 原本还写了 score_desc，但它需要"每张图的预标注分数"这份索引；
+    # 现在只有调过 /api/predict 的图才有 out/pred_cache，覆盖不全，
+    # 排出来会误导人。所以先只认 path / class，其余明确报错而不是静默忽略。
+    if order not in ("path", "class"):
+        raise HTTPException(
+            400,
+            f"order={order} 不支持，可选 path / class。"
+            f"score_desc 需要预标注分数索引（目前仅 /api/predict 过的图有），排在 P3",
+        )
+
     rows, total = catalog.query(
         split=split, class_id=class_id, ids=id_list,
         offset=offset, limit=limit, order=order,

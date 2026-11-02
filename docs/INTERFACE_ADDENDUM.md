@@ -31,6 +31,19 @@
 
 ## 2. 新增接口（6 个 P1 必需 + 1 个建议 + 1 个可选）
 
+**实现状态**（2026-11-02）：
+
+| 接口 | 状态 | 备注 |
+|---|---|---|
+| `GET /api/images` | ✅ | `order` 只支持 `path`/`class` |
+| `GET /api/images/{id}/file` | ✅ | ETag + 304 + Range(206) 都验过 |
+| `GET /api/classes` | ✅ | 源为 `configs` 的 `names` |
+| `POST /api/annotations` | ✅ | 含几何/类别校验，坏标签一律 422 |
+| `POST /api/logs/ops` | ✅ | `utf-8-sig`，表头逐字对齐 m4_app |
+| `POST /api/refine` | ✅ | 调模型侧 `refine()`；`class_id` 硬过滤 |
+| `GET /api/annotations/{id}` | ⬜ | 续标用，尚未实现 |
+| `GET /api/logs/export` | 🕒 | 已注册路由，一律 501（P3） |
+
 ### 2.1 `GET /api/images` —— 标注队列 / 元信息批量查询
 
 ```
@@ -44,7 +57,7 @@ GET /api/images?ids=0001,0002,0003          ← 用于 /api/sample 返回后的�
 | `offset` / `limit` | int | 分页，`limit` 上限 200 |
 | `ids` | str | 逗号分隔，**给了就忽略 offset/limit**，最多 200 个 |
 | `class_id` | int | 按真值类别筛 |
-| `order` | str | `path`（默认）/ `score_desc` |
+| `order` | str | `path`（默认）/ `class`。**`score_desc` 暂不支持**（需要全量的预标注分数索引，现在只有 predict 过的图有），传了会 400 |
 
 ```json
 {
@@ -66,6 +79,9 @@ GET /api/images?ids=0001,0002,0003          ← 用于 /api/sample 返回后的�
 ```
 
 > `width/height` 必须给：前端要把归一化多边形还原成像素坐标，`<img>` 还没 load 完时就需要这个数。
+
+> 另：响应里还带了 `disease` 字段（取自 COCO 清单的 `disease`，如 `apple scab`）。
+> 它**不属于 34 类**，只是给人看的辅助信息，别拿去当类别用。
 
 ### 2.2 `GET /api/images/{image_id}/file` —— 图像像素
 

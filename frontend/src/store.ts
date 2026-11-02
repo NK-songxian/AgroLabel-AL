@@ -41,6 +41,9 @@ let queue: Op[] = []
 let flushTimer: ReturnType<typeof setTimeout> | null = null
 let flushing = false
 
+/** 打开图像的递增序号：用于丢弃快速翻页时回来的过期 predict 响应 */
+let openSeq = 0
+
 const uid = () =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
@@ -207,6 +210,7 @@ export const useStore = create<Store>((set, get) => ({
     const { queue } = get()
     if (i < 0 || i >= queue.length) return
     const img = queue[i]
+    const seq = ++openSeq
 
     set({
       index: i,
@@ -229,6 +233,9 @@ export const useStore = create<Store>((set, get) => ({
 
     try {
       const res = await api.predict(img.image_id)
+      // 快速连按 ←/→ 时，先发的请求可能后回来 —— 用序号把过期响应丢掉，
+      // 否则会把上一张图的多边形贴到当前这张上
+      if (seq !== openSeq) return
       const list: Instance[] = res.instances.map((it) => ({ ...it, id: uid(), source: 'pred' }))
       set({
         instances: list,
@@ -239,6 +246,7 @@ export const useStore = create<Store>((set, get) => ({
         modelVersion: res.model_version,
       })
     } catch (e) {
+      if (seq !== openSeq) return
       set({ status: 'error', error: e instanceof Error ? e.message : String(e) })
       get().toast('预标注失败，可手工标注', 'warn')
     }
@@ -247,9 +255,11 @@ export const useStore = create<Store>((set, get) => ({
   reloadPredict: async () => {
     const cur = get().current
     if (!cur) return
+    const seq = ++openSeq
     set({ status: 'predicting' })
     try {
       const res = await api.predict(cur.image_id)
+      if (seq !== openSeq || get().current?.image_id !== cur.image_id) return
       const list: Instance[] = res.instances.map((it) => ({ ...it, id: uid(), source: 'pred' }))
       set({
         instances: list,
@@ -259,6 +269,7 @@ export const useStore = create<Store>((set, get) => ({
         modelVersion: res.model_version,
       })
     } catch (e) {
+      if (seq !== openSeq) return
       set({ status: 'error' })
       get().toast(`重跑预标注失败：${e instanceof Error ? e.message : e}`, 'err')
     }
@@ -429,7 +440,7 @@ export const useStore = create<Store>((set, get) => ({
   setMode: (m) => set({ mode: m }),
 
   refineAt: async (px, py) => {
-    const { current, instances, selectedId, classes, undoStack, nOps, labelState } = get()
+    const { current, instances, selectedId, classes } = get()
     if (!current || get().refining) return
 
     // 类别必须钉死：refine 的 class_id 是硬过滤。
@@ -439,12 +450,16 @@ export const useStore = create<Store>((set, get) => ({
     const classId = sel?.class_id ?? current.gt_class_id ?? undefined
 
     set({ refining: true })
+    const reqImageId = current.image_id
     try {
       const r = await api.refine({
         image_id: current.image_id,
         point: [Math.round(px), Math.round(py)],
         class_id: classId ?? undefined,
       })
+
+      // 请求期间可能已经翻到别的图；那样这条多边形属于上一张，不能插进来
+      if (get().current?.image_id !== reqImageId) return
 
       if (!r.found || !r.polygon || r.polygon.length < 3) {
         get().toast('这个位置没认出来，请改用手画', 'warn')
@@ -465,9 +480,14 @@ export const useStore = create<Store>((set, get) => ({
         source: 'manual',
       }
 
+      // 重新取状态：请求飞行期间用户可能删过/改过实例，用一开始捕获的
+      // instances 会把那些操作悄悄回滚掉
+      const now = get()
       set({
-        undoStack: [...undoStack, { instances, nOps, labelState }].slice(-MAX_UNDO),
-        instances: [...instances, inst],
+        undoStack: [...now.undoStack,
+                    { instances: now.instances, nOps: now.nOps, labelState: now.labelState }
+                   ].slice(-MAX_UNDO),
+        instances: [...now.instances, inst],
         selectedId: inst.id,
         labelState: 'labeled',
       })
@@ -475,7 +495,7 @@ export const useStore = create<Store>((set, get) => ({
       get().logOp(
         '新画',
         `点提示 ${cname}（coverage ${(r.coverage ?? 0).toFixed(2)}，${r.latency_ms.toFixed(0)}ms）`,
-        instances.length,
+        now.instances.length,
       )
     } catch (e) {
       if (e instanceof NotImplementedError) {

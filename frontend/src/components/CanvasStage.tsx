@@ -64,6 +64,9 @@ export function CanvasStage() {
   }, [])
 
   // ---- 图片加载
+  // 这里的 setState 是"与外部系统同步"（HTMLImageElement 的异步加载），
+  // 不是能挪到事件里去的派生状态，所以针对这条规则做了豁免。
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!current) {
       setImg(null)
@@ -91,6 +94,7 @@ export function CanvasStage() {
       el.onerror = null
     }
   }, [current])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const imgW = current?.width || img?.naturalWidth || 0
   const imgH = current?.height || img?.naturalHeight || 0

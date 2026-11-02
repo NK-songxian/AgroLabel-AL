@@ -58,7 +58,9 @@ def sample(body: SampleRequest, request: Request):
         )
 
     paths = [catalog.get(i).path for i in ids]
-    id_of = {p: i for p, i in zip(paths, ids)}
+    # 注意：select() 内部会把 pool 转成 str 再返回，所以这里键也用 str，
+    # 否则 Path 键和 str 查不到一起，每次都要走 O(n) 的兜底扫描。
+    id_of = {str(p): i for p, i in zip(paths, ids)}
 
     # ---- 2. 交给模型侧选样
     t0 = time.perf_counter()
@@ -88,9 +90,7 @@ def sample(body: SampleRequest, request: Request):
     selected: list[str] = []
     reasons: dict[str, SampleReason] = {}
     for path in picked:
-        iid = id_of.get(path)
-        if iid is None:            # 理论上不会发生，防御一下
-            iid = next((i for p, i in id_of.items() if str(p) == str(path)), None)
+        iid = id_of.get(str(path))
         if iid is None:
             continue
         selected.append(iid)
