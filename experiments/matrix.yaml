@@ -83,17 +83,19 @@ experiments:
     name: YOLO-World 零样本检测
     phase: zeroshot
     priority: recommended
-    status: blocked
-    needs: [ultralytics_yoloworld, 检测脚本]
-    note: 只出框 AP，不与掩码 AP 混比；高阈值不得提前截断。待补脚本。
+    status: todo
+    needs: [yolov8x-worldv2.pt, clip ViT-B-32]
+    command: "{py} src/m12_openvocab_eval.py --kind world --weights {repo}/weights/yolov8x-worldv2.pt --data {data_yaml} --split val --device 0 --out {out}/Z2.json"
+    note: 只出框 AP，不与掩码 AP 混比；高阈值不得提前截断。权重+CLIP 已由本地下载经 scp 上传(weights/、weights/clip/)。
 
   - id: Z3
     name: YOLOE-Seg 零样本
     phase: zeroshot
     priority: recommended
-    status: blocked
-    needs: [ultralytics_yoloe]
-    note: 评估单类病斑掩码及提示敏感性。待补脚本。
+    status: todo
+    needs: [yoloe-11l-seg.pt, mobileclip_blt.ts]
+    command: "{py} src/m12_openvocab_eval.py --kind yoloe --weights {repo}/weights/yoloe-11l-seg.pt --data {data_yaml} --split val --device 0 --out {out}/Z3.json"
+    note: 评估单类病斑掩码及提示敏感性。YOLOE 文本编码器 mobileclip_blt.ts 已上传(仓库根/weights)。
 
   # ---------------- 微调 F ----------------
   - id: F1
