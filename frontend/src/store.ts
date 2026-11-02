@@ -15,8 +15,10 @@ import type {
   ImageItem,
   Instance,
   LabelState,
+  CanvasMode,
   Op,
   OpName,
+  SampleStrategy,
 } from './types'
 import { COUNTED_OPS } from './types'
 
@@ -63,6 +65,8 @@ type Store = {
   queueTotal: number
   split: string
   queueLoading: boolean
+  /** 队列来源，显示在左栏标题上：全部 / 智能选样 · entropy */
+  queueLabel: string
 
   index: number
   current: ImageItem | null
@@ -88,6 +92,11 @@ type Store = {
   ty: number
   fitToken: number
 
+  /** 画布模式：select 点选实例 / refine 点一下让模型重识别 */
+  mode: CanvasMode
+  /** 点提示请求进行中（与 predict 的 status 分开，避免文案串台） */
+  refining: boolean
+
   toasts: Toast[]
 
   bootstrap: () => Promise<void>
@@ -104,6 +113,12 @@ type Store = {
   confirmAll: () => void
   undo: () => void
   submit: () => Promise<void>
+
+  setMode: (m: CanvasMode) => void
+  /** 点提示：在图像像素坐标 (px,py) 处裁 ROI 重识别，成功后插入一个新实例 */
+  refineAt: (px: number, py: number) => Promise<void>
+  /** 主动学习选样，把结果换成新队列 */
+  loadSample: (strategy: SampleStrategy, k: number) => Promise<void>
 
   /** 记录一条操作日志。口径对齐 src/m4_app.py 的 log() */
   logOp: (op: OpName, detail: string, instance?: number) => void
@@ -129,6 +144,7 @@ export const useStore = create<Store>((set, get) => ({
   queueTotal: 0,
   split: 'all',
   queueLoading: false,
+  queueLabel: '全部',
 
   index: -1,
   current: null,
@@ -153,6 +169,9 @@ export const useStore = create<Store>((set, get) => ({
   ty: 0,
   fitToken: 0,
 
+  mode: 'select',
+  refining: false,
+
   toasts: [],
 
   // ------------------------------------------------------------ 启动
@@ -174,7 +193,8 @@ export const useStore = create<Store>((set, get) => ({
     set({ queueLoading: true, split: s })
     try {
       const res = await api.images({ split: s, offset: 0, limit: PAGE })
-      set({ queue: res.items, queueTotal: res.total, queueLoading: false })
+      set({ queue: res.items, queueTotal: res.total, queueLoading: false,
+            queueLabel: s === 'all' ? '全部' : s })
     } catch (e) {
       set({ queueLoading: false })
       get().toast(`队列加载失败：${e instanceof Error ? e.message : e}`, 'err')
@@ -401,6 +421,109 @@ export const useStore = create<Store>((set, get) => ({
       const msg = e instanceof Error ? e.message : String(e)
       // 后端因为几何/类别校验打回时，把原因原样带出来，别只说"提交失败"
       get().toast(`提交失败：${msg}`, 'err')
+    }
+  },
+
+  // ------------------------------------------------------------ 点提示
+
+  setMode: (m) => set({ mode: m }),
+
+  refineAt: async (px, py) => {
+    const { current, instances, selectedId, classes, undoStack, nOps, labelState } = get()
+    if (!current || get().refining) return
+
+    // 类别必须钉死：refine 的 class_id 是硬过滤。
+    // 实测不传的话，同一张甘蓝图会返回 Wheat（score 0.34）—— 放大到小 ROI 后
+    // 模型丢掉了宿主上下文。优先用当前选中实例的类，其次图像的 gt 类。
+    const sel = instances.find((i) => i.id === selectedId)
+    const classId = sel?.class_id ?? current.gt_class_id ?? undefined
+
+    set({ refining: true })
+    try {
+      const r = await api.refine({
+        image_id: current.image_id,
+        point: [Math.round(px), Math.round(py)],
+        class_id: classId ?? undefined,
+      })
+
+      if (!r.found || !r.polygon || r.polygon.length < 3) {
+        get().toast('这个位置没认出来，请改用手画', 'warn')
+        return
+      }
+      if ((r.coverage ?? 0) > 0.85) {
+        get().toast('选区太大，模型把整块当成一个实例了；换个位置或缩小半径', 'warn')
+      }
+
+      const cid = r.class_id ?? classId ?? 0
+      const cname = r.class_name ?? classes.find((c) => c.class_id === cid)?.class_name ?? ''
+      const inst: Instance = {
+        id: uid(),
+        class_id: cid,
+        class_name: cname,
+        score: r.score,
+        polygon: r.polygon,
+        source: 'manual',
+      }
+
+      set({
+        undoStack: [...undoStack, { instances, nOps, labelState }].slice(-MAX_UNDO),
+        instances: [...instances, inst],
+        selectedId: inst.id,
+        labelState: 'labeled',
+      })
+      // 新画不计入 m5 的修改次数，但要进日志 —— m6 的 breakdown 与"模型漏检率"都要用它
+      get().logOp(
+        '新画',
+        `点提示 ${cname}（coverage ${(r.coverage ?? 0).toFixed(2)}，${r.latency_ms.toFixed(0)}ms）`,
+        instances.length,
+      )
+    } catch (e) {
+      if (e instanceof NotImplementedError) {
+        get().toast('后端 /api/refine 尚未实现', 'warn')
+      } else {
+        get().toast(`点提示失败：${e instanceof Error ? e.message : String(e)}`, 'err')
+      }
+    } finally {
+      set({ refining: false })
+    }
+  },
+
+  // ------------------------------------------------------------ 智能选样
+
+  loadSample: async (strategy, k) => {
+    set({ queueLoading: true })
+    try {
+      const r = await api.sample({ k, strategy })
+      if (!r.selected.length) {
+        set({ queueLoading: false })
+        get().toast('没选出新图：可能都已经标过了', 'warn')
+        return
+      }
+      // 后端只回 id，元信息要另取一次；按 selected 的顺序还原（rank 有意义）
+      const page = await api.images({ ids: r.selected })
+      const byId = new Map(page.items.map((i) => [i.image_id, i]))
+      const items = r.selected
+        .map((id) => byId.get(id))
+        .filter((x): x is ImageItem => x !== undefined)
+
+      set({
+        queue: items,
+        queueTotal: items.length,
+        queueLoading: false,
+        queueLabel: `选样 · ${strategy}`,
+      })
+      get().toast(
+        `选样完成：${items.length} / ${r.pool_size} 张（${strategy}，${r.latency_ms.toFixed(0)}ms）`,
+        'ok',
+      )
+      await get().openIndex(0)
+    } catch (e) {
+      set({ queueLoading: false })
+      if (e instanceof NotImplementedError) {
+        get().toast('后端 /api/sample 尚未实现', 'warn')
+      } else {
+        get().toast(`选样失败：${e instanceof Error ? e.message : String(e)}`, 'err')
+      }
     }
   },
 

@@ -307,6 +307,91 @@ button { font: inherit; color: inherit; }
 }
 .stage-badge.predicting { color: var(--accent); border-color: var(--accent-dim); }
 
+/* 徽标挪到右上，给左上角的模式切换让位 */
+.stage-badge { left: auto; right: 12px; }
+
+/* 画布左上角：模式切换 */
+.stage-tools {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 8px;
+  background: rgba(21, 25, 34, .92);
+  border: 1px solid var(--border-2);
+  backdrop-filter: blur(6px);
+  z-index: 5;
+}
+
+.tool {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--dim);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.tool:hover { color: var(--text); background: var(--panel-2); }
+.tool.on {
+  color: #06101d;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.tool-hint {
+  padding: 0 8px 0 4px;
+  font-size: 11px;
+  color: var(--warn);
+  white-space: nowrap;
+}
+
+/* 左栏：智能选样 */
+.sample-bar {
+  display: flex;
+  gap: 6px;
+  padding: 0 10px 8px;
+  flex: none;
+}
+.sample-bar select {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+.sample-bar button {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sample-bar button:hover:not(:disabled) { border-color: var(--accent-dim); }
+.sample-bar select:disabled,
+.sample-bar button:disabled { opacity: .45; cursor: not-allowed; }
+
+.pane-sublabel {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(78, 161, 255, .12);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 500;
+}
+
 /* ---------------------------------------------------------------- 详情 */
 
 .imgmeta {

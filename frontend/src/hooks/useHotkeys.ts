@@ -46,6 +46,14 @@ export function useHotkeys() {
         case 'F':
           s.requestFit()
           break
+        case 'v':
+        case 'V':
+          s.setMode('select')
+          break
+        case 'p':
+        case 'P':
+          s.setMode('refine')
+          break
         default:
           break
       }

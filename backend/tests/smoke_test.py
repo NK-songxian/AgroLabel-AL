@@ -327,6 +327,108 @@ def main() -> int:
     st, _, _ = http("GET", "/api/logs/export?format=json")
     check("format=json -> 400", st == 400, str(st))
 
+    # ---------------------------------------------------- 主动学习选样
+    print("\n[10] POST /api/sample")
+    st, _, raw = http("POST", "/api/sample", {"k": 3, "strategy": "random", "seed": 1})
+    check("random 策略 200（不加载模型，快）", st == 200, str(st))
+    if st == 200:
+        r = json.loads(raw.decode("utf-8"))
+        check("选中 3 张", len(r.get("selected", [])) == 3, str(len(r.get("selected", []))))
+        check("selected 都是已知 id", all(isinstance(x, str) and x for x in r["selected"]))
+        check("reasons 覆盖全部选中", set(r["reasons"]) == set(r["selected"]))
+        first = r["selected"][0]
+        check("reason 有 rank/criterion", r["reasons"][first]["rank"] == 1
+              and r["reasons"][first]["criterion"] == "random",
+              json.dumps(r["reasons"][first], ensure_ascii=False))
+        check("pool_size > 0", r.get("pool_size", 0) > 0, str(r.get("pool_size")))
+        check("明确说明 score 为何为 null", "score" in (r.get("note") or ""))
+
+    st, _, raw = http("POST", "/api/sample", {"k": 2, "strategy": "bogus"})
+    check("非法 strategy -> 422", st == 422, str(st))
+    st, _, _ = http("POST", "/api/sample", {"pool": ["__nope__"], "k": 1})
+    check("未知 image_id -> 404", st == 404, str(st))
+
+    # ---------------------------------------------------- 点提示
+    print("\n[11] POST /api/refine")
+    st, _, raw = http("POST", "/api/predict", {"image_id": first_id})
+    pr = json.loads(raw.decode("utf-8")) if st == 200 else {}
+    insts = pr.get("instances") or []
+    iw, ih = pr.get("image_width", 0), pr.get("image_height", 0)
+    check("predict 有实例可用于取点", bool(insts), str(len(insts)))
+
+    if insts and iw and ih:
+        poly0 = insts[0]["polygon"]
+        cx = sum(p[0] for p in poly0) / len(poly0) * iw
+        cy = sum(p[1] for p in poly0) / len(poly0) * ih
+        cid = insts[0]["class_id"]
+
+        st, _, raw = http("POST", "/api/refine",
+                          {"image_id": first_id, "point": [cx, cy]})
+        check("不传 class_id 也 200", st == 200, str(st))
+        if st == 200:
+            r = json.loads(raw.decode("utf-8"))
+            check("有 found 字段", "found" in r)
+            check("latency_ms 存在", isinstance(r.get("latency_ms"), (int, float)))
+
+        st, _, raw = http("POST", "/api/refine", {
+            "image_id": first_id, "point": [cx, cy], "class_id": cid,
+        })
+        check("传 class_id 后 200", st == 200, str(st))
+        if st == 200:
+            r = json.loads(raw.decode("utf-8"))
+            if r.get("found"):
+                check("类别被钉住（硬过滤生效）", r.get("class_id") == cid,
+                      f'{r.get("class_id")} vs {cid}')
+                check("polygon 归一化在 [0,1]",
+                      all(0 <= q[0] <= 1 and 0 <= q[1] <= 1 for q in r["polygon"]))
+                check("顶点数 <= max_vertices(64)", len(r["polygon"]) <= 64,
+                      str(len(r["polygon"])))
+            else:
+                check("类别被钉住（硬过滤生效）", True, "该点未检出，跳过")
+
+    st, _, raw = http("POST", "/api/refine", {"image_id": "__nope__", "point": [1, 1]})
+    check("未知 image_id -> 404", st == 404, str(st))
+    st, _, _ = http("POST", "/api/refine", {"image_id": first_id, "point": [1]})
+    check("point 长度不对 -> 422", st == 422, str(st))
+
+    # ---------------------------------------------------- 编辑代价
+    print("\n[12] POST /api/edit-cost")
+    if insts:
+        base = {"pred_instances": insts, "gt_instances": insts,
+                "image_width": iw, "image_height": ih}
+
+        st, _, raw = http("POST", "/api/edit-cost", base)
+        check("200", st == 200, str(st))
+        if st == 200:
+            r = json.loads(raw.decode("utf-8"))
+            check("完全相同 -> edit_count=0", r.get("edit_count") == 0, str(r.get("edit_count")))
+            check("breakdown 含 5 个键",
+                  set(r.get("breakdown", {})) == {"新画", "删实例", "改类别", "拖边界", "标为无目标"},
+                  str(list(r.get("breakdown", {}))))
+            check("canvas 反映传入宽高", r.get("canvas") == [iw, ih], str(r.get("canvas")))
+
+        gt_minus2 = insts[2:]
+        st, _, raw = http("POST", "/api/edit-cost",
+                          {**base, "gt_instances": gt_minus2})
+        if st == 200:
+            r = json.loads(raw.decode("utf-8"))
+            check("删掉 2 个 -> 删实例=2", r["breakdown"]["删实例"] == 2,
+                  json.dumps(r["breakdown"], ensure_ascii=False))
+
+        st, _, raw = http("POST", "/api/edit-cost",
+                          {**base, "gt_instances": []})
+        if st == 200:
+            r = json.loads(raw.decode("utf-8"))
+            check("gt 空 pred 非空 -> 标为无目标=1",
+                  r["breakdown"]["标为无目标"] == 1,
+                  json.dumps(r["breakdown"], ensure_ascii=False))
+
+    st, _, _ = http("POST", "/api/edit-cost", {
+        "pred_instances": [], "gt_instances": [],
+        "image_width": 100, "image_height": 100,
+    })
+    check("两边都空 -> 200 且 edit_count=0", st == 200, str(st))
+
     # ---------------------------------------------------- 清理测试产物
     if test_arm_dir.exists():
         for f in test_arm_dir.glob("*"):

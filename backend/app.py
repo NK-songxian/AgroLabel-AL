@@ -28,7 +28,16 @@ from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from . import config  # noqa: E402
 from .model_bridge.catalog import Catalog  # noqa: E402
 from .model_bridge.predictor import Predictor  # noqa: E402
-from .routers import annotations, images, logs, predict, system  # noqa: E402
+from .routers import (  # noqa: E402
+    annotations,
+    editcost,
+    images,
+    logs,
+    predict,
+    refine,
+    sample,
+    system,
+)
 
 
 @asynccontextmanager
@@ -74,6 +83,9 @@ app.include_router(images.router)
 app.include_router(predict.router)
 app.include_router(annotations.router)
 app.include_router(logs.router)
+app.include_router(sample.router)
+app.include_router(refine.router)
+app.include_router(editcost.router)
 
 
 @app.get("/", include_in_schema=False)

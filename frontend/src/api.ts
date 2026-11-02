@@ -13,6 +13,8 @@ import type {
   LabelState,
   Op,
   PredictResponse,
+  RefineResponse,
+  SampleResponse,
 } from './types'
 
 const BASE = import.meta.env.VITE_API_BASE ?? ''
@@ -89,11 +91,51 @@ export const api = {
       { method: 'POST', body: JSON.stringify(payload) },
     ),
 
-  /** 上报操作日志。后端尚未实现（P3），失败不阻塞交互。 */
+  /** 上报操作日志。后端追加进 out/logs/ops.csv，供 m5_logstats.py 消费。 */
   pushOps: (session_id: string, events: Op[]) =>
-    request<{ ok: boolean; appended: number }>('/api/logs/ops', {
+    request<{ ok: boolean; appended: number; rows_total: number }>('/api/logs/ops', {
       method: 'POST',
       body: JSON.stringify({ session_id, events }),
+    }),
+
+  /**
+   * 主动学习选样。pool 省略时后端用整个 catalog 并剔除已标注过的图。
+   * 注意：模型侧 select() 只返回路径不返回分值，所以 reasons.score 恒为 null。
+   */
+  sample: (params: {
+    pool?: string[]
+    k?: number
+    strategy?: 'random' | 'entropy' | 'tta' | 'coreset'
+    exclude_annotated?: boolean
+    seed?: number
+  } = {}) =>
+    request<SampleResponse>('/api/sample', {
+      method: 'POST',
+      body: JSON.stringify({
+        k: 10,
+        strategy: 'entropy',
+        exclude_annotated: true,
+        ...params,
+      }),
+    }),
+
+  /**
+   * 点提示：在一次点击的位置裁 ROI 放大重识别。
+   *
+   * ⚠️ `class_id` 一定要传：它是**硬过滤**。实测同一张甘蓝图，不传会返回 Wheat
+   * （confidence 0.34），传了正确的 Cabbage 才回本类。放大到小 ROI 后模型会丢掉
+   * 宿主上下文，靠调用方把类别钉住。
+   */
+  refine: (params: {
+    image_id: string
+    point: [number, number]
+    class_id?: number
+    radius?: number
+    max_vertices?: number
+  }) =>
+    request<RefineResponse>('/api/refine', {
+      method: 'POST',
+      body: JSON.stringify(params),
     }),
 
   imageUrl: (image: ImageItem | string, bust?: number) => {

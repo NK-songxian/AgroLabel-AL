@@ -167,3 +167,73 @@ class OpsResponse(BaseModel):
     appended: int
     rows_total: int
     path: str
+
+
+# ---------------------------------------------------------------- 主动学习选样
+
+class SampleRequest(BaseModel):
+    """POST /api/sample（INTERFACE.md §2）。
+
+    `pool` 省略时用整个 catalog，并默认剔除已标注过的图 —— 这样"智能选样"
+    反复点也不会一直推荐同一批。
+    """
+    pool: list[str] | None = None
+    k: int = Field(default=10, ge=1, le=200)
+    strategy: Literal["random", "entropy", "tta", "coreset"] = "entropy"
+    exclude_annotated: bool = True
+    seed: int = 0
+
+
+class SampleReason(BaseModel):
+    rank: int
+    criterion: str
+    # 模型侧 select() 只返回路径、不返回分数，所以这里只能是 null。
+    # 要填真实分数需让 m8_al 的 score_* 一并返回分值，属于模型侧改动。
+    score: float | None = None
+
+
+class SampleResponse(BaseModel):
+    selected: list[str]
+    reasons: dict[str, SampleReason]
+    strategy: str
+    pool_size: int
+    k: int
+    latency_ms: float
+    note: str
+
+
+# ---------------------------------------------------------------- 点提示
+
+class RefineResponse(BaseModel):
+    found: bool
+    class_id: int | None = None
+    class_name: str | None = None
+    score: float | None = None
+    polygon: list[list[float]] | None = None
+    bbox: list[float] | None = None
+    coverage: float | None = None
+    raw_vertices: int | None = None
+    latency_ms: float
+
+
+# ---------------------------------------------------------------- 编辑代价
+
+class EditCostRequest(BaseModel):
+    """POST /api/edit-cost（INTERFACE.md §2 + ADDENDUM §3.3）。
+
+    只要求 pred_instances / gt_instances，与契约一致。
+    额外接受可选的画布尺寸：内部要把多边形栅格化成掩码才能复用
+    `src/m6_editcost.py::edit_ops`，给真实宽高比灌一个方画布更准。
+    """
+    pred_instances: list[InInstance] = Field(default_factory=list)
+    gt_instances: list[InInstance] = Field(default_factory=list)
+    image_width: int | None = Field(default=None, gt=0, le=20000)
+    image_height: int | None = Field(default=None, gt=0, le=20000)
+
+
+class EditCostResponse(BaseModel):
+    edit_count: int
+    breakdown: dict[str, int]
+    matched_ious: list[float]
+    canvas: list[int]
+    note: str

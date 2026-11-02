@@ -95,3 +95,37 @@ export type Op = {
 }
 
 export type LabelState = 'labeled' | 'no_target' | 'unlabeled'
+
+// ---------------------------------------------------------------- 主动学习
+
+export type SampleStrategy = 'random' | 'entropy' | 'tta' | 'coreset'
+
+export type SampleResponse = {
+  selected: string[]
+  /** rank 即选样顺序；score 恒为 null（模型侧 select() 只返回路径，不返回分值） */
+  reasons: Record<string, { rank: number; criterion: string; score: number | null }>
+  strategy: SampleStrategy
+  pool_size: number
+  k: number
+  latency_ms: number
+  note: string
+}
+
+// ---------------------------------------------------------------- 点提示
+
+export type RefineResponse = {
+  found: boolean
+  class_id: number | null
+  class_name: string | null
+  score: number | null
+  /** 归一化坐标；未检出时为 null —— 这是正常返回，不是错误 */
+  polygon: [number, number][] | null
+  bbox: number[] | null
+  /** 掩码面积 / ROI 面积；> 0.85 说明模型把整个选区当成一个实例了 */
+  coverage: number | null
+  raw_vertices: number | null
+  latency_ms: number
+}
+
+/** 画布交互模式：select = 点选实例；refine = 点一下让模型重识别 */
+export type CanvasMode = 'select' | 'refine'

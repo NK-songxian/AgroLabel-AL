@@ -43,6 +43,9 @@ export function CanvasStage() {
   const fitToken = useStore((s) => s.fitToken)
   const select = useStore((s) => s.select)
   const setViewport = useStore((s) => s.setViewport)
+  const mode = useStore((s) => s.mode)
+  const refining = useStore((s) => s.refining)
+  const refineAt = useStore((s) => s.refineAt)
 
   const [size, setSize] = useState({ width: 0, height: 0 })
   const [img, setImg] = useState<HTMLImageElement | null>(null)
@@ -151,6 +154,31 @@ export function CanvasStage() {
 
   const strokeUnit = 1 / Math.max(scale, 0.001)
 
+  /**
+   * 点空白处才会走到这里 —— 实例的 Line 已经 cancelBubble 了。
+   * refine 模式下：把屏幕坐标反算成图像像素坐标，交给点提示。
+   */
+  const onStageClick = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent>) => {
+      const stage = stageRef.current
+      const p = stage?.getPointerPosition()
+      if (!p) return
+
+      if (mode !== 'refine') {
+        if (e.target === e.target.getStage()) select(null)
+        return
+      }
+      if (refining || !imgW || !imgH) return
+
+      const ix = (p.x - tx) / scale
+      const iy = (p.y - ty) / scale
+      // 点在图外不算
+      if (ix < 0 || iy < 0 || ix > imgW || iy > imgH) return
+      void refineAt(ix, iy)
+    },
+    [mode, refining, imgW, imgH, tx, ty, scale, select, refineAt],
+  )
+
   return (
     <div className="stage-wrap" ref={wrapRef}>
       {size.width > 0 && (
@@ -159,12 +187,9 @@ export function CanvasStage() {
           width={size.width}
           height={size.height}
           onWheel={onWheel}
-          onMouseDown={(e) => {
-            // 点到空白处取消选中
-            if (e.target === e.target.getStage()) select(null)
-          }}
+          onClick={onStageClick}
           onDblClick={fit}
-          style={{ cursor: 'crosshair' }}
+          style={{ cursor: mode === 'refine' ? 'copy' : 'crosshair' }}
         >
           <Layer>
             <Group
@@ -235,6 +260,32 @@ export function CanvasStage() {
         </Stage>
       )}
 
+      {/* 左上角：模式切换 */}
+      {current && (
+        <div className="stage-tools">
+          <button
+            className={`tool${mode === 'select' ? ' on' : ''}`}
+            onClick={() => useStore.getState().setMode('select')}
+            title="点选实例（V）"
+          >
+            选择
+          </button>
+          <button
+            className={`tool${mode === 'refine' ? ' on' : ''}`}
+            onClick={() => useStore.getState().setMode('refine')}
+            title="点一下病斑，让模型在放大后的局部重新识别（P）"
+          >
+            点提示
+          </button>
+          {mode === 'refine' && (
+            <span className="tool-hint">
+              在漏检的病斑上点一下
+              {refining && ' · 识别中…'}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* 覆盖层 */}
       {(!current || imgState === 'loading') && (
         <div className="stage-overlay">
@@ -245,6 +296,11 @@ export function CanvasStage() {
       {status === 'predicting' && (
         <div className="stage-badge predicting">
           <div className="spinner sm" /> 预标注中…
+        </div>
+      )}
+      {refining && (
+        <div className="stage-badge predicting">
+          <div className="spinner sm" /> 点提示识别中…
         </div>
       )}
       {imgState === 'err' && (

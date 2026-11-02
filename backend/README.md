@@ -40,9 +40,23 @@
 | `POST /api/annotations` | ✅ | 落 `out/annotations/<arm>/`，YOLO seg txt + 元数据 json |
 | `POST /api/logs/ops` | ✅ | 追加 `out/logs/ops.csv`，表头对齐 `src/m4_app.py:131` |
 | `GET /api/logs/export` | 🕒 | **P3 占位**：已注册路由，一律返回 501 + 说明（不是 404） |
-| `POST /api/sample` | ⬜ | 等模型侧提供 `select()` |
-| `POST /api/edit-cost` | ⬜ | 口径已冻结在 ADDENDUM §3.3 |
-| `POST /api/refine` | ⬜ | 点提示 ROI 重识别，见 ADDENDUM §2.6 |
+| `POST /api/sample` | ✅ | 调模型侧 `select()`；默认剔除已标注图，避免反复推荐同一批 |
+| `POST /api/refine` | ✅ | 调模型侧 `refine()`；点一下 ROI 重识别，实测 78 ms |
+| `POST /api/edit-cost` | ✅ | 调 `m6_editcost.edit_ops()`；多边形先栅格化成掩码 |
+
+### 三个"接线"接口的两个注意点
+
+**`/api/sample` 的 `reasons.score` 恒为 `null`。**
+模型侧 `select()` 按签名只返回路径列表、不返回分值，`rank` 即选样顺序。
+要拿真实不确定性分数，需要 `m8_al` 的 `score_*` 一并返回分值（模型侧改动）。
+
+**`/api/refine` 的 `class_id` 是硬过滤，前端必须传。**
+实测同一张甘蓝图，不传 `class_id` 会返回 **Wheat**（0.34）——放大到小 ROI 后模型
+丢掉了宿主上下文；传了正确的 `Cabbage` 才回本类。前端点提示时用"当前选中实例的类
+→ 图像 gt 类"依次兜底。
+
+`/api/sample` 的非 random 策略会在**每次请求里重新加载一次模型**
+（`select()` 内部 `YOLO(...)`），20 张池实测 865 ms。池子大时注意别在前端同步等待。
 
 `/api/predict` 除了契约里的 `instances` + `latency_ms`，还多返回
 `image_width` / `image_height` / `model_version`（向后兼容的新增字段）。
