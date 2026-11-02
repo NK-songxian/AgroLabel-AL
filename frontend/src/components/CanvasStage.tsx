@@ -283,8 +283,14 @@ export function CanvasStage() {
           onWheel={onWheel}
           onClick={onStageClick}
           onContextMenu={onStageContextMenu}
-          onDblClick={() => {
-            // draw 模式下双击 = 闭合，不能顺手把视图重置了
+          onDblClick={(e) => {
+            // Konva 的 dblclick 和 click 一样**不区分鼠标键**：右键双击也会走到这里，
+            // 于是"双击右键插节点"的同时把视图 fit 了 —— 缩放/平移一变，
+            // 用户刚点那个位置对应的图像坐标也变了，看着就是"节点插歪了"。
+            // 只认主键。
+            if (e.evt?.button !== 0) return
+
+            // draw 模式下左键双击 = 闭合
             if (mode === 'draw') {
               if ((draft?.length ?? 0) >= 3) drawCommit()
               else useStore.getState().drawCancel()
