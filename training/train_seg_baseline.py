@@ -55,6 +55,14 @@ def main():
           f"fraction={args.fraction} device={args.device} workers={args.workers}", flush=True)
     print("=" * 60, flush=True)
 
+    # 模型文件不存在时 Ultralytics 会去 GitHub 下载，云端常常直接卡死十几分钟。
+    # 这里提前判断：给了本地路径但文件不在 → 立刻报错退出，不要静默挂起。
+    if os.sep in args.model and not os.path.isfile(args.model):
+        raise SystemExit(
+            f"模型权重不存在：{args.model}\n"
+            f"请把预训练权重放到该路径（云端无法访问 GitHub 自动下载）。"
+        )
+
     model = YOLO(args.model)
     results = model.train(
         data=args.data,

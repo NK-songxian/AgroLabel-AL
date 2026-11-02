@@ -31,7 +31,7 @@ experiments:
     priority: must
     status: todo
     needs: [train]
-    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model yolov8n-seg.pt --imgsz 960 --epochs 150 --name b1_v8n_960 --project {out}/runs"
+    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolov8n-seg.pt --imgsz 960 --epochs 150 --name b1_v8n_960 --project {out}/runs"
     note: 与 B0 比分辨率收益；batch 变化需记录。
 
   - id: B2
@@ -40,7 +40,7 @@ experiments:
     priority: must
     status: todo
     needs: [train, yolov8s-seg.pt]
-    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model yolov8s-seg.pt --imgsz 640 --epochs 150 --name b2_v8s_640 --project {out}/runs"
+    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolov8s-seg.pt --imgsz 640 --epochs 150 --name b2_v8s_640 --project {out}/runs"
     note: 与 B0 比模型规模收益。
 
   - id: B3
@@ -49,7 +49,7 @@ experiments:
     priority: must
     status: todo
     needs: [train, yolov8s-seg.pt]
-    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model yolov8s-seg.pt --imgsz 960 --epochs 150 --name b3_v8s_960 --project {out}/runs"
+    command: "{py} training/train_seg_baseline.py --data {data_yaml} --model {repo}/weights/yolov8s-seg.pt --imgsz 960 --epochs 150 --name b3_v8s_960 --project {out}/runs"
     note: 规模×分辨率交互。
 
   # ---------------- 零样本 Z ----------------
