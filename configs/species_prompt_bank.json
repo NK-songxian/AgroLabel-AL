@@ -1,0 +1,415 @@
+{
+  "taxonomy": "plantseg34_host_plants",
+  "note": "34类是植物宿主(物种)，非病害。提示词走物种概念，不做病斑描述。",
+  "prompt_mode": "oracle-class(每图单类，用真值类名提示)",
+  "classes": [
+    {
+      "class_id": 0,
+      "name": "Apple",
+      "primary": "apple",
+      "variants": [
+        "apple",
+        "apple leaf",
+        "apple plant",
+        "apple leaves",
+        "a apple leaf"
+      ]
+    },
+    {
+      "class_id": 1,
+      "name": "Banana",
+      "primary": "banana",
+      "variants": [
+        "banana",
+        "banana leaf",
+        "banana plant",
+        "banana leaves",
+        "a banana leaf"
+      ]
+    },
+    {
+      "class_id": 2,
+      "name": "Basil",
+      "primary": "basil",
+      "variants": [
+        "basil",
+        "basil leaf",
+        "basil plant",
+        "basil leaves",
+        "a basil leaf"
+      ]
+    },
+    {
+      "class_id": 3,
+      "name": "Bean",
+      "primary": "bean",
+      "variants": [
+        "bean",
+        "bean leaf",
+        "bean plant",
+        "bean leaves",
+        "a bean leaf"
+      ]
+    },
+    {
+      "class_id": 4,
+      "name": "Bell pepper",
+      "primary": "bell pepper",
+      "variants": [
+        "bell pepper",
+        "bell pepper leaf",
+        "bell pepper plant",
+        "bell pepper leaves",
+        "a bell pepper leaf"
+      ]
+    },
+    {
+      "class_id": 5,
+      "name": "Blueberry",
+      "primary": "blueberry",
+      "variants": [
+        "blueberry",
+        "blueberry leaf",
+        "blueberry plant",
+        "blueberry leaves",
+        "a blueberry leaf"
+      ]
+    },
+    {
+      "class_id": 6,
+      "name": "Broccoli",
+      "primary": "broccoli",
+      "variants": [
+        "broccoli",
+        "broccoli leaf",
+        "broccoli plant",
+        "broccoli leaves",
+        "a broccoli leaf"
+      ]
+    },
+    {
+      "class_id": 7,
+      "name": "Cabbage",
+      "primary": "cabbage",
+      "variants": [
+        "cabbage",
+        "cabbage leaf",
+        "cabbage plant",
+        "cabbage leaves",
+        "a cabbage leaf"
+      ]
+    },
+    {
+      "class_id": 8,
+      "name": "Carrot",
+      "primary": "carrot",
+      "variants": [
+        "carrot",
+        "carrot leaf",
+        "carrot plant",
+        "carrot leaves",
+        "a carrot leaf"
+      ]
+    },
+    {
+      "class_id": 9,
+      "name": "Cauliflower",
+      "primary": "cauliflower",
+      "variants": [
+        "cauliflower",
+        "cauliflower leaf",
+        "cauliflower plant",
+        "cauliflower leaves",
+        "a cauliflower leaf"
+      ]
+    },
+    {
+      "class_id": 10,
+      "name": "Celery",
+      "primary": "celery",
+      "variants": [
+        "celery",
+        "celery leaf",
+        "celery plant",
+        "celery leaves",
+        "a celery leaf"
+      ]
+    },
+    {
+      "class_id": 11,
+      "name": "Cherry",
+      "primary": "cherry",
+      "variants": [
+        "cherry",
+        "cherry leaf",
+        "cherry plant",
+        "cherry leaves",
+        "a cherry leaf"
+      ]
+    },
+    {
+      "class_id": 12,
+      "name": "Citrus",
+      "primary": "citrus",
+      "variants": [
+        "citrus",
+        "citrus leaf",
+        "citrus plant",
+        "citrus leaves",
+        "a citrus leaf"
+      ]
+    },
+    {
+      "class_id": 13,
+      "name": "Coffee",
+      "primary": "coffee",
+      "variants": [
+        "coffee",
+        "coffee leaf",
+        "coffee plant",
+        "coffee leaves",
+        "a coffee leaf"
+      ]
+    },
+    {
+      "class_id": 14,
+      "name": "Corn",
+      "primary": "corn",
+      "variants": [
+        "corn",
+        "corn leaf",
+        "corn plant",
+        "corn leaves",
+        "a corn leaf"
+      ]
+    },
+    {
+      "class_id": 15,
+      "name": "Cucumber",
+      "primary": "cucumber",
+      "variants": [
+        "cucumber",
+        "cucumber leaf",
+        "cucumber plant",
+        "cucumber leaves",
+        "a cucumber leaf"
+      ]
+    },
+    {
+      "class_id": 16,
+      "name": "Eggplant",
+      "primary": "eggplant",
+      "variants": [
+        "eggplant",
+        "eggplant leaf",
+        "eggplant plant",
+        "eggplant leaves",
+        "a eggplant leaf"
+      ]
+    },
+    {
+      "class_id": 17,
+      "name": "Garlic",
+      "primary": "garlic",
+      "variants": [
+        "garlic",
+        "garlic leaf",
+        "garlic plant",
+        "garlic leaves",
+        "a garlic leaf"
+      ]
+    },
+    {
+      "class_id": 18,
+      "name": "Ginger",
+      "primary": "ginger",
+      "variants": [
+        "ginger",
+        "ginger leaf",
+        "ginger plant",
+        "ginger leaves",
+        "a ginger leaf"
+      ]
+    },
+    {
+      "class_id": 19,
+      "name": "Grape",
+      "primary": "grape",
+      "variants": [
+        "grape",
+        "grape leaf",
+        "grape plant",
+        "grape leaves",
+        "a grape leaf"
+      ]
+    },
+    {
+      "class_id": 20,
+      "name": "Lettuce",
+      "primary": "lettuce",
+      "variants": [
+        "lettuce",
+        "lettuce leaf",
+        "lettuce plant",
+        "lettuce leaves",
+        "a lettuce leaf"
+      ]
+    },
+    {
+      "class_id": 21,
+      "name": "Maple",
+      "primary": "maple",
+      "variants": [
+        "maple",
+        "maple leaf",
+        "maple plant",
+        "maple leaves",
+        "a maple leaf"
+      ]
+    },
+    {
+      "class_id": 22,
+      "name": "Peach",
+      "primary": "peach",
+      "variants": [
+        "peach",
+        "peach leaf",
+        "peach plant",
+        "peach leaves",
+        "a peach leaf"
+      ]
+    },
+    {
+      "class_id": 23,
+      "name": "Plum",
+      "primary": "plum",
+      "variants": [
+        "plum",
+        "plum leaf",
+        "plum plant",
+        "plum leaves",
+        "a plum leaf"
+      ]
+    },
+    {
+      "class_id": 24,
+      "name": "Potato",
+      "primary": "potato",
+      "variants": [
+        "potato",
+        "potato leaf",
+        "potato plant",
+        "potato leaves",
+        "a potato leaf"
+      ]
+    },
+    {
+      "class_id": 25,
+      "name": "Raspberry",
+      "primary": "raspberry",
+      "variants": [
+        "raspberry",
+        "raspberry leaf",
+        "raspberry plant",
+        "raspberry leaves",
+        "a raspberry leaf"
+      ]
+    },
+    {
+      "class_id": 26,
+      "name": "Rice",
+      "primary": "rice",
+      "variants": [
+        "rice",
+        "rice leaf",
+        "rice plant",
+        "rice leaves",
+        "a rice leaf"
+      ]
+    },
+    {
+      "class_id": 27,
+      "name": "Soybean",
+      "primary": "soybean",
+      "variants": [
+        "soybean",
+        "soybean leaf",
+        "soybean plant",
+        "soybean leaves",
+        "a soybean leaf"
+      ]
+    },
+    {
+      "class_id": 28,
+      "name": "Squash",
+      "primary": "squash",
+      "variants": [
+        "squash",
+        "squash leaf",
+        "squash plant",
+        "squash leaves",
+        "a squash leaf"
+      ]
+    },
+    {
+      "class_id": 29,
+      "name": "Strawberry",
+      "primary": "strawberry",
+      "variants": [
+        "strawberry",
+        "strawberry leaf",
+        "strawberry plant",
+        "strawberry leaves",
+        "a strawberry leaf"
+      ]
+    },
+    {
+      "class_id": 30,
+      "name": "Tobacco",
+      "primary": "tobacco",
+      "variants": [
+        "tobacco",
+        "tobacco leaf",
+        "tobacco plant",
+        "tobacco leaves",
+        "a tobacco leaf"
+      ]
+    },
+    {
+      "class_id": 31,
+      "name": "Tomato",
+      "primary": "tomato",
+      "variants": [
+        "tomato",
+        "tomato leaf",
+        "tomato plant",
+        "tomato leaves",
+        "a tomato leaf"
+      ]
+    },
+    {
+      "class_id": 32,
+      "name": "Wheat",
+      "primary": "wheat",
+      "variants": [
+        "wheat",
+        "wheat leaf",
+        "wheat plant",
+        "wheat leaves",
+        "a wheat leaf"
+      ]
+    },
+    {
+      "class_id": 33,
+      "name": "Zucchini",
+      "primary": "zucchini",
+      "variants": [
+        "zucchini",
+        "zucchini leaf",
+        "zucchini plant",
+        "zucchini leaves",
+        "a zucchini leaf"
+      ]
+    }
+  ]
+}
