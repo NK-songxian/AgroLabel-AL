@@ -102,63 +102,67 @@ experiments:
     name: SAM3 全参数微调（S2）
     phase: finetune
     priority: resource
-    status: paused
-    command: "cd {repo}/third_party/sam3_repo && {py} sam3/train/train.py -c configs/plantseg34/plantseg34_s2.yaml --use-cluster 0 --num-gpus 1"
-    note: 2026-11-02 已停止并清理本次训练产物；34 类内置口径 AP50=0.084（oracle-host 口径 0.325，不可混比）。重跑前用 datasets_tools/sam3_make_ft_config.py 重新生成配置。
+    status: todo
+    command: "{py} training/run_sam3_ft.py --exp-name f1_s2_full_ft_host --max-epochs 10 --val-freq 5 --lr-scale 0.1"
+    note: 由 training/run_sam3_ft.py 统一启动（生成配置→拷进 sam3/train/configs/plantseg34/→用 sam3train venv 跑 train.py）。2026-11-02 旧产物已清理；34 类内置口径 AP50=0.084（oracle-host 口径 0.325，不可混比）。与 I-01 同配置、仅"改哪些参数"不同，构成 LoRA 消融的对照。
 
   - id: F2
     name: YOLOE-Seg 微调
     phase: finetune
     priority: recommended
-    status: blocked
+    status: todo
     needs: [ultralytics_yoloe]
-    note: 官方固定类别微调会融合类别头，训练后不可随意换提示，需记录。
+    command: "{py} training/train_yoloe_seg.py --data {data_yaml} --model {repo}/weights/yoloe-11l-seg.pt --imgsz 640 --batch 16 --epochs 150 --name f2_yoloe_l_seg_640 --project {out}/runs"
+    note: 官方固定类别微调会融合类别头，训练后不可随意换提示，需记录。权重已下载上传。
 
   - id: F3
     name: YOLO-World 微调 + SAM3 框提示
     phase: finetune
     priority: recommended
-    status: blocked
+    status: todo
     needs: [ultralytics_yoloworld]
-    note: 用预测框而非真值框，同时记录检测与分割收益、总时延。
+    command: "{py} training/train_yoloworld.py --data {data_yaml} --model {repo}/weights/yolov8x-worldv2.pt --imgsz 640 --batch 16 --epochs 150 --name f3_yoloworld_x_640 --project {out}/runs"
+    note: 用预测框而非真值框，同时记录检测与分割收益、总时延（框提示链路见 src/m13_box_prompt_eval.py）。
 
   - id: F4
     name: YOLO 框 + SAM3 / GT 框 + SAM3
     phase: finetune
     priority: conditional
-    status: blocked
-    needs: [框提示脚本]
-    note: 区分检测器作用；GT 框仅作上限对照。
+    status: todo
+    command: "{py} src/m13_box_prompt_eval.py --ckpt {sam3_weights} --data-root {data_root} --split val --box-src gt --imgsz 1008 --out {out}/gt_box"
+    note: 区分检测器作用；GT 框仅作上限对照。另一种框源：--box-src yolo --yolo-weights {weights}（队列里作为 F4-yolo 单独跑）。
 
   # ---------------- 创新 I ----------------
   - id: I-01
     name: SAM3-LoRA + 全局—局部病斑感知
     phase: innovation
     priority: main
-    status: planned
-    needs: [LoRA 实现, 局部裁剪训练]
-    note: 主线。先 LoRA 冒烟（rank8/alpha16）确认可训练参数与梯度，再加局部训练做消融。对应 S3。
+    status: todo
+    needs: [lora_inject, run_sam3_ft]
+    command: "{py} training/run_sam3_ft.py --exp-name i01_lora_r16 --max-epochs 10 --val-freq 5 --lr-scale 1.0 --lora-rank 16 --lora-alpha 32 --lora-targets transformer,decoder --lora-extra-trainable mask_decoder"
+    note: 主线。注入器 src/lora_inject.py（自带 CPU 自检：注入不改输出、公式一致、只训 lora），Hydra 入口 src/lora_builder.py。先跑 rank16 确认可训练参数与梯度，再做 rank/目标层消融；局部裁剪训练作为第二步（先在整图口径上拿到 LoRA vs 全参的差值）。
 
   - id: I-02
     name: 提示鲁棒 LoRA（等价表达 + 负提示）
     phase: innovation
     priority: extended
-    status: planned
-    needs: [I-01 完成]
-    note: 固定/多提示/多提示+负提示三组对照；推理固定单提示。
+    status: todo
+    needs: [I-01 脚本]
+    command: "{py} training/run_sam3_ft.py --exp-name i02_lora_prompt_robust --max-epochs 10 --val-freq 5 --lr-scale 1.0 --lora-rank 16 --lora-alpha 32 --lora-targets transformer,decoder --lora-extra-trainable mask_decoder --level disease --phrase-index 1"
+    note: 固定/多提示/多提示+负提示三组对照，均由 run_sam3_ft.py 的 --level/--phrase-index 切换（host=宿主级短语，disease=疾病级短语）；推理固定单提示。
 
   - id: I-03
     name: 轻量预标注 + 按需 SAM3 精修
     phase: innovation
     priority: engineering
-    status: planned
-    needs: [refine 接口已就绪]
-    note: 无精修/全量/按需三组；记录精修调用率、P95、人工秒数。refine() 见 inference/predict.py。
+    status: todo
+    command: "{py} src/i03_ondemand_refine.py --yolo-weights {weights} --ckpt {sam3_weights} --data-root {data_root} --split val --limit 200 --out {out}"
+    note: 无精修/全量/按需三组；记录精修调用率、P50/P95、人工秒数（编辑单位沿用 src/m6_editcost.py 的 realistic 权重 × --sec-per-unit）。按需判定四条规则：低置信/掩码不完整/掩码碎裂/目标过小。
 
   - id: I-04
     name: 病斑定位与宿主—病害识别解耦
     phase: innovation
     priority: extended
-    status: planned
-    needs: [115 类细粒度实验]
-    note: 34 宿主 / 直接 115 / 通用定位+上下文分类；缺类不评估（val 缺 Peach peach rust，test 缺 Coffee coffee black rot）。
+    status: todo
+    command: "{py} src/i04_decoupled_eval.py --mode decoupled --ckpt {sam3_weights} --data-root {data_root} --meta-root {repo}/datasets/plantseg115 --split val --limit 150 --out {out}/decoupled"
+    note: 三口径 host34 / direct115 / decoupled，均由 --mode 切换（队列里三条分别跑）。缺类不评估（val 缺 Peach peach rust，test 缺 Coffee coffee black rot），报告里列 classes_missing。

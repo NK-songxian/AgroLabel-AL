@@ -323,13 +323,13 @@ trainer:
       collate_fn: ${{scratch.collate_fn_val}}
 
   model:
-    _target_: sam3.model_builder.build_sam3_image_model
+    _target_: {model_target}
     bpe_path: ${{paths.bpe_path}}
     checkpoint_path: ${{paths.pretrained_ckpt}}
     load_from_HF: false
     device: cpus
     eval_mode: false
-    enable_segmentation: ${{scratch.enable_segmentation}}
+    enable_segmentation: ${{scratch.enable_segmentation}}{model_extra}
 
   meters:
     val:
@@ -462,6 +462,16 @@ def main() -> None:
     ap.add_argument("--train-workers", type=int, default=8)
     ap.add_argument("--chunk", type=int, default=34, help="每图类别查询数")
     ap.add_argument("--train-neg", default="true", choices=["true", "false"])
+    # ---- LoRA（I-01/I-02）：rank=0 表示不注入，走官方全参微调 ----
+    ap.add_argument("--model-target", default="",
+                    help="model._target_；留空则按 lora-rank 自动选官方 builder 或 src.lora_builder.build_sam3_lora")
+    ap.add_argument("--lora-rank", type=int, default=0)
+    ap.add_argument("--lora-alpha", type=float, default=16.0)
+    ap.add_argument("--lora-dropout", type=float, default=0.0)
+    ap.add_argument("--lora-targets", default="",
+                    help="逗号分隔的模块名子串（留空=全部 Linear 都注入）")
+    ap.add_argument("--lora-extra-trainable", default="",
+                    help="除 lora_* 外额外放开训练的模块名子串，如 mask_decoder")
     args = ap.parse_args()
 
     bank = REPO_ROOT / args.host_bank
@@ -470,6 +480,20 @@ def main() -> None:
     prompts = build_prompts(bank, args.phrase_index, args.level)
 
     logdir = os.path.join(args.logdir, f"sam3_{args.exp_name}")
+
+    OFFICIAL = "sam3.model_builder.build_sam3_image_model"
+    LORA = "src.lora_builder.build_sam3_lora"
+    model_target = args.model_target or (LORA if args.lora_rank > 0 else OFFICIAL)
+    model_extra = ""
+    if args.lora_rank > 0 or "lora_builder" in model_target:
+        model_extra = (
+            f"\n    lora_rank: {args.lora_rank}"
+            f"\n    lora_alpha: {args.lora_alpha}"
+            f"\n    lora_dropout: {args.lora_dropout}"
+            f"\n    lora_targets: '{args.lora_targets}'"
+            f"\n    lora_extra_trainable: '{args.lora_extra_trainable}'"
+        )
+
     text = TEMPLATE.format(
         exp_name=args.exp_name,
         level=args.level,
@@ -490,6 +514,8 @@ def main() -> None:
         chunk=args.chunk,
         train_neg=args.train_neg,
         val_images=args.val_images,
+        model_target=model_target,
+        model_extra=model_extra,
     )
 
     out = REPO_ROOT / args.out
@@ -497,6 +523,10 @@ def main() -> None:
     out.write_text(text, encoding="utf-8")
     print(f"[OK] 写入 {out}")
     print(f"     实验名 {args.exp_name} -> 日志 {logdir}")
+    print(f"     model._target_ = {model_target}")
+    if args.lora_rank > 0:
+        print(f"     LoRA rank={args.lora_rank} alpha={args.lora_alpha} "
+              f"targets='{args.lora_targets or 'ALL'}' extra='{args.lora_extra_trainable}'")
     print(f"     提示词级别 {args.level} phrase#{args.phrase_index}，共 "
           f"{len(json.loads(prompts))} 类")
 

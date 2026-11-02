@@ -1,0 +1,66 @@
+# F/I 训练/评测队列（run_queue.py 顺序执行）
+# {py} = 执行器解释器；{repo} = 仓库根（云端 ArgoLable-AL）。默认 --wait-gpu：等 B 系列训练结束再开始。
+#
+# 排序原则：**先跑便宜且能出数的评测，再跑贵的训练**。
+# B 系列训练结束后 GPU 才空出来，此时先做 F4/I-03/I-04 三组评测（几十分钟内出表），
+# 再进 F1/I-01/I-02 的 SAM3 微调链（每项数小时）。这样中途任何一次中断都已有可写进报告的数字。
+queue:
+  # ---------------- 评测：框提示 / 按需精修 / 解耦 ----------------
+  - id: F4-gt
+    name: F4 框提示 SAM3（GT 框，分割上限）
+    status: pending
+    command: "{py} src/m13_box_prompt_eval.py --ckpt {repo}/weights/sam3.pt --data-root {repo}/data/plantseg34 --split val --box-src gt --imgsz 1008 --out {repo}/experiments/matrix/F4/gt_box"
+
+  - id: F4-yolo
+    name: F4 框提示 SAM3（YOLOv8n-seg 框，端到端）
+    status: pending
+    command: "{py} src/m13_box_prompt_eval.py --ckpt {repo}/weights/sam3.pt --data-root {repo}/data/plantseg34 --split val --box-src yolo --yolo-weights {repo}/weights/baseline_yolov8nseg_plantseg34_best.pt --yolo-imgsz 640 --imgsz 1008 --out {repo}/experiments/matrix/F4/yolo_box"
+
+  - id: I-03
+    name: I-03 轻量预标注 + 按需 SAM3 精修（三组对照）
+    status: pending
+    command: "{py} src/i03_ondemand_refine.py --yolo-weights {repo}/weights/baseline_yolov8nseg_plantseg34_best.pt --ckpt {repo}/weights/sam3.pt --data-root {repo}/data/plantseg34 --split val --limit 200 --out {repo}/experiments/matrix/I-03"
+
+  - id: I-04-host34
+    name: I-04 口径A：34 宿主提示（对照）
+    status: pending
+    command: "{py} src/i04_decoupled_eval.py --mode host34 --ckpt {repo}/weights/sam3.pt --data-root {repo}/data/plantseg34 --meta-root {repo}/datasets/plantseg115 --split val --limit 150 --out {repo}/experiments/matrix/I-04/host34"
+
+  - id: I-04-direct115
+    name: I-04 口径B：直接 115 类细粒度提示
+    status: pending
+    command: "{py} src/i04_decoupled_eval.py --mode direct115 --ckpt {repo}/weights/sam3.pt --data-root {repo}/data/plantseg34 --meta-root {repo}/datasets/plantseg115 --split val --limit 150 --out {repo}/experiments/matrix/I-04/direct115"
+
+  - id: I-04-decoupled
+    name: I-04 口径C：通用定位 + CLIP 上下文分类
+    status: pending
+    command: "{py} src/i04_decoupled_eval.py --mode decoupled --ckpt {repo}/weights/sam3.pt --data-root {repo}/data/plantseg34 --meta-root {repo}/datasets/plantseg115 --split val --limit 150 --out {repo}/experiments/matrix/I-04/decoupled"
+
+  # ---------------- 微调：YOLOE / YOLO-World（F2/F3）----------------
+  - id: F2
+    name: YOLOE-11l-Seg 微调 640
+    status: pending
+    command: "{py} training/train_yoloe_seg.py --data {repo}/data/plantseg34/data.yaml --model {repo}/weights/yoloe-11l-seg.pt --imgsz 640 --batch 16 --epochs 150 --name f2_yoloe_l_seg_640 --project {repo}/experiments/matrix/F2/runs"
+
+  - id: F3
+    name: YOLO-World 8x 微调 640
+    status: pending
+    command: "{py} training/train_yoloworld.py --data {repo}/data/plantseg34/data.yaml --model {repo}/weights/yolov8x-worldv2.pt --imgsz 640 --batch 16 --epochs 150 --name f3_yoloworld_x_640 --project {repo}/experiments/matrix/F3/runs"
+
+  # ---------------- 微调链：SAM3 全参 → LoRA（F1 / I-01 / I-02）----------------
+  # 三项共用 training/run_sam3_ft.py，只换参数，保证"差的只有改哪些参数"，同口径可比。
+  # 训练解释器默认 /root/autodl-tmp/Ryan/envs/sam3train/bin/python（可用 --train-py 改）。
+  - id: F1
+    name: SAM3 全参数微调（对照，10 epoch）
+    status: pending
+    command: "{py} training/run_sam3_ft.py --exp-name f1_s2_full_ft_host --max-epochs 10 --val-freq 5 --lr-scale 0.1"
+
+  - id: I-01
+    name: I-01 SAM3-LoRA（rank16, transformer+decoder）
+    status: pending
+    command: "{py} training/run_sam3_ft.py --exp-name i01_lora_r16 --max-epochs 10 --val-freq 5 --lr-scale 1.0 --lora-rank 16 --lora-alpha 32 --lora-targets transformer,decoder --lora-extra-trainable mask_decoder"
+
+  - id: I-02
+    name: I-02 提示鲁棒 LoRA（疾病级提示 + phrase#1）
+    status: pending
+    command: "{py} training/run_sam3_ft.py --exp-name i02_lora_prompt_robust --max-epochs 10 --val-freq 5 --lr-scale 1.0 --lora-rank 16 --lora-alpha 32 --lora-targets transformer,decoder --lora-extra-trainable mask_decoder --level disease --phrase-index 1"
