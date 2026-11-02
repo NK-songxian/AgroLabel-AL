@@ -45,7 +45,9 @@ def busy_procs() -> list[str]:
     for line in out.splitlines():
         if "run_matrix" in line:
             continue
-        if "train.py" in line or "prompt_sweep" in line:
+        # 注意：脚本名是 train_seg_baseline.py，不含 "train.py" 子串，
+        # 之前用 "train.py" 匹配会漏掉，导致同一实验被多次 --run 叠加。
+        if "train_seg_baseline.py" in line or "prompt_sweep" in line:
             hits.append(line.strip())
     return hits
 
