@@ -674,6 +674,11 @@ export const useStore = create<Store>((set, get) => ({
 
       const cid = r.class_id ?? classId ?? 0
       const cname = r.class_name ?? classes.find((c) => c.class_id === cid)?.class_name ?? ''
+      // 放大后模型常判错物种。后端会退回"不限定类别"再找一次，并标出类别不一致；
+      // 这里明说一句，否则用户会以为自己点错了地方。
+      if (r.class_mismatch) {
+        get().toast(`识别为 ${cname}（与本图类别不同），已插入，可在右栏改类`, 'warn')
+      }
       const inst: Instance = {
         id: uid(),
         class_id: cid,

@@ -214,6 +214,11 @@ class RefineResponse(BaseModel):
     coverage: float | None = None
     raw_vertices: int | None = None
     latency_ms: float
+    # 识别出的类别与请求的类别不一致（局部放大后模型常判错物种）。
+    # 前端据此提示"识别为 X，可在右栏改类"，而不是默默插错。
+    class_mismatch: bool = False
+    # 实际使用的 ROI 半径，便于排查"为什么没认出来"
+    radius_used: int | None = None
 
 
 # ---------------------------------------------------------------- 编辑代价

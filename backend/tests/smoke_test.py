@@ -379,6 +379,10 @@ def main() -> int:
             r = json.loads(raw.decode("utf-8"))
             check("有 found 字段", "found" in r)
             check("latency_ms 存在", isinstance(r.get("latency_ms"), (int, float)))
+            check("有 class_mismatch 字段", isinstance(r.get("class_mismatch"), bool))
+            rad = r.get("radius_used")
+            check("radius_used 在 [96,512]（不再是 48 的默认值）",
+                  isinstance(rad, int) and 96 <= rad <= 512, str(rad))
 
         st, _, raw = http("POST", "/api/refine", {
             "image_id": first_id, "point": [cx, cy], "class_id": cid,
@@ -387,8 +391,10 @@ def main() -> int:
         if st == 200:
             r = json.loads(raw.decode("utf-8"))
             if r.get("found"):
-                check("类别被钉住（硬过滤生效）", r.get("class_id") == cid,
-                      f'{r.get("class_id")} vs {cid}')
+                # 找到时类别要么就是请求的类，要么被标记为不一致 —— 不允许悄悄返回别的类
+                check("找到时类别要么一致、要么标了 class_mismatch",
+                      r.get("class_id") == cid or r.get("class_mismatch") is True,
+                      f'cid={r.get("class_id")} mismatch={r.get("class_mismatch")}')
                 check("polygon 归一化在 [0,1]",
                       all(0 <= q[0] <= 1 and 0 <= q[1] <= 1 for q in r["polygon"]))
                 check("顶点数 <= max_vertices(64)", len(r["polygon"]) <= 64,

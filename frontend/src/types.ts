@@ -125,6 +125,10 @@ export type RefineResponse = {
   coverage: number | null
   raw_vertices: number | null
   latency_ms: number
+  /** 识别出的类别与请求的不一致（局部放大后模型常判错物种） */
+  class_mismatch: boolean
+  /** 后端实际用的 ROI 半径，排查"没认出来"时有用 */
+  radius_used: number | null
 }
 
 /** 画布交互模式：select 点选 / refine 点一下让模型重识别 / draw 手画多边形 */
