@@ -1,5 +1,6 @@
 import { api } from '../api'
 import { useStore } from '../store'
+import { ToolBar } from './ToolBar'
 
 export function TopBar() {
   const health = useStore((s) => s.health)
@@ -24,6 +25,8 @@ export function TopBar() {
           <div className="brand-sub">人机协同预标注 · 赛题一</div>
         </div>
       </div>
+
+      <ToolBar />
 
       <div className="topbar-mid">
         {ds && (

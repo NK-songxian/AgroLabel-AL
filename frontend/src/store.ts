@@ -136,6 +136,8 @@ type Store = {
   beginVertexDrag: () => void
   moveVertex: (id: string, index: number, x: number, y: number) => void
   endVertexDrag: () => void
+  /** 给选中实例插入一个顶点（落在最长边的中点）。选中了才可用。 */
+  addVertex: () => boolean
   /** 点提示：在图像像素坐标 (px,py) 处裁 ROI 重识别，成功后插入一个新实例 */
   refineAt: (px: number, py: number) => Promise<void>
   /** 主动学习选样，把结果换成新队列 */
@@ -535,12 +537,53 @@ export const useStore = create<Store>((set, get) => ({
     })),
 
   endVertexDrag: () => {
-    const sel = get().instances.find((i) => i.id === get().selectedId)
+    const { instances, selectedId } = get()
+    const idx = instances.findIndex((i) => i.id === selectedId)
+    const sel = idx >= 0 ? instances[idx] : null
     get().logOp(
       '拖边界',
       sel ? `${sel.class_name}（${sel.polygon.length} 顶点）` : '顶点微调',
-      get().instances.length,
+      idx, // instance 列是下标，不是总数
     )
+  },
+
+  addVertex: () => {
+    const { instances, selectedId, undoStack, nOps, labelState } = get()
+    const sel = instances.find((i) => i.id === selectedId)
+    if (!sel || sel.polygon.length < 2) return false
+
+    // 插在最长边的中点：那里通常是多边形最粗糙、最需要补点的地方。
+    // 加完新顶点就是选中态的白色圆点，直接拖到准确位置即可。
+    let edge = 0
+    let longest = -1
+    for (let i = 0; i < sel.polygon.length; i++) {
+      const a = sel.polygon[i]
+      const b = sel.polygon[(i + 1) % sel.polygon.length]
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1])
+      if (len > longest) {
+        longest = len
+        edge = i
+      }
+    }
+    const a = sel.polygon[edge]
+    const b = sel.polygon[(edge + 1) % sel.polygon.length]
+    const mid: [number, number] = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
+    const polygon = [
+      ...sel.polygon.slice(0, edge + 1),
+      mid,
+      ...sel.polygon.slice(edge + 1),
+    ]
+
+    set({
+      undoStack: [...undoStack, { instances, nOps, labelState }].slice(-MAX_UNDO),
+      instances: instances.map((it) => (it.id === sel.id ? { ...it, polygon } : it)),
+    })
+    get().logOp(
+      '拖边界',
+      `${sel.class_name} 加节点（${polygon.length} 顶点）`,
+      instances.findIndex((i) => i.id === sel.id), // 下标，不是总数
+    )
+    return true
   },
 
   refineAt: async (px, py) => {

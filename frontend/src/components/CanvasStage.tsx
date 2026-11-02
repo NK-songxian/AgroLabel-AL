@@ -47,7 +47,6 @@ export function CanvasStage() {
   const refining = useStore((s) => s.refining)
   const refineAt = useStore((s) => s.refineAt)
   const showMasks = useStore((s) => s.showMasks)
-  const toggleMasks = useStore((s) => s.toggleMasks)
   const draft = useStore((s) => s.draft)
   const drawAddPoint = useStore((s) => s.drawAddPoint)
   const drawCommit = useStore((s) => s.drawCommit)
@@ -369,60 +368,6 @@ export function CanvasStage() {
         </Stage>
       )}
 
-      {/* 左上角：模式切换 */}
-      {current && (
-        <div className="stage-tools">
-          <button
-            className={`tool${mode === 'select' ? ' on' : ''}`}
-            onClick={() => useStore.getState().setMode('select')}
-            title="点选实例（V）"
-          >
-            选择
-          </button>
-          <button
-            className={`tool${mode === 'refine' ? ' on' : ''}`}
-            onClick={() => useStore.getState().setMode('refine')}
-            title="点一下病斑，让模型在放大后的局部重新识别（P）"
-          >
-            点提示
-          </button>
-          <button
-            className={`tool${mode === 'draw' ? ' on' : ''}`}
-            onClick={() => useStore.getState().setMode('draw')}
-            title="手画多边形：逐点单击，双击或点回起点闭合（D）"
-          >
-            手画
-          </button>
-
-          {mode === 'refine' && (
-            <span className="tool-hint">
-              在漏检的病斑上点一下
-              {refining && ' · 识别中…'}
-            </span>
-          )}
-          {mode === 'draw' && (
-            <span className="tool-hint">
-              {draft && draft.length > 0
-                ? `${draft.length} 个点 · 双击闭合 · Backspace 退一点 · Esc 取消`
-                : '逐点单击，≥3 点后双击闭合'}
-            </span>
-          )}
-
-          <span className="tool-sep" />
-
-          <button
-            className={`tool toggle${showMasks ? ' on' : ''}`}
-            onClick={toggleMasks}
-            title="显示 / 隐藏标注框（H）—— 关掉可以干净地看原图，不影响已标的实例"
-            aria-pressed={showMasks}
-          >
-            <span className="tool-eye" aria-hidden>
-              {showMasks ? '◉' : '○'}
-            </span>
-            标注{showMasks ? '显示' : '隐藏'}
-          </button>
-        </div>
-      )}
 
       {/* 覆盖层 */}
       {(!current || imgState === 'loading') && (
