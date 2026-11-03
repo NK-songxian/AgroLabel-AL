@@ -92,6 +92,22 @@ npm run dev          # http://localhost:5173
 | `H` | 显示 / 隐藏标注框 |
 | 双击右键 | 在选中区域上插一个顶点 |
 
+### 明暗主题（左栏底部左下角）
+
+`☀ 白天` / `☾ 夜间` 一颗按钮切换，选择记在 `localStorage`（键 `agrolabel_theme`）。
+
+- **默认深色**：标注员长时间盯画布，浅色底会盖过病斑对比度
+- **浅色给**：白天强光、投影演示、打印截图
+
+实现要点：
+- 颜色全在 `styles.css` 的 CSS 变量里，切 `<html data-theme>` 即整站换色，
+  **不触发 React 重渲染**（画布上几百个多边形不会重画）
+- `index.html` 里有一段 `head` 内联脚本，在样式表加载前就把 `data-theme` 打上，
+  避免浅色用户先闪一帧深色
+- antd 的 `ConfigProvider` 算法（`darkAlgorithm` / `defaultAlgorithm`）跟着切，
+  否则 Select 下拉会冒出一块深色浮层
+- `color-scheme` 也一起设，滚动条和原生控件才会跟着变
+
 鼠标操作速查同时显示在两处：顶栏工具行右侧（随模式变化）和右栏底部（固定图例）。
 
 鼠标：

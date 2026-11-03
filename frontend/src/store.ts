@@ -21,6 +21,7 @@ import type {
   OpName,
   SampleStrategy,
 } from './types'
+import { applyTheme, initialTheme, type Theme } from './theme'
 import { ARM_LABEL, COUNTED_OPS } from './types'
 
 type Status = 'booting' | 'idle' | 'loading' | 'predicting' | 'ready' | 'error' | 'done'
@@ -102,6 +103,8 @@ type Store = {
   refining: boolean
   /** 画布是否显示标注多边形；关掉可以干净地看原图（数据不受影响） */
   showMasks: boolean
+  /** 明暗主题。深色默认（长时间盯画布），浅色给强光/投影现场用 */
+  theme: Theme
   /**
    * 实验臂。决定三件事：是否跑预标注（manual 不跑）、是否允许点提示
    * （noprompt 禁用）、产物落到 out/annotations/<arm>/ 哪个目录。
@@ -127,6 +130,8 @@ type Store = {
 
   setMode: (m: CanvasMode) => void
   toggleMasks: () => void
+  /** 明暗切换：改 <html data-theme>，并记住选择 */
+  toggleTheme: () => void
   /** 切换实验臂；会按新条件重新载入当前图 */
   setArm: (a: Arm) => void
 
@@ -212,6 +217,7 @@ export const useStore = create<Store>((set, get) => ({
   refining: false,
   /** 画布是否显示标注多边形。纯视图开关，不影响实例数据本身 */
   showMasks: true,
+  theme: initialTheme(),
   arm: 'assisted',
   draft: null,
 
@@ -517,6 +523,12 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   toggleMasks: () => set((s) => ({ showMasks: !s.showMasks })),
+
+  toggleTheme: () => {
+    const next: Theme = get().theme === 'dark' ? 'light' : 'dark'
+    applyTheme(next)
+    set({ theme: next })
+  },
 
   // ------------------------------------------------------------ 手画多边形
 

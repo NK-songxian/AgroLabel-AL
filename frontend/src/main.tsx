@@ -1,26 +1,16 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ConfigProvider, theme } from 'antd'
 
-import App from './App.tsx'
+import { Root } from './Root.tsx'
+import { applyTheme, initialTheme } from './theme.ts'
 import './styles.css'
+
+// 先把 <html data-theme> 打上，避免首帧闪一下深色再变浅色。
+// （index.html 里还有一段同步脚本更早执行，这里是兜底）
+applyTheme(initialTheme())
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: '#4ea1ff',
-          borderRadius: 6,
-          fontSize: 12,
-          colorBgContainer: '#171a21',
-          colorBgElevated: '#1c2029',
-          colorBorder: '#2a2f3a',
-        },
-      }}
-    >
-      <App />
-    </ConfigProvider>
+    <Root />
   </StrictMode>,
 )

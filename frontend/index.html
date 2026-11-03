@@ -1,11 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="dark" />
     <title>AgroLabel-AL · 人机协同预标注</title>
+    <script>
+      // 在样式表加载前把主题打上，否则浅色用户会先闪一帧深色。
+      // 这段必须在 <head> 里同步执行，不能打进 bundle。
+      // color-scheme 也要设：它管浏览器原生控件（滚动条、下拉箭头）的深浅。
+      ;(function () {
+        try {
+          var t = localStorage.getItem('agrolabel_theme')
+          if (t !== 'light' && t !== 'dark') t = 'dark'
+          var r = document.documentElement
+          r.dataset.theme = t
+          r.style.colorScheme = t
+        } catch (e) {
+          document.documentElement.dataset.theme = 'dark'
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -106,9 +106,38 @@ export function QueuePanel() {
         })}
       </div>
 
-      <div className="pane-foot">
-        仅显示前 {queue.length} 张（共 {queueTotal}）
+      {/* 左下角：明暗切换 + 队列说明 */}
+      <div className="pane-foot queue-foot">
+        <ThemeToggle />
+        <span className="foot-note">
+          仅显示前 {queue.length} 张（共 {queueTotal}）
+        </span>
       </div>
     </aside>
+  )
+}
+
+/** 明暗切换。放在页面左下角，深色是默认（标注时长时间盯画布）。 */
+function ThemeToggle() {
+  const theme = useStore((s) => s.theme)
+  const toggleTheme = useStore((s) => s.toggleTheme)
+  const toLight = theme === 'dark'
+
+  return (
+    <button
+      className="theme-toggle"
+      onClick={toggleTheme}
+      title={
+        toLight
+          ? '切到白天模式（浅色底，强光或投影时更清楚）'
+          : '切到夜间模式（深色底，长时间标注更省眼）'
+      }
+      aria-label={toLight ? '切换到白天模式' : '切换到夜间模式'}
+    >
+      <span className="glyph" aria-hidden="true">
+        {toLight ? '☀' : '☾'}
+      </span>
+      {toLight ? '白天' : '夜间'}
+    </button>
   )
 }
