@@ -68,6 +68,19 @@ class LoRALinear(nn.Module):
         z = z @ self.lora_B.t()
         return out + (z.to(dt) * self.scaling)
 
+    @property
+    def weight(self):
+        # PyTorch 的 nn.MultiheadAttention 在 forward 里直接读 self.out_proj.weight 做
+        # F.linear(..., self.out_proj.weight, self.out_proj.bias)，不会调用本模块 forward。
+        # 因此这里把"基座 + LoRA 增量"合并后返回：既修复 AttributeError，又保证 LoRA 对
+        # 注意力输出投影真正生效（lora_B 初始化为 0，注入当下与原权重逐位一致）。
+        delta = (self.lora_B @ self.lora_A) * self.scaling
+        return self.base.weight + delta.to(self.base.weight.dtype)
+
+    @property
+    def bias(self):
+        return self.base.bias
+
     def extra_repr(self) -> str:
         return (f"in={self.base.in_features}, out={self.base.out_features}, "
                 f"rank={self.rank}, alpha={self.alpha}, scaling={self.scaling:.3f}")
