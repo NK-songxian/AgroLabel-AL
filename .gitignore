@@ -112,3 +112,10 @@ experiments/matrix_state.json
 data/plantseg34/
 # 云端隔离 venv（继承 conda base 的 torch，只补训练侧依赖）
 envs/
+
+# ===== 数据集采样包（本地数据，绝不入库）=====
+# 2026-11-03：组内发来的 100 张采样包，只在本机跑联调/三臂实验用。
+# 注意已有的 datasets/**/images|labels|masks/* 规则已经挡住了图和标注，
+# 但包里的 classes.json / data.yaml / al_pool/*.txt 属于元数据，会被 add 进去，
+# 所以这里整包忽略。已经入库的 datasets/sam3/*.json 等不受影响（gitignore 不管已跟踪文件）。
+datasets/plantseg100_pack/

@@ -86,7 +86,7 @@ class ClassesResponse(BaseModel):
 # ---------------------------------------------------------------- health
 
 class DatasetInfo(BaseModel):
-    mode: Literal["manifest", "demo"]
+    mode: Literal["manifest", "yolo", "demo"]
     note: str
     total: int
     splits: list[dict]

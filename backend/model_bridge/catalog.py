@@ -1,8 +1,10 @@
 """图像索引：把磁盘上的图整理成 (image_id -> 记录) 的只读目录。
 
-两种来源：
+三种来源：
   manifest —— 读 datasets/sam3/plantseg34_{train,val}.json（COCO），路径拼到 DATA_ROOT 上，
               只保留磁盘上真实存在的条目。宽高取自清单，不解码原图。
+  yolo     —— 直接扫 YOLO-seg 目录结构：images/<split>/*.jpg + labels/<split>/*.txt
+              + data.yaml。采样包 datasets/plantseg100_pack 就是这种。
   demo     —— 读 out/demo/_manifest.json（由 backend/tools/build_demo_set.py 生成），
               没有清单时退回扫目录、用 PIL 现读尺寸。
 
@@ -17,6 +19,9 @@ import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from PIL import Image
+import yaml
 
 from .. import config
 
@@ -62,6 +67,8 @@ class Catalog:
     def build(self) -> None:
         if config.DATA.mode == "manifest":
             self._build_manifest(config.DATA.root)
+        elif config.DATA.mode == "yolo":
+            self._build_yolo(config.DATA.root)
         elif config.DATA.mode == "demo":
             self._build_demo(config.DATA.demo_dir)
         if not self._ordered:
@@ -106,6 +113,96 @@ class Catalog:
                 seq += 1
 
     _DEMO_RE = re.compile(r"^(\d+)_(.+?)_(\d+)$")
+
+    # ---------------------------------------------------------------- yolo 模式
+
+    _IMG_EXT = (".jpg", ".jpeg", ".png", ".bmp", ".webp")
+
+    @staticmethod
+    def _yaml_names(root: Path) -> list[str]:
+        """从 data.yaml 读类别表。包内的这份是权威来源，优先于全局 config。"""
+        p = root / "data.yaml"
+        if not p.is_file():
+            return []
+        try:
+            raw = yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError:
+            return []
+        names = raw.get("names")
+        if isinstance(names, dict):           # {0: 'Apple', 1: 'Banana', ...}
+            return [str(names[k]) for k in sorted(names, key=int)]
+        if isinstance(names, list):
+            return [str(x) for x in names]
+        return []
+
+    @staticmethod
+    def _first_class_id(label_path: Path) -> int | None:
+        """YOLO-seg 每行 `class_id x1 y1 ...`：取第一行第一个字段当这张图的 gt 类。
+
+        一张图上可能有多个类（同一宿主下多种病害），但面板只显示一个"这张图属于哪类"，
+        取首个实例足够，不猜"多数类"——那需要读完整个文件，收益很小。
+        """
+        if not label_path.is_file():
+            return None
+        try:
+            with label_path.open(encoding="utf-8") as fh:
+                for line in fh:
+                    parts = line.split()
+                    if parts:
+                        return int(parts[0])
+        except (OSError, ValueError):
+            return None
+        return None
+
+    @staticmethod
+    def _size(path: Path) -> tuple[int, int]:
+        try:
+            with Image.open(path) as im:
+                return im.width, im.height
+        except Exception:                      # noqa: BLE001  坏图不该让建索引整个失败
+            return 0, 0
+
+    def _build_yolo(self, root: Path | None) -> None:
+        """扫 YOLO-seg 目录：images/<split>/* 配 labels/<split>/<stem>.txt。"""
+        assert root is not None
+        self.mode = "yolo"
+
+        names = self._yaml_names(root) or list(config.CLASS_NAMES)
+
+        seq = 0
+        for split_dir in sorted(p for p in (root / "images").iterdir() if p.is_dir()):
+            split = split_dir.name
+            for img in sorted(split_dir.iterdir()):
+                if img.suffix.lower() not in self._IMG_EXT:
+                    continue
+                cid = self._first_class_id(
+                    root / "labels" / split / f"{img.stem}.txt"
+                )
+                w, h = self._size(img)
+                if w == 0 or h == 0:
+                    self.skipped += 1
+                    continue
+
+                # image_id 会成为标注文件名（out/annotations/<arm>/<id>.txt），
+                # 不能带路径分隔符；跨 split 重名时才加前缀
+                image_id = img.stem
+                if image_id in self._by_id:
+                    image_id = f"{split}_{img.stem}"
+
+                self._add(ImageRec(
+                    image_id=image_id,
+                    path=img,
+                    width=w,
+                    height=h,
+                    split=split,
+                    gt_class_id=cid,
+                    gt_class_name=(
+                        names[cid] if cid is not None and 0 <= cid < len(names) else None
+                    ),
+                    disease=None,
+                    order=seq,
+                ))
+                seq += 1
 
     def _build_demo(self, demo_dir: Path | None) -> None:
         assert demo_dir is not None

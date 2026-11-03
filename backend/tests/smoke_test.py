@@ -74,7 +74,7 @@ def main() -> int:
     check("status=ok", h.get("status") == "ok")
     check("classes=34", h.get("classes") == 34, str(h.get("classes")))
     ds = h.get("dataset", {})
-    check("dataset.mode 合法", ds.get("mode") in ("manifest", "demo"), ds.get("mode"))
+    check("dataset.mode 合法", ds.get("mode") in ("manifest", "yolo", "demo"), ds.get("mode"))
     check("dataset.total > 0", (ds.get("total") or 0) > 0, str(ds.get("total")))
     mi = h.get("model_info", {})
     check("model_info.device 存在", bool(mi.get("device")), mi.get("device"))

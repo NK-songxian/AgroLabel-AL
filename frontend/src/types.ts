@@ -42,7 +42,7 @@ export type HealthResponse = {
   model: string
   classes: number
   dataset: {
-    mode: 'manifest' | 'demo'
+    mode: 'manifest' | 'yolo' | 'demo'
     note: string
     total: number
     splits: { name: string; count: number }[]

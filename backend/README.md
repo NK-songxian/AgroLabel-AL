@@ -108,6 +108,19 @@ assisted  vs noprompt = 点提示的净收益
    现在后端强制校验包含关系，不包住就返回 `found=false`（空白点误报降到 **0%**）。
 
 时延：中位 16 ms、P90 24 ms（失败时要多跑一遍，也才 ~30 ms）。
+
+### 真实 100 张上的实测（2026-11-03）
+
+| 接口 | 耗时 | 备注 |
+|---|---|---|
+| `/api/predict` | 59 ~ 132 ms | 132×102 到 4608×3072 都测了，接口预算 300 ms ✓ |
+| `/api/refine` | 55 ~ 62 ms | 真实病斑上 found=True，19 顶点 |
+| `/api/sample` random | 35 ms | |
+| `/api/sample` coreset | 0.7 s | |
+| `/api/sample` entropy | **2.3 s** | 100 张全扫一遍前向 |
+| `/api/sample` tta | **63 s** ⚠️ | 每张 4 次前向 × 100 张 = 400 次 |
+
+TTA 这个数字对"点一下按钮"的交互是不可接受的，见 `docs/BACKLOG.md` 的 AL-TTA-LATENCY。
 还有一点：**顶点密度**。模型侧 `max_vertices` 默认 64，实测能吐出 40 个顶点、
 相邻两点只隔 **1.1 px** —— 在画布上重叠成一团，既看不清边界也没法拖。
 
@@ -146,26 +159,36 @@ python src/m5_logstats.py  -> 已提交 1 张，均值 1.00 次/张，时延 42m
 
 ---
 
-## 数据源：两种模式，自动切换
+## 数据源：三种模式，自动切换
 
 后端启动时按顺序探测：
 
-1. 环境变量 `AGROLABEL_DATA_ROOT` 指向的目录
-2. `configs/dataset_plantseg34.local.yaml` 里 `path` 声明的目录
-3. 都不可用 → 退用仓库内 **`experiments/sam3_sample_vis/`**（102 张真实叶片图）
+1. 环境变量 `AGROLABEL_DATA_ROOT` 指向的目录（有 `images/` + `data.yaml` 就按 YOLO 处理，否则按 COCO 清单）
+2. `configs/dataset_plantseg34.local.yaml` 里 `path` 声明的目录（同上自动识别）
+3. **`datasets/plantseg100_pack/`**（组内的 100 张 × 34 类采样包，YOLO-seg 结构）
+4. 都不可用 → 退用 `out/demo/` 或 `experiments/sam3_sample_vis/`
 
-`/api/health` 的 `dataset.mode` 会明确告诉你现在是 `manifest` 还是 `demo`。
+`/api/health` 的 `dataset.mode` 会明确告诉你现在是 `manifest` / `yolo` / `demo`。
 
 | 模式 | 索引来源 | 用途 |
 |---|---|---|
-| `manifest` | `datasets/sam3/plantseg34_{train,val}.json`（COCO），路径拼到数据集根 | 正式实验 |
-| `demo` | 扫 `experiments/sam3_sample_vis/*.jpg` | 前端联调，**不能用来跑实验** |
+| `manifest` | `datasets/sam3/plantseg34_{train,val}.json`（COCO），路径拼到数据集根 | 正式实验（原始大盘） |
+| `yolo` | 扫 `images/<split>/*.jpg` + `labels/<split>/*.txt` + `data.yaml` | 正式实验（采样包） |
+| `demo` | 扫 `out/demo/*.jpg` | 前端联调，**不能用来跑实验** |
 
 > **为什么要有 demo 模式**：仓库里不带数据集（合规 + 体积），队友拉下代码如果必须先配好
 > `F:/_plantseg` 才能看到界面，前端会被卡住。demo 模式让两边可以并行开工。
 
 `manifest` 模式下，清单里声明但磁盘上不存在的条目会被**静默跳过**并计入 `skipped`，
 启动日志会打印「索引 N 张，跳过 M 条」。本机用 2 张假图验证过这条路径。
+
+`yolo` 模式下：
+- 类别名优先取**包内 `data.yaml`**，取不到才用 `configs` 里的那份
+- `image_id` 用文件名主干（它要变成 `out/annotations/<arm>/<id>.txt`，不能带路径分隔符），
+  跨 split 重名时才加 `<split>_` 前缀
+- `gt_class_id` 取该图标注文件**第一行**的 class_id —— 面板只显示一个"这张图属于哪类"，
+  同宿主多病害时取首个实例足够，不猜"多数类"
+- 宽高用 PIL 现读（100 张约 0.1 s），坏图计入 `skipped` 而不是让整个索引失败
 
 ### 一个已知假设
 

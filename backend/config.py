@@ -45,10 +45,15 @@ CLASS_TO_ID = {name: i for i, name in enumerate(CLASS_NAMES)}
 
 @dataclass(frozen=True)
 class DataSource:
-    mode: str              # "manifest" | "demo"
+    mode: str              # "manifest" | "yolo" | "demo"
     root: Path | None      # manifest 模式下的数据集根
     demo_dir: Path | None  # demo 模式下的图片目录
     note: str
+
+
+def _looks_like_yolo(root: Path) -> bool:
+    """YOLO-seg 目录结构：images/ 下有 split 子目录，且带 data.yaml。"""
+    return (root / "images").is_dir() and (root / "data.yaml").is_file()
 
 
 def resolve_data_source() -> DataSource:
@@ -61,13 +66,27 @@ def resolve_data_source() -> DataSource:
         p = Path(env_root)
         if not p.is_dir():
             raise RuntimeError(f"AGROLABEL_DATA_ROOT 指向的目录不存在: {p}")
-        return DataSource("manifest", p, None, f"由环境变量指定: {p}")
+        # 自动识别：有 images/ + data.yaml 就是 YOLO 目录结构，否则按 COCO 清单处理
+        mode = "yolo" if _looks_like_yolo(p) else "manifest"
+        return DataSource(mode, p, None, f"由环境变量指定: {p}")
 
     cfg = PROJECT / "configs" / "dataset_plantseg34.local.yaml"
     raw = yaml.safe_load(cfg.read_text(encoding="utf-8"))
     declared = Path(raw["path"])
     if declared.is_dir():
-        return DataSource("manifest", declared, None, f"configs 声明且存在: {declared}")
+        mode = "yolo" if _looks_like_yolo(declared) else "manifest"
+        return DataSource(mode, declared, None, f"configs 声明且存在: {declared}")
+
+    # 本地采样包（datasets/plantseg100_pack，100 张 × 34 类，YOLO-seg 格式）。
+    # 它比 demo 更像真数据，所以排在 demo 前面。
+    pack = PROJECT / "datasets" / "plantseg100_pack"
+    if (pack / "images").is_dir() and (pack / "data.yaml").is_file():
+        n = sum(1 for s in (pack / "images").iterdir() if s.is_dir()
+                for f in s.iterdir() if f.suffix.lower() in (".jpg", ".png"))
+        return DataSource(
+            "yolo", pack, None,
+            f"本地采样包: datasets/plantseg100_pack（{n} 张，34 类，含 al_pool/ 待标注池）",
+        )
 
     # demo 首选：由 tools/build_demo_set.py 从评测双联图裁出的**真实病斑原图**
     demo_built = PROJECT / "out" / "demo"
