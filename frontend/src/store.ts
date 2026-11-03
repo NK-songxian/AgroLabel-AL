@@ -810,7 +810,7 @@ export const useStore = create<Store>((set, get) => ({
   loadSample: async (strategy, k) => {
     set({ queueLoading: true })
     try {
-      const r = await api.sample({ k, strategy })
+      const r = await api.sample({ k, strategy }, get().arm)
       if (!r.selected.length) {
         set({ queueLoading: false })
         get().toast('没选出新图：可能都已经标过了', 'warn')

@@ -113,8 +113,8 @@ export const api = {
     strategy?: 'random' | 'entropy' | 'tta' | 'coreset'
     exclude_annotated?: boolean
     seed?: number
-  } = {}) =>
-    request<SampleResponse>('/api/sample', {
+  } = {}, arm?: Arm) =>
+    request<SampleResponse>(`/api/sample${arm ? `?arm=${encodeURIComponent(arm)}` : ''}`, {
       method: 'POST',
       body: JSON.stringify({
         k: 10,

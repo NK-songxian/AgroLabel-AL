@@ -37,11 +37,11 @@ import json
 import time
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 
 from .. import config
 from ..schemas import SampleReason, SampleRequest, SampleResponse
-from ..util import atomic_write_text, safe_name
+from ..util import atomic_write_text, resolve_arm, safe_name
 
 router = APIRouter(prefix="/api", tags=["sample"])
 
@@ -175,7 +175,14 @@ def _al_pool_ids(catalog) -> list[str]:
 # ---------------------------------------------------------------- 路由
 
 @router.post("/sample", response_model=SampleResponse)
-def sample(body: SampleRequest, request: Request):
+def sample(
+    body: SampleRequest,
+    request: Request,
+    arm: str | None = Query(
+        default=None,
+        description="实验臂；只剔除该臂已标注的图（三臂要各标一遍同一批）",
+    ),
+):
     catalog = request.app.state.catalog
 
     # ---- 1. 确定 pool
@@ -197,7 +204,9 @@ def sample(body: SampleRequest, request: Request):
             ids = [r.image_id for r in catalog.query(limit=10_000)[0]]
             source = "全目录"
         if body.exclude_annotated:
-            done = _annotated_ids()
+            # 只剔除**当前臂**已标过的：三臂要各标同一批图，
+            # 若不分臂，第一臂标完第二臂的池子就空了。
+            done = _annotated_ids(resolve_arm(arm) if arm else None)
             ids = [i for i in ids if i not in done]
 
     if not ids:
@@ -302,18 +311,22 @@ def sample(body: SampleRequest, request: Request):
     )
 
 
-def _annotated_ids() -> set[str]:
-    """扫 out/annotations/*/ 下已有的 .txt，得到"已经标过"的 image_id 集合。
+def _annotated_ids(arm: str | None = None) -> set[str]:
+    """扫标注目录下已有的 .txt，得到"已经标过"的 image_id 集合。
 
     约定（ADDENDUM §4.3）：文件名就是 image_id（已过 safe_name）。
+
+    `arm` 给了就只看那一个臂 —— 三臂对照要求每臂独立标注同一批图，
+    不分臂会导致第一臂标完后其余臂的池子直接空掉。
     """
     done: set[str] = set()
     base = config.ANNOTATION_DIR
     if not base.is_dir():
         return done
-    for arm in base.iterdir():
-        if not arm.is_dir():
+    arms = [base / arm] if arm else [d for d in base.iterdir() if d.is_dir()]
+    for d in arms:
+        if not d.is_dir():
             continue
-        for f in arm.glob("*.txt"):
+        for f in d.glob("*.txt"):
             done.add(safe_name(f.stem))
     return done
