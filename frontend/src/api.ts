@@ -105,7 +105,7 @@ export const api = {
 
   /**
    * 主动学习选样。pool 省略时后端用整个 catalog 并剔除已标注过的图。
-   * 注意：模型侧 select() 只返回路径不返回分值，所以 reasons.score 恒为 null。
+   * reasons.score 为模型侧真实打分（random 策略为 null）。
    */
   sample: (params: {
     pool?: string[]

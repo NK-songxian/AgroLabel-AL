@@ -11,6 +11,13 @@ const STRATEGY_LABEL: Record<SampleStrategy, string> = {
   random: '随机 · 对照',
 }
 
+/** 队列项分数徽标前缀（与后端 reasons.criterion 对应） */
+const SCORE_TAG: Record<string, string> = {
+  entropy: '熵',
+  tta: 'TTA',
+  coreset: 'div',
+}
+
 export function QueuePanel() {
   const queue = useStore((s) => s.queue)
   const index = useStore((s) => s.index)
@@ -23,6 +30,7 @@ export function QueuePanel() {
   const loadQueue = useStore((s) => s.loadQueue)
   const loadSample = useStore((s) => s.loadSample)
   const classes = useStore((s) => s.classes)
+  const sampleScores = useStore((s) => s.sampleScores)
   const [strategy, setStrategy] = useState<SampleStrategy>('entropy')
 
   const clsName = useMemo(() => {
@@ -99,6 +107,16 @@ export function QueuePanel() {
                 <span className="dot" style={{ background: classSolid(it.gt_class_id) }} />
               )}
               <span className="queue-name">{it.file_name}</span>
+              {sampleScores[it.image_id]?.score != null && (
+                <span
+                  className="queue-score"
+                  title={`${sampleScores[it.image_id].criterion} 打分（越高越值得标）`}
+                >
+                  {SCORE_TAG[sampleScores[it.image_id].criterion] ?? ''}
+                  {' '}
+                  {sampleScores[it.image_id].score!.toFixed(2)}
+                </span>
+              )}
               <span className="queue-cls">{clsName.get(it.gt_class_id ?? -1) ?? '—'}</span>
               {done && <span className="queue-tick">✓</span>}
             </button>

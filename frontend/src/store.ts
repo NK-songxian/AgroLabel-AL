@@ -72,6 +72,8 @@ type Store = {
   queueLoading: boolean
   /** 队列来源，显示在左栏标题上：全部 / 智能选样 · entropy */
   queueLabel: string
+  /** 智能选样时每张图的打分（image_id -> {score, criterion}）；普通队列为空对象 */
+  sampleScores: Record<string, { score: number | null; criterion: string }>
 
   index: number
   current: ImageItem | null
@@ -189,6 +191,7 @@ export const useStore = create<Store>((set, get) => ({
   split: 'all',
   queueLoading: false,
   queueLabel: '全部',
+  sampleScores: {},
 
   index: -1,
   current: null,
@@ -243,7 +246,7 @@ export const useStore = create<Store>((set, get) => ({
     try {
       const res = await api.images({ split: s, offset: 0, limit: PAGE })
       set({ queue: res.items, queueTotal: res.total, queueLoading: false,
-            queueLabel: s === 'all' ? '全部' : s })
+            queueLabel: s === 'all' ? '全部' : s, sampleScores: {} })
     } catch (e) {
       set({ queueLoading: false })
       get().toast(`队列加载失败：${e instanceof Error ? e.message : e}`, 'err')
@@ -820,11 +823,18 @@ export const useStore = create<Store>((set, get) => ({
         .map((id) => byId.get(id))
         .filter((x): x is ImageItem => x !== undefined)
 
+      // reasons 里的 score 是模型侧真实打分（random 恒为 null），随队列显示
+      const sampleScores: Record<string, { score: number | null; criterion: string }> = {}
+      for (const id of r.selected) {
+        const rs = r.reasons[id]
+        if (rs) sampleScores[id] = { score: rs.score, criterion: rs.criterion }
+      }
       set({
         queue: items,
         queueTotal: items.length,
         queueLoading: false,
         queueLabel: `选样 · ${strategy}`,
+        sampleScores,
       })
       get().toast(
         `选样完成：${items.length} / ${r.pool_size} 张（${strategy}，${r.latency_ms.toFixed(0)}ms）`,

@@ -103,7 +103,7 @@ export type SampleStrategy = 'random' | 'entropy' | 'tta' | 'coreset'
 
 export type SampleResponse = {
   selected: string[]
-  /** rank 即选样顺序；score 恒为 null（模型侧 select() 只返回路径，不返回分值） */
+  /** rank 即选样顺序；score 为模型侧打分（entropy/tta 0-1、coreset 距离；random 为 null） */
   reasons: Record<string, { rank: number; criterion: string; score: number | null }>
   strategy: SampleStrategy
   pool_size: number

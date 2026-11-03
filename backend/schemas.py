@@ -211,8 +211,8 @@ class SampleRequest(BaseModel):
 class SampleReason(BaseModel):
     rank: int
     criterion: str
-    # 模型侧 select() 只返回路径、不返回分数，所以这里只能是 null。
-    # 要填真实分数需让 m8_al 的 score_* 一并返回分值，属于模型侧改动。
+    # 模型侧真实打分（entropy=二元熵0-1 / tta=不一致度0-1 / coreset=描述子距离；
+    # random 恒为 null——随机对照没有分值）。
     score: float | None = None
 
 

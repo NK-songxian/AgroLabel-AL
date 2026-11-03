@@ -20,7 +20,7 @@
 | 方法 | 路径 | 入参 | 出参 |
 |------|------|------|------|
 | POST | `/api/predict` | `{image_base64 或 image_id}` | `{instances:[{class_id,class_name,score,polygon,bbox}], latency_ms}` |
-| POST | `/api/sample` | `{pool:[image_id...], k, strategy(random\|entropy\|tta\|coreset)}` | `{selected:[image_id...], reasons}` |
+| POST | `/api/sample` | `{pool:[image_id...], k, strategy(random\|entropy\|tta\|coreset)}` | `{selected:[image_id...], reasons:{id:{rank,criterion,score}}}`；score 为模型侧真实打分：entropy=二元熵 0-1（越高越不确定）、tta=不一致度 0-1、coreset=描述子距离（越高越多样）、random=null |
 | POST | `/api/edit-cost` | `{pred_instances, gt_instances}` | `{edit_count, breakdown:{新画,删实例,改类别,拖边界,标为无目标}}` |
 | GET | `/api/health` | — | `{status:"ok", model:"yolo11n-seg", classes:34}` |
 

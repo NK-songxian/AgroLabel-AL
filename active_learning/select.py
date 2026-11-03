@@ -69,8 +69,16 @@ def select(
     device=None,
     seed: int = 0,
     labeled=None,
-) -> list[str]:
-    """从 `pool`（图片路径列表）里选 `k` 张，返回被选中的路径列表。
+    return_scores: bool = False,
+):
+    """从 `pool`（图片路径列表）里选 `k` 张。
+
+    返回
+    ----
+    return_scores=False（默认，兼容旧签名）: 被选中的路径列表 list[str]
+    return_scores=True : list[tuple[str, float | None]]，(路径, 分值) 按选样顺序。
+        分值含义随策略：entropy=二元熵 0-1（越高越不确定）、tta=不一致度 0-1、
+        coreset=离已选中心的描述子距离（越高越多样）、random=None（无意义）。
 
     参数
     ----
@@ -89,6 +97,8 @@ def select(
     if strategy == "random":
         rng = np.random.default_rng(seed)
         idx = rng.choice(len(pool), size=k, replace=False)
+        if return_scores:
+            return [(pool[i], None) for i in idx]
         return [pool[i] for i in idx]
 
     # 其余策略需要模型
@@ -101,11 +111,14 @@ def select(
     args = _ScoreArgs(imgsz, dev)
 
     if strategy == "entropy":
-        idx = _al.score_entropy(pool, model, nc, k, args)
+        idx, sc = _al.score_entropy(pool, model, nc, k, args)
     elif strategy == "tta":
-        idx = _al.score_tta(pool, model, nc, k, args)
+        idx, sc = _al.score_tta(pool, model, nc, k, args)
     else:  # coreset
-        idx = _al.score_coreset(pool, model, nc, k, args, labeled=labeled)
+        idx, sc = _al.score_coreset(pool, model, nc, k, args, labeled=labeled)
+    if return_scores:
+        return [(pool[i], (float(s) if s is not None else None))
+                for i, s in zip(idx, sc)]
     return [pool[i] for i in idx]
 
 
@@ -129,9 +142,9 @@ def _main() -> None:
         pool = sorted(glob.glob(args.pool))
     print(f"pool={len(pool)}  strategy={args.strategy}  k={args.k}")
     picked = select(pool, args.k, args.strategy, weights=args.weights,
-                    imgsz=args.imgsz, device=args.device)
-    for x in picked:
-        print("  ", Path(x).name)
+                    imgsz=args.imgsz, device=args.device, return_scores=True)
+    for x, sc in picked:
+        print(f"   {Path(x).name}  score={sc if sc is None else round(sc, 4)}")
 
 
 if __name__ == "__main__":

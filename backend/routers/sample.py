@@ -79,6 +79,7 @@ def sample(body: SampleRequest, request: Request):
             imgsz=config.IMGSZ,
             device=config.resolve_device(),
             seed=body.seed,
+            return_scores=True,
         )
     except FileNotFoundError as e:
         raise HTTPException(500, f"选样缺少权重：{e}")
@@ -86,10 +87,13 @@ def sample(body: SampleRequest, request: Request):
         raise HTTPException(400, str(e))
     latency = (time.perf_counter() - t0) * 1000
 
-    # ---- 3. 路径映射回 image_id，并按顺序给 rank
+    # ---- 3. 路径映射回 image_id，并按顺序给 rank + 分值
+    # picked 元素为 (path, score)；score 为 None 表示该策略没有分值（random）。
     selected: list[str] = []
     reasons: dict[str, SampleReason] = {}
-    for path in picked:
+    for item in picked:
+        path, score = item if isinstance(item, (tuple, list)) and len(item) == 2 \
+            else (item, None)
         iid = id_of.get(str(path))
         if iid is None:
             continue
@@ -97,7 +101,7 @@ def sample(body: SampleRequest, request: Request):
         reasons[iid] = SampleReason(
             rank=len(selected),
             criterion=body.strategy,
-            score=None,            # 见下方 note
+            score=round(float(score), 4) if score is not None else None,
         )
 
     return SampleResponse(
@@ -108,9 +112,9 @@ def sample(body: SampleRequest, request: Request):
         k=len(selected),
         latency_ms=round(latency, 1),
         note=(
-            "reasons.score 恒为 null：模型侧 select() 按签名只返回路径列表，"
-            "不返回分值；rank 即选样顺序。要拿到真实不确定性分数，"
-            "需要 m8_al 的 score_* 一并返回分值（模型侧改动）。"
+            "reasons.score 为模型侧真实打分：entropy=二元熵 0-1（越高越不确定，"
+            "无检出=1.0）；tta=4 视图不一致度 0-1；coreset=描述子距离（越高越多样）；"
+            "random 无分值（null）。rank 即选样顺序。"
         ),
     )
 

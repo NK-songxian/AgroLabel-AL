@@ -105,7 +105,9 @@ def classes_of(label_path):
 
 # ------------------------------------------------------------------ 采样策略
 def score_random(pool, model, nc, k, rng):
-    return list(rng.choice(len(pool), size=min(k, len(pool)), replace=False))
+    """随机对照没有"分值"可言，第二个返回值恒为 None。"""
+    idx = list(rng.choice(len(pool), size=min(k, len(pool)), replace=False))
+    return idx, None
 
 
 def score_entropy(pool, model, nc, k, args):
@@ -132,7 +134,7 @@ def score_entropy(pool, model, nc, k, args):
         p1 = np.clip(r.boxes.conf.cpu().numpy(), 1e-6, 1 - 1e-6)
         h = -(p1 * np.log(p1) + (1 - p1) * np.log(1 - p1))
         scores.append(float(h.mean()) / float(np.log(2)))
-    return top_k(scores, k)
+    return top_k_scores(scores, k)
 
 
 def score_tta(pool, model, nc, k, args):
@@ -182,7 +184,7 @@ def score_tta(pool, model, nc, k, args):
         has_fg = any(v.sum() > 0 for v in views)
         # 一片空白（四次都没检出）最该标：一致性无从谈起，给最高分
         scores.append(1.0 if not has_fg else 1.0 - agree)
-    return top_k(scores, k)
+    return top_k_scores(scores, k)
 
 
 def _descriptor(path, size=24):
@@ -206,7 +208,7 @@ def score_coreset(pool, model, nc, k, args, labeled=None):
             cache[key] = _descriptor(p)
         return cache[key]
 
-    chosen = []
+    chosen, dists = [], []
     # 起点用已标注集的平均描述子，让第一次选择就偏向"和已有数据最不像"的
     ref = [desc(p) for p in (labeled or [])]
     if ref:
@@ -219,9 +221,10 @@ def score_coreset(pool, model, nc, k, args, labeled=None):
         d = np.linalg.norm(D - cur, axis=1)
         j = int(np.argmax(d))
         chosen.append(cand[j])
+        dists.append(float(d[j]))          # 离当前中心越远 = 多样性贡献越大
         cur = desc(pool[cand[j]])
         cand.pop(j)
-    return chosen
+    return chosen, dists
 
 
 def top_k(scores, k):
@@ -230,6 +233,16 @@ def top_k(scores, k):
         return list(range(len(s)))
     idx = np.argpartition(-s, k - 1)[:k]
     return list(idx)
+
+
+def top_k_scores(scores, k):
+    """返回 (索引列表, 对应分值列表)——分值与索引一一对应，供在线接口展示。"""
+    s = np.asarray(scores, dtype=float)
+    if k >= len(s):
+        idx = list(range(len(s)))
+    else:
+        idx = list(np.argpartition(-s, k - 1)[:k])
+    return idx, [float(s[i]) for i in idx]
 
 
 # ------------------------------------------------------------------ 主流程
@@ -389,13 +402,13 @@ def main():
             cand_imgs = [imgs[pool[j]] for j in cand]
 
             if strat == "random":
-                pick_local = score_random(cand_imgs, m, nc, k, rng_s)
+                pick_local, _ = score_random(cand_imgs, m, nc, k, rng_s)
             elif strat == "entropy":
-                pick_local = score_entropy(cand_imgs, m, nc, k, args)
+                pick_local, _ = score_entropy(cand_imgs, m, nc, k, args)
             elif strat == "tta":
-                pick_local = score_tta(cand_imgs, m, nc, k, args)
+                pick_local, _ = score_tta(cand_imgs, m, nc, k, args)
             elif strat == "coreset":
-                pick_local = score_coreset(cand_imgs, m, nc, k, args,
+                pick_local, _ = score_coreset(cand_imgs, m, nc, k, args,
                                            labeled=[imgs[i] for i in labeled])
             else:
                 raise SystemExit(f"未知策略 {strat}")
