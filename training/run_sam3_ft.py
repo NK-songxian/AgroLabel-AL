@@ -14,8 +14,8 @@ run_sam3_ft.py —— SAM3 官方训练管线的"一键启动器"（F1 / I-01 / 
 ------------------
 SAM3 训练要额外的依赖（hydra-core / fvcore / iopath / submitit 等），装在同一环境里
 容易和推理侧（ultralytics 8.4）打架。仓库里既定做法是独立 venv：
-`/root/autodl-tmp/Ryan/envs/sam3train/bin/python`。这里默认就用它，可用
-`--train-py` 或环境变量 `SAM3_TRAIN_PY` 覆盖。
+仓库根下的 `envs/sam3train/bin/python`（由本脚本位置 ROOT 推导，不写死绝对路径）。
+默认即用它，可用 `--train-py` 或环境变量 `SAM3_TRAIN_PY` 覆盖。
 
 F1 / I-01 / I-02 的差别只有参数，不是三份代码：
   F1     --lora-rank 0                        全参数微调（对照）
@@ -47,7 +47,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SAM3REPO = ROOT / "third_party" / "sam3_repo"
 CFG_DIR = SAM3REPO / "sam3" / "train" / "configs" / "plantseg34"
-DEFAULT_TRAIN_PY = "/root/autodl-tmp/Ryan/envs/sam3train/bin/python"
+DEFAULT_TRAIN_PY = str(ROOT / "envs" / "sam3train" / "bin" / "python")
 
 
 def parse_args():

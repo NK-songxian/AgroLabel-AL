@@ -136,7 +136,14 @@ experiments:
     priority: recommended
     status: running
     command: "{py} src/m15_sam3_prompt_sweep.py --data-root {data_root} --ckpt {sam3_weights} --host-bank configs/sam3/host_prompt_bank.json --split val --out {out}"
-    note: 与 Z2s/Z3s（YOLO 系列，提示免疫）对称对照，验证"提示工程只对语义分割有效"。复用 m14 的 7 族模板，改用 SAM3 推理（text=[34短语] 一次出 34 类，按 boxes.cls 分桶，category_id=cls+1 与 GT 对齐）。预期 species_only 低（~0.04），病征短语族高（~0.13–0.17），与 sam3_s1/sweep.json 的物种名 vs 病征短语差 4.5 倍一致。
+    note: 与 Z2s/Z3s（YOLO 系列，提示免疫）对称对照，验证"提示工程只对语义分割有效"。
+      复用 m14 的 7 族模板，改用 SAM3 推理（text=[34短语] 一次出 34 类，按 boxes.cls 分桶，
+      category_id=cls+1 与 GT 对齐；类别对齐已比对 classes.json 与 bank 顺序一致，无误）。
+      实测（诚实零样本·34类同时查询，与 Z2s/Z3s 同协议）：species_only mask_mAP50=0.0007，
+      病征短语族 0.0072–0.0102（disease_level 最高 0.0102），提示改写使 SAM3 提升 ~14×；
+      而 YOLO 7 族全恒等（0.00377）→ 提示工程只影响 SAM3、不影响 YOLO，假设成立。
+      重要修正：此前 sam3_s1 的 0.17 是"GT 宿主条件化"协议（推理泄露 GT 类别来选/标提示）的上界，
+      不可与诚实零样本 0.01 混比；SAM3 真实零样本多类 mAP 约 0.01 量级（见本文件顶部 metrics 说明）。
 
   # ---------------- 微调 F ----------------
   - id: F1
