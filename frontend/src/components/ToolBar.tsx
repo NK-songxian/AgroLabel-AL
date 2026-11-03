@@ -13,6 +13,7 @@ export function ToolBar() {
   const showMasks = useStore((s) => s.showMasks)
   const draft = useStore((s) => s.draft)
   const selectedId = useStore((s) => s.selectedId)
+  const arm = useStore((s) => s.arm)
   const setMode = useStore((s) => s.setMode)
   const toggleMasks = useStore((s) => s.toggleMasks)
   const addVertex = useStore((s) => s.addVertex)
@@ -34,8 +35,13 @@ export function ToolBar() {
         </button>
         <button
           className={`tool${mode === 'refine' ? ' on' : ''}`}
+          disabled={arm === 'noprompt'}
           onClick={() => setMode('refine')}
-          title="点一下病斑，让模型在放大后的局部重新识别（P）"
+          title={
+            arm === 'noprompt'
+              ? '当前是「预标 · 禁用点提示」臂，点提示不可用（切到别的臂才能用）'
+              : '点一下病斑，让模型在放大后的局部重新识别（P）'
+          }
         >
           点提示
         </button>

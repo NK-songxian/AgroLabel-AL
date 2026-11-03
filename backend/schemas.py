@@ -152,13 +152,18 @@ class SavedInstance(BaseModel):
 
 
 class AnnotationReadResponse(BaseModel):
-    """GET /api/annotations/{image_id} —— 读回已保存的标注（续标/刷新不丢数据）"""
+    """GET /api/annotations/{image_id} —— 读回已保存的标注（续标/刷新不丢数据）
+
+    没标过时返回 **200 + found=false**，不是 404 —— "这张标过没有"是高频探询，
+    用 404 会让浏览器控制台每张图刷一条红色错误，演示时很难看。
+    404 只留给"臂名非法"这类真正的错误。
+    """
     found: bool
     image_id: str
     arm: str
-    label_state: Literal["labeled", "no_target"]
-    instances: list[SavedInstance]
-    n_instances: int
+    label_state: Literal["labeled", "no_target"] | None = None
+    instances: list[SavedInstance] = []
+    n_instances: int = 0
     elapsed_ms: int | None = None
     saved_at: str | None = None
     pred_cached: bool = False

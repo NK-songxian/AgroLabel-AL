@@ -133,8 +133,12 @@ LOG_DIR = OUT_DIR / "logs"
 OPS_CSV = LOG_DIR / "ops.csv"
 
 # 实验臂：标注产物落到 out/annotations/<arm>/，三臂互不覆盖（ADDENDUM §4.3）
-# assisted = 预标 + 修正，manual = 纯人工对照，noprompt = 预标但无点提示
+# assisted = 预标 + 修正 + 点提示，manual = 纯人工对照，noprompt = 预标但禁用点提示
 DEFAULT_ARM = os.environ.get("AGROLABEL_ARM", "assisted")
+
+# 白名单：臂名拼错一个字母就会静默分裂出一个新目录，三臂对照直接作废。
+# 所以未知臂名一律 422，宁可报错也别让脏目录产生。
+VALID_ARMS = ("assisted", "manual", "noprompt")
 
 
 def ensure_dirs() -> None:

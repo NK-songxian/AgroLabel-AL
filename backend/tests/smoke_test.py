@@ -200,11 +200,38 @@ def main() -> int:
     print("\n[7] POST /api/annotations")
     from pathlib import Path as _P
     root = _P(__file__).resolve().parents[2]
-    test_arm = "smoketest"
-    test_arm_dir = root / "out" / "annotations" / test_arm
-    if test_arm_dir.exists():
-        for f in test_arm_dir.glob("*"):
-            f.unlink()
+
+    # 用真实臂名（后端白名单只认 assisted/manual/noprompt），并且**备份再还原** ——
+    # 这几个目录里可能躺着标注员的真实数据，测试绝不能覆盖或删除。
+    test_arm = "manual"
+    alt_arm = "noprompt"
+    ann_base = root / "out" / "annotations"
+
+
+    def _backup(arm_name: str):
+        d = ann_base / arm_name
+        files = {}
+        for suffix in (".txt", ".json"):
+            p = d / f"{first_id}{suffix}"
+            files[p] = p.read_bytes() if p.is_file() else None
+        return files
+
+
+    def _restore(files):
+        for p, blob in files.items():
+            if blob is None:
+                if p.is_file():
+                    p.unlink()
+            else:
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_bytes(blob)
+
+
+    backup = {}
+    for arm_name in (test_arm, alt_arm):
+        backup.update(_backup(arm_name))
+
+    test_arm_dir = ann_base / test_arm
 
     # 先对这张图跑一次 predict，确保 pred_cache 存在（否则测不到快照回填）
     http("POST", "/api/predict", {"image_id": first_id})
@@ -287,6 +314,40 @@ def main() -> int:
                     {"image_id": first_id, "label_state": "labeled",
                      "instances": [{"class_id": 0, "polygon": [[0, 0], [1, 1]]}]})
     check("顶点少于 3 -> 422", st == 422, str(st))
+
+    # 臂名白名单：拼错一个字母就会分裂出一个新目录，三臂对照直接作废
+    st, _, _ = http("POST", "/api/annotations?arm=smoketest",
+                    {"image_id": first_id, "label_state": "labeled", "instances": []})
+    check("未知实验臂 -> 422（防脏目录）", st == 422, str(st))
+
+    # ---------------------------------------------------- 三臂目录隔离
+    print("\n[7b] 三臂目录隔离")
+    st, _, raw = http("GET", f"/api/annotations/{first_id}?arm={test_arm}")
+    check(f"读回 {test_arm} 臂 200", st == 200, str(st))
+    st_alt, _, raw_alt = http(
+        "POST", f"/api/annotations?arm={alt_arm}",
+        {"image_id": first_id, "label_state": "labeled",
+         "instances": [{"class_id": 1, "polygon": poly},
+                       {"class_id": 2, "polygon": poly},
+                       {"class_id": 3, "polygon": poly}]},
+    )
+    check(f"写到 {alt_arm} 臂 200", st_alt == 200, str(st_alt))
+    if st_alt == 200:
+        a_txt = ann_base / test_arm / f"{first_id}.txt"
+        b_txt = ann_base / alt_arm / f"{first_id}.txt"
+        check("两臂 txt 落在不同目录", a_txt.is_file() and b_txt.is_file(),
+              f"{a_txt.name} / {b_txt.name}")
+        n_a = len([x for x in a_txt.read_text(encoding="utf-8").splitlines() if x.strip()])
+        n_b = len([x for x in b_txt.read_text(encoding="utf-8").splitlines() if x.strip()])
+        check("两臂内容互不覆盖", n_a != n_b or n_a == 0,
+              f"{test_arm}={n_a} 行, {alt_arm}={n_b} 行")
+        st, _, raw = http("GET", f"/api/annotations/{first_id}?arm={alt_arm}")
+        if st == 200:
+            r = json.loads(raw.decode("utf-8"))
+            check("按臂读回各自的内容", r.get("arm") == alt_arm and r.get("n_instances") == 3,
+                  f'arm={r.get("arm")} n={r.get("n_instances")}')
+    st, _, _ = http("GET", f"/api/annotations/{first_id}?arm=bogus")
+    check("读回也校验臂名 -> 422", st == 422, str(st))
 
     # ---------------------------------------------------- 操作日志
     print("\n[8] POST /api/logs/ops")
@@ -457,10 +518,13 @@ def main() -> int:
     check("两边都空 -> 200 且 edit_count=0", st == 200, str(st))
 
     # ---------------------------------------------------- 清理测试产物
-    if test_arm_dir.exists():
-        for f in test_arm_dir.glob("*"):
-            f.unlink()
-        test_arm_dir.rmdir()
+    # 只还原本次测试碰过的那两个文件，**不要整个删目录** ——
+    # out/annotations/<arm>/ 里可能有标注员的真实标注
+    _restore(backup)
+    for arm_name in (test_arm, alt_arm):
+        d = ann_base / arm_name
+        if d.is_dir() and not any(d.iterdir()):
+            d.rmdir()
 
     # 把 ops.csv 截回测试前的大小（只有追加，所以截断是安全的）
     if ops_csv.is_file():

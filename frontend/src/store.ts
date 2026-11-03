@@ -15,12 +15,13 @@ import type {
   ImageItem,
   Instance,
   LabelState,
+  Arm,
   CanvasMode,
   Op,
   OpName,
   SampleStrategy,
 } from './types'
-import { COUNTED_OPS } from './types'
+import { ARM_LABEL, COUNTED_OPS } from './types'
 
 type Status = 'booting' | 'idle' | 'loading' | 'predicting' | 'ready' | 'error' | 'done'
 
@@ -101,6 +102,11 @@ type Store = {
   refining: boolean
   /** 画布是否显示标注多边形；关掉可以干净地看原图（数据不受影响） */
   showMasks: boolean
+  /**
+   * 实验臂。决定三件事：是否跑预标注（manual 不跑）、是否允许点提示
+   * （noprompt 禁用）、产物落到 out/annotations/<arm>/ 哪个目录。
+   */
+  arm: Arm
 
   toasts: Toast[]
 
@@ -121,6 +127,8 @@ type Store = {
 
   setMode: (m: CanvasMode) => void
   toggleMasks: () => void
+  /** 切换实验臂；会按新条件重新载入当前图 */
+  setArm: (a: Arm) => void
 
   // ---- 手画多边形
   /** 正在画的多边形顶点（归一化坐标）。null 表示没在画 */
@@ -204,6 +212,7 @@ export const useStore = create<Store>((set, get) => ({
   refining: false,
   /** 画布是否显示标注多边形。纯视图开关，不影响实例数据本身 */
   showMasks: true,
+  arm: 'assisted',
   draft: null,
 
   toasts: [],
@@ -266,7 +275,7 @@ export const useStore = create<Store>((set, get) => ({
     try {
       // 先看这张有没有存过的标注：有就恢复，别再拿预标注覆盖人的工作。
       // （之前刷新就丢数据的根因除了 confirmAll 不落盘，还有这里永远走 predict）
-      const saved = await api.getAnnotation(img.image_id)
+      const saved = await api.getAnnotation(img.image_id, get().arm)
       if (seq !== openSeq) return
       if (saved?.found) {
         const list: Instance[] = saved.instances.map((it) => ({
@@ -289,6 +298,22 @@ export const useStore = create<Store>((set, get) => ({
           `已恢复上次保存的标注（${list.length} 个实例）`,
           'ok',
         )
+        return
+      }
+
+      // 纯人工臂：读到这就说明这张没标过，**不跑预标注** —— 基线必须从空白开始，
+      // 否则这一臂和 assisted 没区别，对照就是假的。
+      // 但上面的"读回已保存标注"必须照做：纯人工臂的产物也是产物，
+      // 刷新后同样不能丢。
+      if (get().arm === 'manual') {
+        set({
+          status: 'ready',
+          instances: [],
+          predSnapshot: [],
+          labelState: 'unlabeled',
+          latencyMs: null,
+          modelVersion: null,
+        })
         return
       }
 
@@ -480,6 +505,16 @@ export const useStore = create<Store>((set, get) => ({
   // ------------------------------------------------------------ 点提示
 
   setMode: (m) => set({ mode: m, draft: null }),
+
+  setArm: (a) => {
+    if (a === get().arm) return
+    set({ arm: a, mode: 'select', draft: null })
+    // 换臂等于换实验条件：当前图必须按新条件重新载入
+    // （manual 要清掉预标注，assisted 要重新跑预测）
+    const i = get().index
+    if (i >= 0) void get().openIndex(i)
+    get().toast(`已切到「${ARM_LABEL[a]}」，当前图已重新载入`, 'ok')
+  },
 
   toggleMasks: () => set((s) => ({ showMasks: !s.showMasks })),
 
@@ -678,8 +713,12 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   refineAt: async (px, py) => {
-    const { current, instances, selectedId, classes } = get()
+    const { current, instances, selectedId, classes, arm } = get()
     if (!current || get().refining) return
+    if (arm === 'noprompt') {
+      get().toast('这一臂（预标·禁用点提示）不允许点提示', 'warn')
+      return
+    }
 
     // 类别必须钉死：refine 的 class_id 是硬过滤。
     // 实测不传的话，同一张甘蓝图会返回 Wheat（score 0.34）—— 放大到小 ROI 后
@@ -882,7 +921,7 @@ async function flushOps(force: boolean): Promise<void> {
  * 之前只有 submit 落盘，标注员点「确认」以为存了，刷新就全丢。
  */
 async function persist(text?: string): Promise<boolean> {
-  const { current, instances, labelState, startedAt } = useStore.getState()
+  const { current, instances, labelState, startedAt, arm } = useStore.getState()
   if (!current) return false
 
   const payload = {
@@ -895,7 +934,7 @@ async function persist(text?: string): Promise<boolean> {
 
   const toast = useStore.getState().toast
   try {
-    await api.submitAnnotation(payload)
+    await api.submitAnnotation(payload, arm)
     toast(text ?? `已保存 ${instances.length} 个实例`, 'ok')
     void flushOps(true)
     return true

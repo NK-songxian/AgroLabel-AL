@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react'
 
 import { classSolid } from '../colors'
 import { useStore } from '../store'
+import { ARM_LABEL } from '../types'
+import type { Arm } from '../types'
 
 function download(name: string, text: string) {
   const blob = new Blob([text], { type: 'text/csv;charset=utf-8' })
@@ -12,6 +14,28 @@ function download(name: string, text: string) {
   a.download = name
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+/** 实验臂切换条。三臂对照的实验条件，切了会重新载入当前图。 */
+function ArmBar() {
+  const arm = useStore((s) => s.arm)
+  const setArm = useStore((s) => s.setArm)
+  return (
+    <div className="arm-bar">
+      <span className="arm-label">实验臂</span>
+      <select
+        value={arm}
+        onChange={(e) => setArm(e.target.value as Arm)}
+        title="三臂对照用：切换后当前图按新条件重新载入，产物分别落到 out/annotations/<arm>/"
+      >
+        {(Object.keys(ARM_LABEL) as Arm[]).map((a) => (
+          <option key={a} value={a}>
+            {ARM_LABEL[a]}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
 }
 
 export function InspectorPanel() {
@@ -59,6 +83,8 @@ export function InspectorPanel() {
 
   return (
     <aside className="pane pane-right">
+      <ArmBar />
+
       <div className="pane-head">
         <span>详情</span>
         <span className="pane-count">{instances.length} 实例</span>

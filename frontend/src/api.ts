@@ -6,6 +6,7 @@
  */
 
 import type {
+  Arm,
   ClassItem,
   HealthResponse,
   ImageItem,
@@ -79,16 +80,19 @@ export const api = {
    * 提交标注。后端尚未实现（P1 后半段），失败时由 UI 降级为"本地暂存"。
    * 注意：pred_snapshot 不传 —— 契约 §4.2 决定由后端从 out/pred_cache 读。
    */
-  submitAnnotation: (payload: {
-    image_id: string
-    label_state: LabelState
-    instances: { class_id: number; polygon: [number, number][] }[]
-    elapsed_ms: number
-    operator?: string
-    session_id?: string
-  }) =>
+  submitAnnotation: (
+    payload: {
+      image_id: string
+      label_state: LabelState
+      instances: { class_id: number; polygon: [number, number][] }[]
+      elapsed_ms: number
+      operator?: string
+      session_id?: string
+    },
+    arm?: Arm,
+  ) =>
     request<{ ok: boolean; image_id: string; n_instances: number; pred_cached: boolean }>(
-      '/api/annotations',
+      `/api/annotations${arm ? `?arm=${encodeURIComponent(arm)}` : ''}`,
       { method: 'POST', body: JSON.stringify(payload) },
     ),
 
@@ -140,16 +144,15 @@ export const api = {
     }),
 
   /**
-   * 读回已保存的标注。没有就返回 null（**不抛错**）——
-   * 调用方用它决定"恢复上次的标注"还是"重新预标注"。
+   * 读回已保存的标注。没标过时后端返回 200 + `found:false`（不是 404），
+   * 调用方看 `found` 决定"恢复上次的标注"还是"重新预标注"。
    */
-  getAnnotation: async (image_id: string, arm?: string): Promise<AnnotationRead | null> => {
+  getAnnotation: async (image_id: string, arm?: string): Promise<AnnotationRead> => {
     const q = arm ? `?arm=${encodeURIComponent(arm)}` : ''
     const res = await fetch(
       `${BASE}/api/annotations/${encodeURIComponent(image_id)}${q}`,
       { headers: { Accept: 'application/json' } },
     )
-    if (res.status === 404) return null
     if (!res.ok) throw new Error(`读取标注失败：${res.status} ${await res.text()}`)
     return (await res.json()) as AnnotationRead
   },

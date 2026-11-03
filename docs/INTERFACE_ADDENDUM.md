@@ -41,7 +41,7 @@
 | `POST /api/annotations` | ✅ | 含几何/类别校验，坏标签一律 422 |
 | `POST /api/logs/ops` | ✅ | `utf-8-sig`，表头逐字对齐 m4_app |
 | `POST /api/refine` | ✅ | 调模型侧 `refine()`；`class_id` 硬过滤 |
-| `GET /api/annotations/{id}` | ✅ | 续标/刷新恢复；没标过返回 404 |
+| `GET /api/annotations/{id}` | ✅ | 续标/刷新恢复；没标过返回 **200 + found:false**（不用 404） |
 | `GET /api/logs/export` | 🕒 | 已注册路由，一律 501（P3） |
 
 ### 2.1 `GET /api/images` —— 标注队列 / 元信息批量查询
@@ -347,6 +347,11 @@ coverage        = mask_area / ((x1 - x0) * (y1 - y0))
 ```
 
 未标注时返回 `{"image_id":"0007","label_state":"unlabeled","instances":[]}`，**不要返回 404**。
+> ⚠️ **2026-11-03 修正**：上面对"不要 404"的要求原本适用于 `/api/predict`。
+> `GET /api/annotations/{id}` 后来也统一成同一口径 —— 没标过返回
+> `200 + {"found": false, "instances": []}`。原因很实际：这是每打开一张图都要问一次的
+> 高频探询，用 404 会让浏览器控制台每张图刷一条红色错误，演示时很难看。
+> 真正的错误（比如臂名非法）才用 4xx。
 
 ### 2.8 `GET /api/logs/export?format=csv` —— 导出（可选，P3）
 

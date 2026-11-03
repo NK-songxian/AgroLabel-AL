@@ -38,7 +38,7 @@
 | `GET /api/images/{id}/file` | ✅ | ETag + 304 + Range + immutable 缓存 |
 | `POST /api/predict` | ✅ | **真模型**，GPU 单张，实测 28–48 ms |
 | `POST /api/annotations` | ✅ | 落 `out/annotations/<arm>/`，YOLO seg txt + 元数据 json |
-| `GET /api/annotations/{id}` | ✅ | 读回已保存的标注；没标过 404（刷新恢复用） |
+| `GET /api/annotations/{id}` | ✅ | 读回已保存的标注；没标过返回 200 + `found:false` |
 | `POST /api/logs/ops` | ✅ | 追加 `out/logs/ops.csv`，表头对齐 `src/m4_app.py:131` |
 | `GET /api/logs/export` | 🕒 | **P3 占位**：已注册路由，一律返回 501 + 说明（不是 404） |
 | `POST /api/sample` | ✅ | 调模型侧 `select()`；默认剔除已标注图，避免反复推荐同一批 |
@@ -61,6 +61,27 @@
 
 `/api/predict` 除了契约里的 `instances` + `latency_ms`，还多返回
 `image_width` / `image_height` / `model_version`（向后兼容的新增字段）。
+
+### 实验臂（三臂对照）
+
+`out/annotations/<arm>/` 按臂分目录，三臂互不覆盖。白名单只有三个：
+
+| arm | 前端行为 | 用途 |
+|---|---|---|
+| `assisted` | 预标注 + 可改可删 + 可点提示 + 可手画 | 完整方案 |
+| `manual` | **不跑 `/api/predict`**，打开是空白图 | 基线（纯人工） |
+| `noprompt` | 跑预标注，但**禁用点提示** | 归因：减去预标注的贡献 |
+
+**臂名走白名单校验，未知臂名一律 422。** 原因：臂名拼错一个字母（多打一个空格、
+首字母大写）就会静默多出一个目录，三臂对照的分母就错了，而且事后极难发现。
+
+拆解逻辑（技术方案 6.4 要的是这个）：
+
+```
+assisted  vs manual   = 预标注 + 点提示 的总收益
+noprompt  vs manual   = 仅预标注的收益
+assisted  vs noprompt = 点提示的净收益
+```
 
 ### `/api/refine` 的调参依据（别乱改，这是实测出来的）
 

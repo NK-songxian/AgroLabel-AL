@@ -728,3 +728,34 @@ button { font: inherit; color: inherit; }
   font-size: 10px;
   line-height: 1.5;
 }
+
+/* ---------------------------------------------------------------- 实验臂 */
+
+.arm-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  flex: none;
+}
+
+.arm-label {
+  font-size: 11px;
+  color: var(--dim-2);
+  white-space: nowrap;
+}
+
+.arm-bar select {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.arm-bar select:focus { outline: 1px solid var(--accent-dim); }

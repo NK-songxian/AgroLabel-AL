@@ -135,6 +135,24 @@ export type RefineResponse = {
 /** 画布交互模式：select 点选 / refine 点一下让模型重识别 / draw 手画 / erase 橡皮擦删节点 */
 export type CanvasMode = 'select' | 'refine' | 'draw' | 'erase'
 
+/**
+ * 实验臂（ADDENDUM §4.3 / 技术方案 6.4 的三臂对照）。
+ *
+ *   assisted  预标注 + 可改可删 + 可点提示 + 可手画   ← 完整方案
+ *   manual    纯人工，打开就是空白图，无预标注        ← 基线
+ *   noprompt  有预标注，但**禁用点提示**             ← 归因用
+ *
+ * 第三臂的意义：assisted vs manual 是总收益，noprompt vs manual 是"预标注"的贡献，
+ * 两者相减才是"点提示"这一项的净收益 —— 评审问起来要能拆开。
+ */
+export type Arm = 'assisted' | 'manual' | 'noprompt'
+
+export const ARM_LABEL: Record<Arm, string> = {
+  assisted: '预标 + 点提示',
+  manual: '纯人工（无预标注）',
+  noprompt: '预标 · 禁用点提示',
+}
+
 /** GET /api/annotations/{id} 的返回（续标 / 刷新恢复用） */
 export type AnnotationRead = {
   found: boolean
