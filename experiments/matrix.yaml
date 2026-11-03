@@ -130,6 +130,14 @@ experiments:
     command: "{py} src/m14_prompt_sweep.py --kind yoloe --weights {repo}/weights/yoloe-11l-seg.pt --data {data_yaml} --split val --device 0 --out {out}"
     note: 同 Z2s，额外有 seg 指标。与 SAM3 侧的 host_0/disease_0/species_tuned 扫描（experiments/sam3_s1/sweep.json）交叉验证提示工程结论是否跨模型成立。
 
+  - id: Z1s
+    name: SAM3 提示词扫描（7 族，对称对照）
+    phase: zeroshot
+    priority: recommended
+    status: running
+    command: "{py} src/m15_sam3_prompt_sweep.py --data-root {data_root} --ckpt {sam3_weights} --host-bank configs/sam3/host_prompt_bank.json --split val --out {out}"
+    note: 与 Z2s/Z3s（YOLO 系列，提示免疫）对称对照，验证"提示工程只对语义分割有效"。复用 m14 的 7 族模板，改用 SAM3 推理（text=[34短语] 一次出 34 类，按 boxes.cls 分桶，category_id=cls+1 与 GT 对齐）。预期 species_only 低（~0.04），病征短语族高（~0.13–0.17），与 sam3_s1/sweep.json 的物种名 vs 病征短语差 4.5 倍一致。
+
   # ---------------- 微调 F ----------------
   - id: F1
     name: SAM3 全参数微调（S2）

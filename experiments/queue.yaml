@@ -74,6 +74,15 @@ queue:
     status: pending
     command: "{py} training/train_seg_baseline.py --data {repo}/data/plantseg34/data.yaml --model {repo}/weights/yolo26x-seg.pt --imgsz 960 --epochs 150 --name b5_y26x_960 --project {repo}/experiments/matrix/B5/runs"
 
+  # ---------------- Z1s：SAM3 提示词工程对称对照（关键实验）----------------
+  # 与 Z2s/Z3s（YOLO 系列，提示无效）形成对称对照，验证"提示工程只对语义分割有效"。
+  # 注：当前运行实例（run_queue PID 962333）已在内存读入旧配置，不含此项；
+  # 实际由独立 nohup 与 B5 并行启动（见 runtime/logs/matrix/Z1s.log），避免重启队列导致 B5 重复训练。
+  - id: Z1s
+    name: Z1s SAM3 提示词扫描（7 族，对称对照）
+    status: running
+    command: "{py} src/m15_sam3_prompt_sweep.py --data-root {repo}/data/plantseg34 --ckpt {repo}/weights/sam3.pt --host-bank {repo}/configs/sam3/host_prompt_bank.json --split val --out {repo}/experiments/matrix/Z1s"
+
   # ---------------- 微调：YOLOE / YOLO-World（F2/F3）----------------
   - id: F2
     name: YOLOE-11l-Seg 微调 640
