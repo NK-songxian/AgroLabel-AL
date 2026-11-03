@@ -18,6 +18,11 @@ const SCORE_TAG: Record<string, string> = {
   coreset: 'div',
 }
 
+/** 选样张数：默认取整池（比池子大就会返回整池，按难度排好序） */
+const DEFAULT_SAMPLE_K = 50
+
+const clampK = (v: number) => Math.max(1, Math.min(200, Math.round(v) || 1))
+
 export function QueuePanel() {
   const queue = useStore((s) => s.queue)
   const index = useStore((s) => s.index)
@@ -32,6 +37,7 @@ export function QueuePanel() {
   const classes = useStore((s) => s.classes)
   const sampleScores = useStore((s) => s.sampleScores)
   const [strategy, setStrategy] = useState<SampleStrategy>('entropy')
+  const [sampleK, setSampleK] = useState(DEFAULT_SAMPLE_K)
 
   const clsName = useMemo(() => {
     const m = new Map<number, string>()
@@ -78,10 +84,20 @@ export function QueuePanel() {
             </option>
           ))}
         </select>
-        <button
-          onClick={() => void loadSample(strategy, 12)}
+        <input
+          type="number"
+          className="sample-k"
+          min={1}
+          max={200}
+          value={sampleK}
           disabled={queueLoading}
-          title="调 /api/sample，把这批里最值得标的 12 张换进队列"
+          onChange={(e) => setSampleK(clampK(Number(e.target.value)))}
+          title="取多少张。设得比池子大就取整池（按难度排好序）——三臂实验要整池 36 张"
+        />
+        <button
+          onClick={() => void loadSample(strategy, sampleK)}
+          disabled={queueLoading}
+          title={`调 /api/sample，把这批里最值得标的 ${sampleK} 张换进队列`}
         >
           智能选样
         </button>

@@ -857,3 +857,19 @@ button { font: inherit; color: inherit; }
   font-size: 12px;
   line-height: 1;
 }
+
+/* 选样张数输入：设得比池子大就取整池（三臂实验要 36 张） */
+.sample-bar .sample-k {
+  width: 44px;
+  flex: none;
+  padding: 4px 4px 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.sample-bar .sample-k:disabled { opacity: .45; cursor: not-allowed; }
