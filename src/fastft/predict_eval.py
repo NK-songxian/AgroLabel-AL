@@ -66,6 +66,11 @@ def main():
         probs = F.softmax(logits, dim=1)[0].cpu().numpy()          # (C+1, S, S)
         im = va.imgs[item['image_id']]
         H, W = im['height'], im['width']
+        # 数据集是 letterbox：内容在画布左上 (nh, nw)，必须先裁掉补边区再 resize 回原图，
+        # 否则非正方形图的预测整体被压偏、与 GT 空间错位。
+        sc = cfg['size'] / max(H, W)
+        nw, nh = max(1, int(round(W * sc))), max(1, int(round(H * sc)))
+        probs = probs[:, :nh, :nw]
         probs = cv2.resize(probs.transpose(1, 2, 0), (W, H),
                            interpolation=cv2.INTER_LINEAR).transpose(2, 0, 1)
         for c in range(1, n_cls + 1):
