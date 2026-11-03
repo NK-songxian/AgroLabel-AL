@@ -99,8 +99,9 @@ queue:
   # 训练解释器默认 /root/autodl-tmp/Ryan/envs/sam3train/bin/python（可用 --train-py 改）。
   - id: F1
     name: SAM3 全参数微调（对照，10 epoch）
-    status: pending
+    status: abandoned
     command: "{py} training/run_sam3_ft.py --exp-name f1_s2_full_ft_host --max-epochs 10 --val-freq 5 --lr-scale 0.1"
+    note: 用户 2026-11-03 决定放弃全参微调（1008+34类下太慢），改用 LoRA（I-01/I-02）作为主线；本项不再执行。
 
   - id: I-01
     name: I-01 SAM3-LoRA（rank16, transformer+decoder）
