@@ -23,29 +23,12 @@ from ..schemas import (
     AnnotationReadResponse,
     SavedInstance,
 )
-from ..util import atomic_write_text, now_stamp, safe_name
+from ..util import atomic_write_text, now_stamp, resolve_arm, safe_name
 
 router = APIRouter(prefix="/api", tags=["annotations"])
 
 COORD_TOL = 1e-6          # 归一化坐标的容差
 MAX_VERTICES = 512        # 单实例顶点上限，防止伪造超大多边形撑爆磁盘
-
-
-def _resolve_arm(arm: str | None) -> str:
-    """解析并校验实验臂。
-
-    为什么要白名单：`out/annotations/<arm>/` 是按臂分目录的，臂名写错一个字母
-    （比如 "assisted " 带空格、"Assisted" 大写）就会静默多出一个目录，
-    三臂对照的分母就错了，而且事后极难发现。未知臂名一律 422。
-    """
-    name = safe_name(arm or config.DEFAULT_ARM, fallback=config.DEFAULT_ARM)
-    if name not in config.VALID_ARMS:
-        raise HTTPException(
-            422,
-            f"未知实验臂 {name!r}，可选 {list(config.VALID_ARMS)}。"
-            f"臂名决定标注落到 out/annotations/<arm>/ 的哪个目录，写错会毁掉对照实验",
-        )
-    return name
 
 
 @router.get("/annotations/{image_id}", response_model=AnnotationReadResponse)
@@ -61,7 +44,7 @@ def read_annotation(
     没有它，刷新页面就会把标注员的工作全部丢掉 —— 前端只能重新调 /api/predict，
     而预标注不是他改完的结果。ADDENDUM §2.7 就是为这个场景留的。
     """
-    arm_name = _resolve_arm(arm)
+    arm_name = resolve_arm(arm)
     image_id = safe_name(image_id, fallback="unnamed")
 
     arm_dir = config.ANNOTATION_DIR / arm_name
@@ -129,7 +112,7 @@ def submit_annotation(
 ):
     predictor = request.app.state.predictor
 
-    arm_name = _resolve_arm(arm)
+    arm_name = resolve_arm(arm)
     image_id = safe_name(body.image_id, fallback="unnamed")
 
     _validate_instances(body.instances)

@@ -16,10 +16,11 @@ from __future__ import annotations
 import csv
 import threading
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from .. import config
 from ..schemas import OpsRequest, OpsResponse
+from ..util import resolve_arm
 
 router = APIRouter(prefix="/api", tags=["logs"])
 
@@ -36,7 +37,13 @@ _append_lock = threading.Lock()
 
 
 @router.post("/logs/ops", response_model=OpsResponse)
-def append_ops(body: OpsRequest):
+def append_ops(
+    body: OpsRequest,
+    arm: str | None = Query(
+        default=None,
+        description="实验臂；同时写进 out/logs/ops_<arm>.csv，供按臂统计",
+    ),
+):
     bad = sorted({e.op for e in body.events if e.op not in ALLOWED_OPS})
     if bad:
         raise HTTPException(
@@ -45,20 +52,26 @@ def append_ops(body: OpsRequest):
             f"词表由 src/m5_logstats.py 硬编码，新增必须先改那边",
         )
 
+    arm_name = resolve_arm(arm)
     path = config.OPS_CSV
     path.parent.mkdir(parents=True, exist_ok=True)
+    # 同一个臂的日志再写一份分臂文件，表头完全一样。
+    # 为什么不在 ops.csv 里加一列 arm：那份表头要和 src/m4_app.py:131 逐字对齐
+    # （契约要求可直接追加），改表头会让两边的行混不成一张表。
+    arm_path = path.with_name(f"ops_{arm_name}.csv")
 
     with _append_lock:
-        write_header = not path.exists() or path.stat().st_size == 0
-        # newline="" 是 csv 模块的硬要求，否则 Windows 上会多出空行
-        with open(path, "a", encoding="utf-8-sig", newline="") as f:
-            w = csv.writer(f)
-            if write_header:
-                w.writerow(HEADER)
-            for e in body.events:
-                w.writerow([
-                    e.ts, e.image, e.op, e.instance,
-                    e.detail, e.n_ops_on_image, e.api_ms,
+        for target in (path, arm_path):
+            write_header = not target.exists() or target.stat().st_size == 0
+            # newline="" 是 csv 模块的硬要求，否则 Windows 上会多出空行
+            with open(target, "a", encoding="utf-8-sig", newline="") as f:
+                w = csv.writer(f)
+                if write_header:
+                    w.writerow(HEADER)
+                for e in body.events:
+                    w.writerow([
+                        e.ts, e.image, e.op, e.instance,
+                        e.detail, e.n_ops_on_image, e.api_ms,
                 ])
         rows_total = _count_rows(path)
 

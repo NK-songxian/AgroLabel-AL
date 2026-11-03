@@ -56,6 +56,42 @@
 丢掉了宿主上下文；传了正确的 `Cabbage` 才回本类。前端点提示时用"当前选中实例的类
 → 图像 gt 类"依次兜底。
 
+### 选样：两级筛选 + 分值缓存
+
+`m8_al.score_tta` 每张图跑 4 次前向。池子 100 张时 **63.4 s**，点一下就转一分钟。
+现在：
+
+- **两级**：`tta` 先用 `entropy`（每张 1 次前向）粗筛到 `max(4k, 24)` 张，
+  只对候选跑 TTA 精排。这是标准 cascade screening，报告里要写明是两级
+- **缓存**：`entropy`/`tta` 的分值只和单张图有关、与 k 无关，
+  用 `select(k=len(pool))` 一次算全池，落 `out/al_scores/<strategy>.json`。
+  按权重 mtime + imgsz 失效
+- `coreset` 不参与重排：它是贪心 k-中心，分值依赖已选集合，全局排序会改变结果
+
+实测（池 36 张，来自 `al_pool/unlabeled_pool.txt`）：
+
+| 策略 | 冷缓存 | 热缓存 |
+|---|---|---|
+| `entropy` | 1140 ms | **25 ms** |
+| `tta` | 24936 ms | **22 ms** |
+
+**默认池**优先读数据集包自带的 `al_pool/unlabeled_pool.txt`（36 张），
+没有这个文件才回落到"全目录 − 已标注"。跑三臂时必须按包里的划分来，
+否则 val 集也会混进候选。
+
+### ops 日志按臂分开
+
+`ops.csv` 的表头必须和 `src/m4_app.py:131` 逐字对齐（契约要求可直接追加），
+所以**不能加 `arm` 列**。改成每个臂的日志**同时写两份**：
+
+```
+out/logs/ops.csv              # 契约正本，三臂混在一起
+out/logs/ops_<arm>.csv        # 同一份表头，只有该臂的行
+```
+
+三臂统计时用 `python src/m5_logstats.py --ops out/logs/ops_manual.csv`。
+`arm` 走同一份白名单校验，未知臂名 422。
+
 `/api/sample` 的非 random 策略会在**每次请求里重新加载一次模型**
 （`select()` 内部 `YOLO(...)`），20 张池实测 865 ms。池子大时注意别在前端同步等待。
 

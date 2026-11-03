@@ -199,7 +199,12 @@ def resolve_split(data_yaml, split):
     import yaml
     with open(data_yaml, encoding="utf-8") as f:
         d = yaml.safe_load(f)
-    root = Path(d.get("path", Path(data_yaml).parent))
+    # `path` 若是相对路径，要相对 **data.yaml 自己** 解析，而不是 cwd ——
+    # ultralytics 就是这么做的。采样包写的是 `path: .`，按 cwd 解析会指到仓库根，
+    # 于是报「data.yaml 里 train 没有图片」。
+    root = Path(d.get("path") or ".")
+    if not root.is_absolute():
+        root = Path(data_yaml).resolve().parent / root
     rel = d.get(split)
     if isinstance(rel, list):
         dirs = [root / r for r in rel]

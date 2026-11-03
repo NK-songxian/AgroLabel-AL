@@ -919,7 +919,7 @@ async function flushOps(force: boolean): Promise<void> {
 
   const batch = queue.slice(0, 200)
   try {
-    await api.pushOps(SESSION_ID, batch)
+    await api.pushOps(SESSION_ID, batch, useStore.getState().arm)
     queue = queue.slice(batch.length)
     failures = 0
     if (queue.length) scheduleFlush()

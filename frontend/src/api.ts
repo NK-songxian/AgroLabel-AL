@@ -97,11 +97,11 @@ export const api = {
     ),
 
   /** 上报操作日志。后端追加进 out/logs/ops.csv，供 m5_logstats.py 消费。 */
-  pushOps: (session_id: string, events: Op[]) =>
-    request<{ ok: boolean; appended: number; rows_total: number }>('/api/logs/ops', {
-      method: 'POST',
-      body: JSON.stringify({ session_id, events }),
-    }),
+  pushOps: (session_id: string, events: Op[], arm?: Arm) =>
+    request<{ ok: boolean; appended: number; rows_total: number }>(
+      `/api/logs/ops${arm ? `?arm=${encodeURIComponent(arm)}` : ''}`,
+      { method: 'POST', body: JSON.stringify({ session_id, events }) },
+    ),
 
   /**
    * 主动学习选样。pool 省略时后端用整个 catalog 并剔除已标注过的图。

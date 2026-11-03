@@ -373,6 +373,17 @@ def main() -> int:
               str(r.get("path")))
         csv_path = root / r["path"]
         check("ops.csv 已生成", csv_path.is_file())
+        # 分臂日志：三臂对照要求 ops 能按臂拆开（ops.csv 表头不能动，所以另写一份）
+        arm_csv = root / "out" / "logs" / f"ops_{test_arm}.csv"
+        arm_had = arm_csv.is_file()
+        arm_size_before = arm_csv.stat().st_size if arm_had else 0
+        st_arm, _, _ = http("POST", f"/api/logs/ops?arm={test_arm}",
+                            {"session_id": "smoke-session", "events": ev})
+        check("带 arm 上报 200", st_arm == 200, str(st_arm))
+        check(f"生成分臂文件 ops_{test_arm}.csv", arm_csv.is_file())
+        st_bad, _, _ = http("POST", "/api/logs/ops?arm=bogus",
+                            {"session_id": "smoke-session", "events": ev})
+        check("未知实验臂 -> 422（防脏文件）", st_bad == 422, str(st_bad))
         if csv_path.is_file():
             raw_bytes = csv_path.read_bytes()
             check("CSV 带 UTF-8 BOM（m5 用 utf-8-sig 读）", raw_bytes[:3] == b"\xef\xbb\xbf",
@@ -525,6 +536,13 @@ def main() -> int:
         d = ann_base / arm_name
         if d.is_dir() and not any(d.iterdir()):
             d.rmdir()
+
+    # 分臂文件同样清理
+    if arm_had:
+        with open(arm_csv, "r+b") as f:
+            f.truncate(arm_size_before)
+    elif arm_csv.is_file():
+        arm_csv.unlink()
 
     # 把 ops.csv 截回测试前的大小（只有追加，所以截断是安全的）
     if ops_csv.is_file():

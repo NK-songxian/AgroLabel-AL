@@ -34,3 +34,23 @@ def atomic_write_text(path: Path, text: str, encoding: str = "utf-8") -> None:
         f.flush()
         os.fsync(f.fileno())
     os.replace(tmp, path)
+
+def resolve_arm(arm: str | None) -> str:
+    """解析并校验实验臂（annotations 与 logs 共用）。
+
+    为什么要白名单：`out/annotations/<arm>/` 与 `out/logs/ops_<arm>.csv` 都按臂分，
+    臂名写错一个字母（带空格、大写）就会静默多出一份数据，三臂对照的分母就错了，
+    而且事后极难发现。宁可当场 422。
+    """
+    from fastapi import HTTPException
+
+    from . import config
+
+    name = safe_name(arm or config.DEFAULT_ARM, fallback=config.DEFAULT_ARM)
+    if name not in config.VALID_ARMS:
+        raise HTTPException(
+            422,
+            f"未知实验臂 {name!r}，可选 {list(config.VALID_ARMS)}。"
+            f"臂名决定产物落到哪个目录/文件，写错会毁掉对照实验",
+        )
+    return name

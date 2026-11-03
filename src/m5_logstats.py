@@ -33,10 +33,12 @@ NEUTRAL = {"整张确认", "撤销", "提交"}
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default=str(PROJECT / "configs" / "default.yaml"))
+    ap.add_argument("--ops", default=None,
+                    help="ops.csv 路径；三臂对照时传 out/logs/ops_<arm>.csv 分别统计")
     args = ap.parse_args()
 
     cfg = load_config(args.config)
-    ops_path = PROJECT / "out" / "logs" / "ops.csv"
+    ops_path = Path(args.ops) if args.ops else PROJECT / "out" / "logs" / "ops.csv"
     if not ops_path.exists():
         raise SystemExit(f"还没有操作日志：{ops_path}\n先用 m4_app.py 标几张再来")
 
