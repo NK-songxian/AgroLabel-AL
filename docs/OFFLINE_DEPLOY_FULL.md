@@ -1,7 +1,11 @@
-# 离线部署说明（AgroLabel-AL）
+# 离线部署说明（正式交付版 · 暂缓执行）
 
-> 面向：评审现场 / 内网机器 / 断网环境演示。
-> 目标：**一条命令拉起系统，只用一个端口**。
+> **状态：暂缓。** 功能仍在改（三臂实验、`human_stats.py` 未完成），提前锁 wheelhouse
+> 等于每改一次依赖就重打一次包。这份留作正式交付时的作业单。
+>
+> **本阶段怎么跑起来** → 看 `docs/LOCAL_START.md`（用仓库内 `.venv`，一条命令启动）。
+>
+> 面向：评审现场 / 内网机器 / 断网环境。
 > 写于 2026-11-04，与当时代码实测一致。
 
 ---
@@ -29,7 +33,7 @@
 | 基线权重 | `weights/baseline_yolov8nseg_plantseg34_best.pt` | **6.5 MB** | ✅ | 已随仓库分发 |
 | 前端构建产物 | `frontend/dist/` | **0.8 MB** | ✅ | `index.html` + `assets/*.js/css` |
 | 数据集采样包 | `datasets/plantseg100_pack/` | **14.6 MB** | ✅ | 100 张 × 34 类，含 `al_pool/` |
-| Python wheel 包 | `wheelhouse/`（自建） | ~1.5 GB | ✅ | 见第 2 节，含 torch |
+| Python wheel 包 | `wheelhouse/`（**待建**） | ~1.5 GB | ⏳ | 见第 2 节；暂缓，见文档开头 |
 | Node 运行时 | — | — | ❌ | **不需要**，除非现场要重新构建前端 |
 
 > 前端什么时候要重建：改了 `frontend/src` 之后。纯演示/部署不需要 Node。
