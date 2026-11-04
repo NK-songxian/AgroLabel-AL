@@ -22,6 +22,9 @@ BASE = "http://127.0.0.1:8000"
 passed = failed = 0
 
 
+HEADER = ["ts", "image", "op", "instance", "detail", "n_ops_on_image", "api_ms"]
+
+
 def check(name: str, cond: bool, detail: str = "") -> bool:
     global passed, failed
     if cond:
@@ -402,12 +405,28 @@ def main() -> int:
     st, _, _ = http("POST", "/api/logs/ops", {"session_id": "s", "events": []})
     check("空事件列表 -> 422", st == 422, str(st))
 
-    # ---------------------------------------------------- 导出（P3 占位）
+    # ---------------------------------------------------- 导出
     print("\n[9] GET /api/logs/export")
-    st, _, _ = http("GET", "/api/logs/export")
-    check("返回 501（不是 404）", st == 501, str(st))
-    st, _, _ = http("GET", "/api/logs/export?format=json")
-    check("format=json -> 400", st == 400, str(st))
+    st, _, raw = http("GET", "/api/logs/export?format=csv")
+    check("export csv 200", st == 200, str(st))
+    if st == 200:
+        check("csv 带 UTF-8 BOM（Excel 不乱码）",
+              raw[:3] == b"\xef\xbb\xbf", str(raw[:3]))
+        head = raw.decode("utf-8-sig").strip().splitlines()[0]
+        check("csv 表头与契约逐字一致", head.split(",") == HEADER, head)
+    st, _, _ = http("GET", f"/api/logs/export?format=csv&arm={test_arm}")
+    check("export 分臂 200", st == 200, str(st))
+    st, _, raw = http("GET", f"/api/logs/export?format=json&arm={test_arm}")
+    check("export json 200", st == 200, str(st))
+    if st == 200:
+        d = json.loads(raw.decode("utf-8"))
+        check("json 有 events 数组", isinstance(d.get("events"), list))
+        check("json rows == len(events)", d.get("rows") == len(d["events"]),
+              f'{d.get("rows")} vs {len(d["events"])}')
+    st, _, _ = http("GET", "/api/logs/export?format=xlsx")
+    check("export 非法 format -> 400", st == 400, str(st))
+    st, _, _ = http("GET", "/api/logs/export?arm=bogus")
+    check("export 非法臂 -> 422", st == 422, str(st))
 
     # ---------------------------------------------------- 主动学习选样
     print("\n[10] POST /api/sample")

@@ -1,6 +1,7 @@
 import { Select } from 'antd'
 import { useMemo, useState } from 'react'
 
+import { api } from '../api'
 import { classSolid } from '../colors'
 import { useStore } from '../store'
 import { ARM_LABEL } from '../types'
@@ -14,6 +15,39 @@ function download(name: string, text: string) {
   a.download = name
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+/**
+ * 从后端导出该臂的完整 ops.csv（跨会话）。
+ *
+ * 后端的 `/api/logs/export` 直接回原始字节流（保留 UTF-8 BOM，Excel 打开不乱码），
+ * 比前端内存里那几条更完整 —— 一次实验会跨多次刷新/多个会话。
+ * 后端不可用时退回本会话的日志，不让这个按钮变成"点了没反应"。
+ */
+async function downloadServerOps(arm: string) {
+  const toast = useStore.getState().toast
+  try {
+    const res = await fetch(api.logsExportUrl('csv', arm))
+    if (!res.ok) throw new Error(String(res.status))
+    const blob = await res.blob()
+    // 文件名从 Content-Disposition 取，后端带了时间戳
+    const cd = res.headers.get('Content-Disposition') ?? ''
+    const m = /filename="?([^"]+)"?/.exec(cd)
+    const name = m ? m[1] : `ops_${arm}_${Date.now()}.csv`
+
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = name
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+
+    const rows = res.headers.get('X-Row-Count')
+    toast(`已从服务端导出 ${name}（${rows ?? '?'} 条）`, 'ok')
+  } catch {
+    download(`ops_${Date.now()}.csv`, useStore.getState().exportOpsCsv())
+    toast('后端导出不可用，已改为下载本会话的日志', 'warn')
+  }
 }
 
 /** 实验臂切换条。三臂对照的实验条件，切了会重新载入当前图。 */
@@ -56,9 +90,9 @@ export function InspectorPanel() {
   const modelVersion = useStore((s) => s.modelVersion)
   const status = useStore((s) => s.status)
   const ops = useStore((s) => s.ops)
+  const arm = useStore((s) => s.arm)
   const countedForCurrent = useStore((s) => s.countedForCurrent)
   const exportOpsCsv = useStore((s) => s.exportOpsCsv)
-  const toast = useStore((s) => s.toast)
 
   const [copied, setCopied] = useState(false)
 
@@ -198,11 +232,8 @@ export function InspectorPanel() {
       <div className="pane-foot ops-foot">
         <button
           className="link"
-          disabled={!ops.length}
-          onClick={() => {
-            download(`ops_${Date.now()}.csv`, exportOpsCsv())
-            toast('已下载 ops.csv', 'ok')
-          }}
+          onClick={() => void downloadServerOps(arm)}
+          title="从后端导出该臂的完整日志（跨会话），拿不到时退回本会话的日志"
         >
           下载 ops.csv
         </button>

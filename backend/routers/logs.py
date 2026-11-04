@@ -14,9 +14,11 @@ op 写成一个新词，那 25 分里的量化项就直接失准。
 from __future__ import annotations
 
 import csv
+import json
 import threading
+import time
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Response
 
 from .. import config
 from ..schemas import OpsRequest, OpsResponse
@@ -93,22 +95,66 @@ def _count_rows(path) -> int:
 
 
 @router.get("/logs/export")
-def export_ops(format: str = "csv"):  # noqa: A002 —— 契约里就叫 format
-    """导出 ops.csv。
+def export_ops(
+    format: str = "csv",  # noqa: A002 —— 契约里就叫 format
+    arm: str | None = Query(
+        default=None,
+        description="实验臂；给了就导出 out/logs/ops_<arm>.csv，不给导合并的 ops.csv",
+    ),
+):
+    """导出操作日志（ADDENDUM §2.8）。
 
-    团队决议（ADDENDUM §7 第 4 条）：**留位置，P3 再做**。
-    这里注册路由并**一律返回 501** + 明确说明，不做成 404 ——
-    404 会被前端当成"地址打错"，501 才是"接口存在但没实现"。
+    `format=csv` 返回原文件字节流 —— **不做重新编码**，保留 UTF-8 BOM，
+    这样 Excel 双击打开中文表头/中文 detail 不会乱码（m4/m5 也是这个约定）。
+
+    `format=json` 解析成对象数组，供脚本直接消费（pandas.read_json 之类）。
+
+    三个设计取舍：
+      - 带 `arm` 就导分臂文件。三臂实验要按臂出数据，合并的 ops.csv 分不开。
+      - 文件不存在时返回 **200 + 只有表头的空 CSV**，而不是 404：
+        导出是"下载文件"的语义，给一个能打开的合法 CSV 比报错更有用。
+      - `Content-Disposition` 带时间戳，连续导两次不会互相覆盖。
     """
-    if format != "csv":
-        raise HTTPException(400, f"format={format} 不支持，目前只有 csv")
+    fmt = (format or "csv").lower()
+    if fmt not in ("csv", "json"):
+        raise HTTPException(400, f"format={fmt} 不支持，可选 csv / json")
 
-    where = "尚未产生任何日志" if not config.OPS_CSV.is_file() else \
-        f"日志已在 {str(config.OPS_CSV.relative_to(config.PROJECT)).replace(chr(92), '/')}" \
-        f"（{config.OPS_CSV.stat().st_size} 字节），可直接取用"
+    src = config.OPS_CSV
+    if arm:
+        src = src.with_name(f"ops_{resolve_arm(arm)}.csv")
 
-    raise HTTPException(
-        501,
-        f"未实现：/api/logs/export 排在 P3。{where}。"
-        f"当前导出走前端右栏的『下载 ops.csv』，或直接读该文件",
+    rows: list[dict] = []
+    if src.is_file():
+        with open(src, "r", encoding="utf-8-sig", newline="") as f:
+            rows = list(csv.DictReader(f))
+
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    stem = src.stem                             # ops 或 ops_<arm>
+    filename = f"{stem}_{stamp}.{fmt}"
+
+    if fmt == "json":
+        body = json.dumps(
+            {"source": src.name, "rows": len(rows), "events": rows},
+            ensure_ascii=False, indent=2,
+        )
+        return Response(
+            content=body,
+            media_type="application/json; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+
+    if src.is_file():
+        # 原样回传，保留 BOM —— 重新编码会破坏 Excel 的兼容性
+        payload = src.read_bytes()
+    else:
+        # 给一个只有表头的合法 CSV，前端/Excel 都能正常打开
+        payload = ("\ufeff" + ",".join(HEADER) + "\n").encode("utf-8")
+
+    return Response(
+        content=payload,
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "X-Row-Count": str(len(rows)),
+        },
     )

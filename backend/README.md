@@ -40,7 +40,7 @@
 | `POST /api/annotations` | ✅ | 落 `out/annotations/<arm>/`，YOLO seg txt + 元数据 json |
 | `GET /api/annotations/{id}` | ✅ | 读回已保存的标注；没标过返回 200 + `found:false` |
 | `POST /api/logs/ops` | ✅ | 追加 `out/logs/ops.csv`，表头对齐 `src/m4_app.py:131` |
-| `GET /api/logs/export` | 🕒 | **P3 占位**：已注册路由，一律返回 501 + 说明（不是 404） |
+| `GET /api/logs/export` | ✅ | 原样回 CSV（保 BOM）/ JSON；`?arm=` 导出分臂文件 |
 | `POST /api/sample` | ✅ | 调模型侧 `select()`；默认剔除已标注图，避免反复推荐同一批 |
 | `POST /api/refine` | ✅ | 调模型侧 `refine()`；顶点上限 20 并剪掉 <2px 的边 |
 | `POST /api/edit-cost` | ✅ | 调 `m6_editcost.edit_ops()`；多边形先栅格化成掩码 |

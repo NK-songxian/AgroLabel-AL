@@ -157,6 +157,13 @@ export const api = {
     return (await res.json()) as AnnotationRead
   },
 
+  /** 服务端 ops 导出的 URL（浏览器直接下载用） */
+  logsExportUrl: (format: 'csv' | 'json' = 'csv', arm?: string) => {
+    const q = new URLSearchParams({ format })
+    if (arm) q.set('arm', arm)
+    return `${BASE}/api/logs/export?${q.toString()}`
+  },
+
   imageUrl: (image: ImageItem | string, bust?: number) => {
     const id = typeof image === 'string' ? image : image.image_id
     const q = bust ? `?v=${bust}` : ''

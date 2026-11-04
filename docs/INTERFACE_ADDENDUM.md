@@ -42,7 +42,7 @@
 | `POST /api/logs/ops` | ✅ | `utf-8-sig`，表头逐字对齐 m4_app |
 | `POST /api/refine` | ✅ | 调模型侧 `refine()`；`class_id` 硬过滤 |
 | `GET /api/annotations/{id}` | ✅ | 续标/刷新恢复；没标过返回 **200 + found:false**（不用 404） |
-| `GET /api/logs/export` | 🕒 | 已注册路由，一律 501（P3） |
+| `GET /api/logs/export` | ✅ | csv（保 BOM）/ json；`?arm=` 出分臂文件 |
 
 ### 2.1 `GET /api/images` —— 标注队列 / 元信息批量查询
 
