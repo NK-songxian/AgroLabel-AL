@@ -86,6 +86,8 @@ export const api = {
       label_state: LabelState
       instances: { class_id: number; polygon: [number, number][] }[]
       elapsed_ms: number
+      /** 打开图到落盘的时长（备用口径，含看图时间） */
+      elapsed_from_open_ms?: number
       operator?: string
       session_id?: string
     },

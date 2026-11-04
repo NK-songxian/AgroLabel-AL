@@ -120,6 +120,15 @@ type Store = {
   /** 标注员标识（姓名/编号）。写进每张图的元数据，交叉分配时按人统计用 */
   operator: string
   /**
+   * 这张图上"第一个标注动作"的时刻。null = 还没动过。
+   *
+   * 计时口径（手册 §08）：起点不是"打开图"，而是**人真正开始动手**——
+   * 纯人工臂 = 画下第一个顶点；其余两臂 = 第一次点选/改类/删/拖顶点/点提示。
+   * 这样排除掉"看图、找病灶、发呆"的时间，三臂比的才是标注动作本身。
+   * 打开时刻仍保留在 startedAt 里，落盘时两个口径都会上报。
+   */
+  actionAt: number | null
+  /**
    * 实验臂。决定三件事：是否跑预标注（manual 不跑）、是否允许点提示
    * （noprompt 禁用）、产物落到 out/annotations/<arm>/ 哪个目录。
    */
@@ -148,6 +157,8 @@ type Store = {
   toggleTheme: () => void
   /** 设置标注员，记住选择 */
   setOperator: (v: string) => void
+  /** 记下"这张图的第一个标注动作"；已有值则不覆盖 */
+  markAction: () => void
   /** 切换实验臂；会按新条件重新载入当前图 */
   setArm: (a: Arm) => void
 
@@ -236,6 +247,7 @@ export const useStore = create<Store>((set, get) => ({
   showMasks: true,
   theme: initialTheme(),
   operator: readStoredOperator(),
+  actionAt: null,
   arm: 'assisted',
   draft: null,
 
@@ -288,6 +300,7 @@ export const useStore = create<Store>((set, get) => ({
       nOps: 0,
       undoStack: [],
       startedAt: Date.now(),
+      actionAt: null,
       latencyMs: null,
       scale: 1,
       tx: 0,
@@ -398,7 +411,10 @@ export const useStore = create<Store>((set, get) => ({
 
   // ------------------------------------------------------------ 编辑
 
-  select: (id) => set({ selectedId: id }),
+  select: (id) => {
+    if (id != null) get().markAction()
+    set({ selectedId: id })
+  },
 
   logOp: (op, detail, instance = -1) => {
     const { current, nOps, ops, latencyMs } = get()
@@ -423,6 +439,7 @@ export const useStore = create<Store>((set, get) => ({
   flushOps: (force = false) => flushOps(force),
 
   deleteSelected: () => {
+    get().markAction()
     const { selectedId, instances, undoStack, nOps, labelState } = get()
     if (!selectedId) return
     const idx = instances.findIndex((x) => x.id === selectedId)
@@ -440,6 +457,7 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   changeClass: (id, classId) => {
+    get().markAction()
     const { instances, classes, undoStack, nOps, labelState } = get()
     const idx = instances.findIndex((x) => x.id === id)
     if (idx < 0) return
@@ -548,6 +566,10 @@ export const useStore = create<Store>((set, get) => ({
     set({ operator: name })
   },
 
+  markAction: () => {
+    if (get().actionAt == null) set({ actionAt: Date.now() })
+  },
+
   toggleTheme: () => {
     const next: Theme = get().theme === 'dark' ? 'light' : 'dark'
     applyTheme(next)
@@ -556,8 +578,10 @@ export const useStore = create<Store>((set, get) => ({
 
   // ------------------------------------------------------------ 手画多边形
 
-  drawAddPoint: (x, y) =>
-    set((s) => ({ draft: [...(s.draft ?? []), [x, y] as [number, number]] })),
+  drawAddPoint: (x, y) => {
+    get().markAction()
+    set((s) => ({ draft: [...(s.draft ?? []), [x, y] as [number, number]] }))
+  },
 
   drawUndoPoint: () =>
     set((s) => {
@@ -604,6 +628,7 @@ export const useStore = create<Store>((set, get) => ({
   // ------------------------------------------------------------ 拖顶点
 
   beginVertexDrag: () => {
+    get().markAction()
     const { instances, undoStack, nOps, labelState } = get()
     // 整段拖动只压一次，否则每帧一次撤销，Ctrl+Z 要按几百下
     set({
@@ -637,6 +662,7 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   deleteVertex: (id, index) => {
+    get().markAction()
     const { instances, undoStack, nOps, labelState } = get()
     const sel = instances.find((i) => i.id === id)
     if (!sel) return false
@@ -660,6 +686,7 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   addVertex: () => {
+    get().markAction()
     const { instances, selectedId, undoStack, nOps, labelState } = get()
     const sel = instances.find((i) => i.id === selectedId)
     if (!sel || sel.polygon.length < 2) return false
@@ -699,6 +726,7 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   insertVertexAt: (px, py, imgW, imgH) => {
+    get().markAction()
     const { instances, selectedId, undoStack, nOps, labelState } = get()
     const sel = instances.find((i) => i.id === selectedId)
     if (!sel || sel.polygon.length < 3 || !imgW || !imgH) return false
@@ -749,6 +777,7 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   refineAt: async (px, py) => {
+    get().markAction()
     const { current, instances, selectedId, classes, arm } = get()
     if (!current || get().refining) return
     if (arm === 'noprompt') {
@@ -964,14 +993,24 @@ async function flushOps(force: boolean): Promise<void> {
  * 之前只有 submit 落盘，标注员点「确认」以为存了，刷新就全丢。
  */
 async function persist(text?: string): Promise<boolean> {
-  const { current, instances, labelState, startedAt, arm, operator } = useStore.getState()
+  const { current, instances, labelState, startedAt, actionAt, arm, operator } =
+    useStore.getState()
   if (!current) return false
+
+  const now = Date.now()
+  // 两个口径都上报，不丢信息：
+  //   elapsed_ms            = 第一个标注动作 -> 落盘（手册 §08 用这个）
+  //   elapsed_from_open_ms  = 打开这张图 -> 落盘（含看图/熟悉，备用口径）
+  // 若整张都没动过手（例如看了一眼就「整张确认」），退回打开时刻，
+  // 否则会算出 0，把"快速确认"记成零成本。
+  const from = actionAt ?? startedAt
 
   const payload = {
     image_id: current.image_id,
     label_state: (labelState === 'unlabeled' ? 'labeled' : labelState) as LabelState,
     instances: instances.map((x) => ({ class_id: x.class_id, polygon: x.polygon })),
-    elapsed_ms: Date.now() - startedAt,
+    elapsed_ms: now - from,
+    elapsed_from_open_ms: now - startedAt,
     operator: operator || undefined,
     session_id: SESSION_ID,
   }

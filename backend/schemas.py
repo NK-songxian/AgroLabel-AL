@@ -122,6 +122,9 @@ class AnnotateRequest(BaseModel):
     label_state: Literal["labeled", "no_target"]
     instances: list[InInstance] = Field(default_factory=list)
     elapsed_ms: int = Field(default=0, ge=0)
+    # 打开图 -> 落盘的时长（含看图/熟悉）。手册 §08 用 elapsed_ms（首个动作起算），
+    # 这个字段保留另一套口径，方便报告里同时给出"纯操作时间"和"总时长"。
+    elapsed_from_open_ms: int | None = Field(default=None, ge=0)
     operator: str | None = Field(default=None, max_length=64)
     session_id: str | None = Field(default=None, max_length=64)
 

@@ -146,6 +146,7 @@ def submit_annotation(
         "pred_cached": pred_cached,
         "model_version": model_version,
         "elapsed_ms": body.elapsed_ms,
+        "elapsed_from_open_ms": body.elapsed_from_open_ms,
         "operator": body.operator,
         "session_id": body.session_id,
         "ts": saved_at,
