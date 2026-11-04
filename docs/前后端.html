@@ -740,7 +740,7 @@ npm i react-konva konva zustand antd axios
         <tr><td>点提示调参</td><td>ROI 半径 0.5×短边、局部 conf 0.10、类别兜底、强制校验包住点击点；顶点上限 20 并剪掉 &lt;2px 的边</td></tr>
         <tr><td>明暗主题</td><td>默认白天，左下角一键切，选择记在 localStorage</td></tr>
         <tr><td>画布交互</td><td>手画（右键双击闭合）、拖顶点、橡皮擦删节点、双击右键插节点、中键平移</td></tr>
-        <tr><td>本地启动</td><td><b>前端由 FastAPI 一起托管</b>：<code>start_web.ps1</code> 一条命令起服务，<b>只要 Python 不要 Node</b>，单端口 8000。API 走<b>相对地址</b>（<code>BASE=''</code>），换机器/端口/反代都不用改配置。见 <code>docs/LOCAL_START.md</code></td></tr>
+        <tr><td>本地启动</td><td><b>前端由 FastAPI 一起托管</b>：<b>双击 <code>启动.bat</code></b> 即可（或 <code>start_web.ps1</code>），<b>只要 Python 不要 Node</b>，单端口 8000。API 走<b>相对地址</b>（<code>BASE=''</code>），换机器/端口/反代都不用改配置。见 <code>docs/LOCAL_START.md</code></td></tr>
         <tr><td>依赖封装</td><td><b>暂缓</b>：<code>backend/requirements.txt</code> 已按实测锁版本，但 wheelhouse / 离线安装包等全部功能定稿后再打。作业单见 <code>docs/OFFLINE_DEPLOY_FULL.md</code></td></tr>
       </tbody>
     </table>

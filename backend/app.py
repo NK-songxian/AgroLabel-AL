@@ -116,8 +116,9 @@ if _UI.is_file():
         return FileResponse(_UI)
 
     app.mount("/", StaticFiles(directory=str(_DIST), html=True), name="ui")
-    print(f"[startup] 托管前端: {_DIST.relative_to(config.PROJECT)}（浏览器直接开 "
-          f"http://127.0.0.1:8000/ 即可，不需要 Node）")
+    # 不写死端口：start_web.ps1 支持 -Port，写死 8000 会误导
+    print(f"[startup] 托管前端: {_DIST.relative_to(config.PROJECT)}"
+          f"（浏览器打开本服务地址即可，不需要 Node）")
 else:
 
     @app.get("/", include_in_schema=False)

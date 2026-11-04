@@ -50,13 +50,41 @@
 
 ## 2. 启动
 
+### 双击（推荐，不用输命令）
+
+打开仓库根目录，**双击 `启动.bat`**。
+
+会弹出一个黑窗口，自动做完：找 `.venv` → 自检依赖 → 设环境变量 →
+起服务 → 打开浏览器。窗口里会打印
+
+```
+  AgroLabel-AL
+  界面   http://127.0.0.1:8000/
+  接口   http://127.0.0.1:8000/api/health
+  文档   http://127.0.0.1:8000/docs
+  停止   Ctrl+C
+```
+
+**关窗口或按 Ctrl+C 就是停止服务。**
+启动失败时窗口不会自动关闭（`pause`），把错误截图发群里即可。
+
+带参数也能用（例如换端口）：
+
+```bat
+启动.bat -Port 8080
+启动.bat -HostAddr 0.0.0.0
+```
+
+### 命令行（等价）
+
 ```powershell
 # 仓库根目录
 .\start_web.ps1
 ```
 
 > 这台机器只有 Windows PowerShell 5.1（没有 `pwsh`），上面的写法在 5.1 下可用。
-> 若被 ExecutionPolicy 拦住：
+> `启动.bat` 已带 `-ExecutionPolicy Bypass`，双击不受执行策略限制。
+> 若自己写命令被拦住：
 > ```powershell
 > powershell -NoProfile -ExecutionPolicy Bypass -File .\start_web.ps1
 > ```
@@ -161,7 +189,8 @@ python backend/tests/smoke_test.py
 | 启动卡住十几秒无输出 | `YOLO_OFFLINE` 没生效，ultralytics 在联网探测 | 用 `start_web.ps1`，或手动 `$env:YOLO_OFFLINE="1"` |
 | `OMP: Error #15` | conda MKL 与 CUDA torch 各带一份 `libiomp5md.dll` | 保持 `KMP_DUPLICATE_LIB_OK=TRUE`（`app.py` 已设） |
 | 脚本报语法错 / 中文乱码 | PowerShell 5.1 把无 BOM 的 UTF-8 当 ANSI 读 | `start_web.ps1` 已存为 **UTF-8 with BOM**，改它时别丢 BOM |
-| 端口被占 | 上次进程没退 | 换 `-Port 8081`，或 `Get-NetTCPConnection -LocalPort 8000` 找进程 |
+| 端口被占 | 上次进程没退 | 换 `启动.bat -Port 8081`，或 `Get-NetTCPConnection -LocalPort 8000` 找进程 |
+| 双击黑窗一闪就没 | 启动脚本报错退出 | 窗口本该 `pause`；若仍闪退，用命令行跑 `启动.bat` 看报错 |
 
 ---
 
