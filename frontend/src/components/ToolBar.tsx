@@ -14,6 +14,8 @@ export function ToolBar() {
   const draft = useStore((s) => s.draft)
   const selectedId = useStore((s) => s.selectedId)
   const arm = useStore((s) => s.arm)
+  const operator = useStore((s) => s.operator)
+  const setOperator = useStore((s) => s.setOperator)
   const setMode = useStore((s) => s.setMode)
   const toggleMasks = useStore((s) => s.toggleMasks)
   const addVertex = useStore((s) => s.addVertex)
@@ -25,6 +27,20 @@ export function ToolBar() {
 
   return (
     <div className="topbar-tools">
+      {/* 标注员：写进每张图的元数据。三臂交叉分配时要按人统计，
+          所以必须在「选择」左边、一眼能看到的地方 */}
+      <input
+        className="operator-input"
+        value={operator}
+        placeholder="标注员"
+        maxLength={32}
+        aria-label="标注员"
+        title="标注员姓名或编号。会写进每张图的元数据（out/annotations/<arm>/<id>.json），交叉分配时按人统计"
+        onChange={(e) => setOperator(e.target.value)}
+      />
+
+      <span className="tool-sep" />
+
       <div className="tool-group">
         <button
           className={`tool${mode === 'select' ? ' on' : ''}`}

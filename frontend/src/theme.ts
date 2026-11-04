@@ -10,8 +10,11 @@ export type Theme = 'dark' | 'light'
 
 export const THEME_KEY = 'agrolabel_theme'
 
-/** 默认深色：标注员长时间盯画布，浅色底会盖过病斑的对比度 */
-export const DEFAULT_THEME: Theme = 'dark'
+/**
+ * 默认白天：投影/投屏演示和日常办公环境下浅色更清楚。
+ * 长时间盯画布想换深色，左下角一键切换，选择会记住。
+ */
+export const DEFAULT_THEME: Theme = 'light'
 
 function isTheme(v: unknown): v is Theme {
   return v === 'dark' || v === 'light'

@@ -873,3 +873,23 @@ button { font: inherit; color: inherit; }
 }
 
 .sample-bar .sample-k:disabled { opacity: .45; cursor: not-allowed; }
+
+/* 标注员输入：在"选择"左边。三臂交叉分配要按人统计，所以放在最显眼处 */
+.operator-input {
+  width: 84px;
+  flex: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 11.5px;
+}
+
+.operator-input::placeholder { color: var(--dim-2); }
+
+.operator-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--panel);
+}

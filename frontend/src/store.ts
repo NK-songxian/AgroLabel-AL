@@ -32,6 +32,16 @@ export type Toast = { id: number; kind: 'ok' | 'warn' | 'err'; text: string }
 
 const PAGE = 60
 const MAX_UNDO = 50
+/** 标注员标识存在这里，刷新不丢 */
+const OPERATOR_KEY = 'agrolabel_operator'
+
+function readStoredOperator(): string {
+  try {
+    return localStorage.getItem(OPERATOR_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
 const SESSION_ID = `s${Date.now().toString(36)}`
 
 /** 日志上送的攒批参数：够 5 条或停手 0.8s 就冲一次，提交时强制冲 */
@@ -105,8 +115,10 @@ type Store = {
   refining: boolean
   /** 画布是否显示标注多边形；关掉可以干净地看原图（数据不受影响） */
   showMasks: boolean
-  /** 明暗主题。深色默认（长时间盯画布），浅色给强光/投影现场用 */
+  /** 明暗主题。默认白天，左下角可切 */
   theme: Theme
+  /** 标注员标识（姓名/编号）。写进每张图的元数据，交叉分配时按人统计用 */
+  operator: string
   /**
    * 实验臂。决定三件事：是否跑预标注（manual 不跑）、是否允许点提示
    * （noprompt 禁用）、产物落到 out/annotations/<arm>/ 哪个目录。
@@ -134,6 +146,8 @@ type Store = {
   toggleMasks: () => void
   /** 明暗切换：改 <html data-theme>，并记住选择 */
   toggleTheme: () => void
+  /** 设置标注员，记住选择 */
+  setOperator: (v: string) => void
   /** 切换实验臂；会按新条件重新载入当前图 */
   setArm: (a: Arm) => void
 
@@ -221,6 +235,7 @@ export const useStore = create<Store>((set, get) => ({
   /** 画布是否显示标注多边形。纯视图开关，不影响实例数据本身 */
   showMasks: true,
   theme: initialTheme(),
+  operator: readStoredOperator(),
   arm: 'assisted',
   draft: null,
 
@@ -526,6 +541,12 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   toggleMasks: () => set((s) => ({ showMasks: !s.showMasks })),
+
+  setOperator: (v) => {
+    const name = v.slice(0, 32)
+    try { localStorage.setItem(OPERATOR_KEY, name) } catch { /* 存不了也不影响本会话 */ }
+    set({ operator: name })
+  },
 
   toggleTheme: () => {
     const next: Theme = get().theme === 'dark' ? 'light' : 'dark'
@@ -943,7 +964,7 @@ async function flushOps(force: boolean): Promise<void> {
  * 之前只有 submit 落盘，标注员点「确认」以为存了，刷新就全丢。
  */
 async function persist(text?: string): Promise<boolean> {
-  const { current, instances, labelState, startedAt, arm } = useStore.getState()
+  const { current, instances, labelState, startedAt, arm, operator } = useStore.getState()
   if (!current) return false
 
   const payload = {
@@ -951,6 +972,7 @@ async function persist(text?: string): Promise<boolean> {
     label_state: (labelState === 'unlabeled' ? 'labeled' : labelState) as LabelState,
     instances: instances.map((x) => ({ class_id: x.class_id, polygon: x.polygon })),
     elapsed_ms: Date.now() - startedAt,
+    operator: operator || undefined,
     session_id: SESSION_ID,
   }
 
