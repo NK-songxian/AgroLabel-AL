@@ -92,10 +92,42 @@ app.include_router(refine.router)
 app.include_router(editcost.router)
 
 
-@app.get("/", include_in_schema=False)
-def root():
-    return {
-        "service": "AgroLabel-AL backend",
-        "docs": "/docs",
-        "health": "/api/health",
-    }
+# ---------------------------------------------------------------- 托管前端
+# 构建好的前端（frontend/dist）直接由 FastAPI 托管，**离线演示只需要 Python，不需要 Node**。
+# 挂载必须放在所有 include_router 之后：Starlette 按注册顺序匹配，
+# /api/* 会先命中上面的路由，剩下的才落到这个 catch-all。
+#
+# 只读 dest 目录，不做任何写入；dist 不存在（没 build）就跳过，接口照常可用。
+_DIST = config.PROJECT / "frontend" / "dist"
+_UI = _DIST / "index.html"
+
+
+if _UI.is_file():
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
+
+    @app.get("/", include_in_schema=False)
+    def root_ui():
+        """根路径给前端页面。
+
+        **不能用 `mount("/")` 兼顾根路径** —— 显式路由先匹配，`/` 会一直落到
+        下面那个 JSON 版本上。所以 `/` 单独返回 index.html，静态资源交给 mount。
+        """
+        return FileResponse(_UI)
+
+    app.mount("/", StaticFiles(directory=str(_DIST), html=True), name="ui")
+    print(f"[startup] 托管前端: {_DIST.relative_to(config.PROJECT)}（浏览器直接开 "
+          f"http://127.0.0.1:8000/ 即可，不需要 Node）")
+else:
+
+    @app.get("/", include_in_schema=False)
+    def root_api():
+        return {
+            "service": "AgroLabel-AL backend",
+            "docs": "/docs",
+            "health": "/api/health",
+            "ui": "未构建：先 cd frontend && npm run build，或 npm run dev 另起 5173",
+        }
+
+    print("[startup] 未找到 frontend/dist，只提供接口。先 cd frontend 跑 npm run build，"
+          "或用 npm run dev 另起前端")

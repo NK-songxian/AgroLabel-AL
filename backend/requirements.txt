@@ -1,0 +1,36 @@
+# AgroLabel-AL · 后端依赖（离线部署用，已锁版本）
+#
+# 版本来自本机实测（Python 3.13.9 / Windows AMD64），不是拍的：
+#   fastapi 0.162.0 · uvicorn 0.54.0 · pydantic 2.12.4 · Pillow 12.0.0
+#   opencv-python 5.0.0 · numpy 2.3.5 · PyYAML 6.0.3 · ultralytics 8.4.198
+#
+# 用法（联网机器上先建 wheelhouse，再拷到离线机器）：
+#   pip download -r backend/requirements.txt -d wheelhouse
+#   pip install --no-index --find-links wheelhouse -r backend/requirements.txt
+#
+# ⚠️ torch / torchvision 单独说明：
+#   本仓库的 .venv 是"继承 conda base 的 torch，只装缺失的服务端依赖"，
+#   所以下面把 torch 注释掉了。若目标机器没有 torch，取消注释并装 CUDA 版：
+#     pip install torch==2.9.1 --index-url https://download.pytorch.org/whl/cu128
+#
+# ⚠️ ultralytics 会带一堆传递依赖（matplotlib/pandas/scipy/psutil/polars…），
+#   它们不在下面逐条钉版本，由 pip 按 ultralytics 的约束解析。
+#   离线装机时 **wheelhouse 必须包含这些传递依赖** —— 在联网机器上
+#   `pip download` 会自动把它们一起下下来。
+
+fastapi==0.162.0
+uvicorn[standard]==0.54.0
+pydantic==2.12.4
+
+# 图像与标签读取（catalog 用 PIL 读宽高，refine/editcost 用 cv2 处理掩码）
+Pillow==12.0.0
+opencv-python==5.0.0
+numpy==2.3.5
+
+# data.yaml / configs 解析
+PyYAML==6.0.3
+
+# 推理与主动学习（模型侧 inference/ 与 active_learning/ 也依赖它）
+ultralytics==8.4.198
+# torch==2.9.1+cu128
+# torchvision==0.24.1
