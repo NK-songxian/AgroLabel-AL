@@ -60,7 +60,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $Root "weights"))) {
 #   YOLO_CONFIG_DIR       ultralytics 想写用户配置目录，受限机器上会警告
 $env:YOLO_OFFLINE = "1"
 $env:KMP_DUPLICATE_LIB_OK = "TRUE"
-if (-not $env:YOLO_CONFIG_DIR) { $env:YOLO_CONFIG_DIR = Join-Path $Root ".tmp\ultralytics" }
+if (-not $env:YOLO_CONFIG_DIR) { $env:YOLO_CONFIG_DIR = Join-Path $Root ".tmp" }
 New-Item -ItemType Directory -Force -Path $env:YOLO_CONFIG_DIR | Out-Null
 
 # ---------------------------------------------------------------- 起服务

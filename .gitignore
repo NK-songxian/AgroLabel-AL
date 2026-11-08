@@ -119,3 +119,5 @@ envs/
 # 但包里的 classes.json / data.yaml / al_pool/*.txt 属于元数据，会被 add 进去，
 # 所以这里整包忽略。已经入库的 datasets/sam3/*.json 等不受影响（gitignore 不管已跟踪文件）。
 datasets/plantseg100_pack/
+# ultralytics 运行时生成的用户配置目录（含本机绝对路径与 uuid，不该入库）
+Ultralytics/
