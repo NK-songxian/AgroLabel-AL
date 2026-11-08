@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import json
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -60,6 +61,10 @@ class Predictor:
         self.device = config.resolve_device()
         self.names = self.model.names
         self.model_version = self._make_version()
+        # ultralytics 的 predict() 会改写实例内部的 predictor 状态，不是线程安全的。
+        # FastAPI 把同步 endpoint 丢进线程池（默认 40 线程），连点两下就会并发进来，
+        # 表现为偶发"结果串了/空结果"—— 看着像模型的锅，其实是我们的。
+        self._lock = threading.Lock()
 
         # 预热一次，把 CUDA context / cuDNN autotune 的一次性开销挡在服务启动阶段
         self._warmup()
@@ -94,13 +99,14 @@ class Predictor:
     def predict_image(self, image_path: Path) -> tuple[list[dict], float, tuple[int, int]]:
         """返回 (instances, latency_ms, (W, H))。instances 的 polygon/bbox 已归一化。"""
         t0 = time.perf_counter()
-        result = self.model.predict(
-            str(image_path),
-            imgsz=config.IMGSZ,
-            conf=config.CONF,
-            verbose=False,
-            device=self.device,
-        )[0]
+        with self._lock:
+            result = self.model.predict(
+                str(image_path),
+                imgsz=config.IMGSZ,
+                conf=config.CONF,
+                verbose=False,
+                device=self.device,
+            )[0]
         latency_ms = (time.perf_counter() - t0) * 1000
 
         h, w = result.orig_shape[0], result.orig_shape[1]
@@ -112,7 +118,9 @@ class Predictor:
             confs = result.boxes.conf.cpu().numpy()
             clss = result.boxes.cls.cpu().numpy().astype(int)
 
-            for pts, conf, cls_id in zip(polys, confs, clss):
+            # strict=False：boxes 与 masks 理论上等长，但个别情况下掩码会少给，
+            # 这里按最短的截断，宁可少画一个也不要整个请求报错
+            for pts, conf, cls_id in zip(polys, confs, clss, strict=False):
                 if pts is None or len(pts) < 3:
                     continue
                 pts = _simplify(np.asarray(pts, dtype=np.float32))

@@ -8,13 +8,10 @@
 from __future__ import annotations
 
 import mimetypes
-import os
-from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 
-from .. import config
 from ..schemas import ImageItem, ImageListResponse
 
 router = APIRouter(prefix="/api", tags=["images"])

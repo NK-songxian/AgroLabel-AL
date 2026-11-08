@@ -56,6 +56,9 @@ let flushing = false
 /** 打开图像的递增序号：用于丢弃快速翻页时回来的过期 predict 响应 */
 let openSeq = 0
 
+/** submit 防重入标志（双击会跳过一张图） */
+let submitting = false
+
 const uid = () =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
@@ -524,16 +527,27 @@ export const useStore = create<Store>((set, get) => ({
   // ------------------------------------------------------------ 提交
 
   submit: async () => {
+    // 防重入：双击「提交并下一张」会走两遍 persist + 两次 next()，
+    // 结果是静默跳过一张图 —— 三臂实验里就是丢一个数据点。
+    if (submitting) return
+    submitting = true
     const { current, instances, labelState } = get()
-    if (!current) return
+    if (!current) {
+      submitting = false
+      return
+    }
 
     if (labelState === 'unlabeled' && instances.length === 0) {
       get().toast('这张还没标：先确认，或点"标为无目标"', 'warn')
+      submitting = false
       return
     }
 
     const ok = await persist(`已提交 ${instances.length} 个实例，正在下一张`)
-    if (!ok) return
+    if (!ok) {
+      submitting = false
+      return
+    }
     get().logOp('提交', `${instances.length} 个实例`)
     set({
       submitted: { ...get().submitted, [current.image_id]: instances.length },
@@ -541,7 +555,10 @@ export const useStore = create<Store>((set, get) => ({
     })
     // m5 靠"提交"事件确定分母，必须在上送完再翻页
     await flushOps(true)
-    setTimeout(() => void get().next(), 260)
+    setTimeout(() => {
+      submitting = false
+      void get().next()
+    }, 260)
   },
 
   // ------------------------------------------------------------ 点提示

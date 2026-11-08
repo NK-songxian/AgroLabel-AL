@@ -19,7 +19,7 @@
 浏览器 ──HTTP──> FastAPI :8000 ──进程内──> ultralytics YOLO-seg
                     ├─ /            frontend/dist/index.html
                     ├─ /assets/*    打包好的 js / css
-                    ├─ /api/*       11 个接口
+                    ├─ /api/*       12 个接口
                     └─ /docs        Swagger
 ```
 
@@ -169,7 +169,7 @@ python backend/tests/smoke_test.py
 ```
 
 第 4 步会动 `out/`（写入后还原），**离线演示前建议跑一次**——
-它覆盖了 11 个接口、三臂目录隔离、导出、点提示、编辑代价。
+它覆盖了 12 个接口、三臂目录隔离、导出、点提示、编辑代价。
 
 ---
 

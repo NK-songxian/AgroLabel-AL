@@ -1,0 +1,16 @@
+# ruff 配置：中文注释按字符数算宽度会偏严，放宽到 120
+line-length = 120
+target-version = "py310"
+
+exclude = [
+    "backend/tests",
+    "backend/tools",
+    ".venv",
+    "node_modules",
+    "frontend",
+]
+
+[lint]
+# 默认规则集（E4/E7/E9/F）够用；要更严再往 select 里加 B/SIM/PERF
+select = ["E4", "E7", "E9", "F", "B"]
+ignore = ["B008", "B904"]

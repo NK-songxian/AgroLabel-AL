@@ -186,7 +186,6 @@ def sample(
     catalog = request.app.state.catalog
 
     # ---- 1. 确定 pool
-    source = "显式传入"
     if body.pool:
         unknown = [i for i in body.pool if catalog.get(i) is None]
         if unknown:
@@ -198,11 +197,10 @@ def sample(
         ids = list(dict.fromkeys(body.pool))       # 去重但保序
     else:
         ids = _al_pool_ids(catalog)
-        if ids:
-            source = "al_pool/unlabeled_pool.txt"
+        # 池子来源（包里的 al_pool 文件 / 全目录）目前没有回传给前端 ——
+        # 想让它可核对，要在 SampleResponse 加字段，属契约变更，先记着。
         if not ids:
             ids = [r.image_id for r in catalog.query(limit=10_000)[0]]
-            source = "全目录"
         if body.exclude_annotated:
             # 只剔除**当前臂**已标过的：三臂要各标同一批图，
             # 若不分臂，第一臂标完第二臂的池子就空了。
@@ -223,7 +221,7 @@ def sample(
     paths = [catalog.get(i).path for i in ids]
     # 注意：select() 内部会把 pool 转成 str 再返回，所以这里键也用 str，
     # 否则 Path 键和 str 查不到一起，每次都要走 O(n) 的兜底扫描。
-    id_of = {str(p): i for p, i in zip(paths, ids)}
+    id_of = {str(p): i for p, i in zip(paths, ids, strict=False)}
 
     # ---- 2. 选样
     t0 = time.perf_counter()
