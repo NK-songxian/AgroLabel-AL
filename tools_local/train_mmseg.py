@@ -1,6 +1,23 @@
 # -*- coding: utf-8 -*-
-"""mmseg/mmengine 通用训练启动脚本（替代 .mim/tools/train.py）。"""
+"""mmseg/mmengine 通用训练启动脚本（替代 .mim/tools/train.py）。
+
+含 PyTorch 2.6+ 兼容补丁：torch.load 默认 weights_only=True，
+mmengine 0.10.7 加载含 HistoryBuffer 的 checkpoint 会 UnpicklingError，
+对本地可信 checkpoint 统一回退 weights_only=False。
+"""
 import argparse
+
+import torch
+
+_orig_load = torch.load
+
+
+def _patched_load(*args, **kwargs):
+    kwargs.setdefault('weights_only', False)
+    return _orig_load(*args, **kwargs)
+
+
+torch.load = _patched_load
 
 from mmengine.config import Config
 from mmengine.runner import Runner

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """SegNeXt-v2 PlantSeg-34 配置：
 1) decode_head.num_classes=35（0=bg + 1..34 类），修掉 v1 的 150 通道口径错误
-2) CE 加 sqrt 逆频率类权重（治 Bean/Cauliflower/Zucchini 弱类）
-3) 短边放大到 >=640 再 RandomCrop512 + 多尺度 ratio(0.75,1.25)
+2) CE 加 sqrt 逆频率类权重（治 Bean/Cauliflower/Zucchini 弱类），顺序 [bg, c1..c34]
+3) 固定 Resize 512x512（多尺度 RandomResize 会触发 RandomCrop 小图 stack 崩溃，弃用）
 4) 50k iters；从 v1 best 热启动（backbone/neck 加载，head conv_seg 形状不匹配自动跳过）
 """
 import json
@@ -23,11 +23,15 @@ for f in glob.glob(REPO + '/data/plantseg34/annotations_mmseg/train/*.png'):
 fg = counts[1:35].astype(np.float64)          # 34 个前景类
 w = 1.0 / np.sqrt(np.maximum(fg, 1.0))
 w = w / w.mean()                               # 均值归一
+# 顺序必须与 png 标签一致：[bg=0.3, c1..c34]。此前把 bg 追加在末尾会整体错位一格。
+# 注意长度必须是 35（F.cross_entropy 要求 == num_classes）；
+# mmseg avg_factor 循环索引 ignore(255) 的 bug 由 site-packages 补丁另行修复。
+full_w = [0.3] + w.tolist()
 classes_str = ',\n        '.join(repr(n) for n in [c for c in json.load(
     open(REPO + '/datasets/sam3/plantseg34_train.json'))['categories']])
 names = [c['name'] for c in sorted(json.load(
     open(REPO + '/datasets/sam3/plantseg34_train.json'))['categories'], key=lambda c: c['id'])]
-w_str = ',\n        '.join(f'{x:.4f}' for x in w)
+w_str = ',\n        '.join(f'{x:.4f}' for x in full_w)
 print('类像素数:', dict(zip(names, fg.astype(int))))
 print('权重范围: min=%.3f max=%.3f' % (w.min(), w.max()))
 
@@ -54,11 +58,9 @@ seg_map_suffix = '.png'
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(reduce_zero_label=False, type='LoadAnnotations'),
-    dict(
-        keep_ratio=True,
-        ratio_range=(0.75, 1.25),
-        scale=(2048, 640),
-        type='RandomResize'),
+    # 固定 512x512（v1 验证过的配方）。多尺度 RandomResize(640 短边) 在宽高比大的图上
+    # 会缩出短边<512，mmseg RandomCrop 不补齐 -> batch stack 崩溃，故弃用。
+    dict(scale=(512, 512), keep_ratio=False, type='Resize'),
     dict(cat_max_ratio=0.75, crop_size=(512, 512), type='RandomCrop'),
     dict(prob=0.5, type='RandomFlip'),
     dict(type='PhotoMetricDistortion'),
@@ -109,7 +111,7 @@ model = dict(
         loss_decode=dict(
             type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0,
             class_weight=({w_str},
-            0.3))))  # __bg__ 低权重，防背景淹没
+            ))))  # [bg=0.3, c1..c34]：bg 低权重防淹没；须配合 site-packages 的 avg_factor 补丁
 
 train_cfg = dict(_delete_=True, type='IterBasedTrainLoop',
                  max_iters=50000, val_interval=5000)
@@ -134,5 +136,9 @@ print('written:', OUT)
 
 c = Config.fromfile(OUT)
 head = c.model.decode_head
+cw = head.loss_decode.class_weight
+assert len(cw) == 35, f'class_weight 长度应为 35, 实际 {len(cw)}'
+assert abs(cw[0] - 0.3) < 1e-6, 'bg 必须在首位'
 print('smoke OK | head.num_classes =', head.num_classes,
-      '| len(class_weight) =', len(head.loss_decode.class_weight))
+      '| len(class_weight) =', len(cw),
+      '| cw[0](bg) =', cw[0], '| cw[34](Zucchini) =', cw[34])
