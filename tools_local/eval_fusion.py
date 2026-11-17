@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""C 线融合评测：B5 实例掩码 × SegNeXt-v1 逐像素类别投票重定类。
-对照组 A：B5 原始预测（同一 COCOeval 口径）
-实验组 B：B5 掩码 + SegNeXt 多数投票定类
-用法: /root/miniconda3/bin/python /tmp/eval_fusion.py
+"""C 线融合评测：检测器实例掩码 × SegNeXt 逐像素类别投票重定类。
+对照组 A：检测器原始预测（同一 COCOeval 口径）
+实验组 B：检测器掩码 + SegNeXt 多数投票定类
+用法: python eval_fusion.py --det-w <best.pt> --seg-ck <v2 best> [--det-imgsz 1280]
 """
+import argparse
 import json
 import time
 from pathlib import Path
@@ -22,13 +23,20 @@ from mmseg.utils import register_all_modules
 register_all_modules(init_default_scope=True)
 
 ROOT = Path('/root/autodl-tmp/Ryan/ArgoLable-AL')
-B5_W = ROOT / 'experiments/matrix/B5/runs/b5_y26x_960-2/weights/best.pt'
-SEG_CK = ROOT / 'runtime/runs/segnext_l_plantseg34/best_mIoU_iter_40000.pth'
-OUT_DIR = ROOT / 'runtime/runs/fusion_b5_segnext'
+ap = argparse.ArgumentParser()
+ap.add_argument('--det-w', default='experiments/matrix/B5/runs/b5_y26x_960-2/weights/best.pt')
+ap.add_argument('--det-imgsz', type=int, default=960)
+ap.add_argument('--seg-cfg', default='configs_mmseg/segnext/segnext_mscan-l_plantseg34-40k.py')
+ap.add_argument('--seg-ck', default='runtime/runs/segnext_l_plantseg34/best_mIoU_iter_40000.pth')
+ap.add_argument('--out', default='runtime/runs/fusion_b5_segnext')
+fa = ap.parse_args()
+B5_W = ROOT / fa.det_w
+SEG_CK = ROOT / fa.seg_ck
+OUT_DIR = ROOT / fa.out
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ---------- SegNeXt ----------
-cfg = Config.fromfile(str(ROOT / 'configs_mmseg/segnext/segnext_mscan-l_plantseg34-40k.py'))
+cfg = Config.fromfile(str(ROOT / fa.seg_cfg))
 seg = build_segmentor(cfg.model)
 ck = torch.load(str(SEG_CK), map_location='cpu', weights_only=False)
 seg.load_state_dict(ck['state_dict'], strict=False)
@@ -73,7 +81,7 @@ for i, im in enumerate(val['images']):
     H, W = im['height'], im['width']
     img = cv2.imread(str(ROOT / 'data/plantseg34' / im['image_path']))
     sem = sem_labels(img, H, W)
-    r = b5.predict(img, imgsz=960, conf=0.001, iou=0.7, max_det=300, verbose=False)[0]
+    r = b5.predict(img, imgsz=fa.det_imgsz, conf=0.001, iou=0.7, max_det=300, verbose=False)[0]
     if r.masks is None:
         continue
     masks = r.masks.data.cpu().numpy()          # (n, h/4?, w) — 已resize到imgsz栅格
@@ -135,5 +143,15 @@ resB = run_eval(preds_B, 'B-融合')
 json.dump({'A': resA, 'B': resB, 'n_changed': n_changed,
            'min_vote_ratio': MIN_VOTE_RATIO},
           open(OUT_DIR / 'fusion_summary.json', 'w'), indent=2, default=float)
-json.dump(preds_B, open(OUT_DIR / 'instances_val_fusion.json', 'w'))
+def _np_default(o):
+    """numpy 标量/数组递归兜底（np.uint32 标量与 >1 维数组均会出现）。"""
+    import numpy as _np
+    if isinstance(o, _np.generic):
+        return o.item()
+    if isinstance(o, _np.ndarray):
+        return o.tolist()
+    return str(o)
+
+
+json.dump(preds_B, open(OUT_DIR / 'instances_val_fusion.json', 'w'), default=_np_default)
 print('[fusion] DONE ->', OUT_DIR)

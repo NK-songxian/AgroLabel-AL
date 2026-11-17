@@ -24,14 +24,18 @@ register_all_modules(init_default_scope=True)
 ROOT = Path('/root/autodl-tmp/Ryan/ArgoLable-AL')
 
 ap = argparse.ArgumentParser()
+ap.add_argument('--cfg', default='configs_mmseg/segnext/segnext_mscan-l_plantseg34-40k.py',
+                help='模型结构配置（须与 ckpt 匹配：v1=150通道, v2=LightHamHead 35通道）')
+ap.add_argument('--ckpt', default='runtime/runs/segnext_l_plantseg34/best_mIoU_iter_40000.pth')
+ap.add_argument('--fit-h', type=float, default=512.0,
+                help='keep_ratio 短边上限（与训练 val 口径一致：v1=512, v2=640）')
 ap.add_argument('--conf', type=float, default=0.5)
 ap.add_argument('--min-area', type=int, default=64)
 a = ap.parse_args()
 
-cfg = Config.fromfile(str(ROOT / 'configs_mmseg/segnext/segnext_mscan-l_plantseg34-40k.py'))
+cfg = Config.fromfile(str(ROOT / a.cfg))
 model = build_segmentor(cfg.model)
-ck = torch.load(str(ROOT / 'runtime/runs/segnext_l_plantseg34/best_mIoU_iter_40000.pth'),
-                map_location='cpu', weights_only=False)
+ck = torch.load(str(ROOT / a.ckpt), map_location='cpu', weights_only=False)
 model.load_state_dict(ck['state_dict'], strict=False)
 model = model.cuda().eval()
 
@@ -58,8 +62,8 @@ for i, im in enumerate(val_json['images']):
     img = cv2.imread(str(ROOT / 'data/plantseg34' / im['image_path']))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype(np.float32)
 
-    # 测试口径与训练 val 一致：keep_ratio 缩放至 fit (2048,512)
-    sc = min(2048.0 / W, 512.0 / H)
+    # 测试口径与训练 val 一致：keep_ratio 缩放至 fit (2048, fit_h)
+    sc = min(2048.0 / W, a.fit_h / H)
     nw, nh = max(1, int(round(W * sc))), max(1, int(round(H * sc)))
     img_r = cv2.resize(img, (nw, nh), interpolation=cv2.INTER_LINEAR)
     img_n = (img_r - MEAN) / STD
@@ -127,7 +131,7 @@ print(f'背景 IoU = {bg_inter/bg_union:.4f}')
 print(f'== mIoU(34 类) = {miou:.4f} ==')
 
 # ---------- COCOeval segm ----------
-run_dir = ROOT / 'runtime/runs/segnext_l_plantseg34'
+run_dir = (ROOT / a.ckpt).parent
 json.dump(results, open(run_dir / 'instances_val.json', 'w'))
 coco_dt = coco_gt.loadRes(results)
 E = COCOeval(coco_gt, coco_dt, 'segm')
