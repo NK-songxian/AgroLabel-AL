@@ -75,8 +75,7 @@ for i, im in enumerate(images):
         inputs = processor(images=img, text=prompt, return_tensors='pt').to(fa.device)
         outs = gdino(**inputs)
         proc = processor.post_process_grounded_object_detection(
-            outs, input_sizes=inputs['input_sizes'] if hasattr(inputs, 'input_sizes') else None,
-            threshold=fa.conf, text_threshold=0.25)[0]
+            outs, threshold=fa.conf, text_threshold=0.25)[0]
     boxes = proc['boxes'].cpu().numpy()
     phrases = [str(t).lower().strip(' .') for t in proc['text_labels']
                if True] if 'text_labels' in proc else [str(t).lower() for t in proc['labels']]
@@ -87,6 +86,7 @@ for i, im in enumerate(images):
     with torch.no_grad():
         masks, scores, _ = sam2.predict(box=boxes, multimask_output=False)
     masks = masks[:, 0] > 0            # (n, H, W) bool
+    scores = np.asarray(scores).reshape(len(masks), -1)[:, 0]  # (n,1)->(n,)
     for m, ph, sc in zip(masks, phrases, scores):
         if m.sum() < 64:
             continue
