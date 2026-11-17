@@ -121,3 +121,6 @@ envs/
 datasets/plantseg100_pack/
 # ultralytics 运行时生成的用户配置目录（含本机绝对路径与 uuid，不该入库）
 Ultralytics/
+
+# 交付打包（权重 zip 不进 git）
+deliverables/
