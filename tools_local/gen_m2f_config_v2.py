@@ -56,7 +56,21 @@ test_pipeline = [
 # 注意必须写 model.data_preprocessor——Runner 只读 model 内的这一份，
 # base 顶层 data_preprocessor 变量与 model.data_preprocessor 是两份独立文本块。
 data_preprocessor = dict(batch_augments=[])
-model = dict(data_preprocessor=dict(batch_augments=[]))
+
+# 关键深覆盖：base 的 model.panoptic_head.num_things_classes 在 base 解析时已
+# 展开为 80（COCO），仅写顶层变量不影响 model 内数值（v1 即踩此坑：head 实际
+# 80 类，34 类正样本信号被 46 个空类稀释，且 ep15 val 时 label>=34 触发
+# CocoMetric cat_ids 越界崩溃）。必须显式深覆盖 model 内三处。
+NUM_T, NUM_S = 34, 0
+model = dict(
+    data_preprocessor=dict(batch_augments=[]),
+    panoptic_head=dict(
+        num_things_classes=NUM_T,
+        num_stuff_classes=NUM_S,
+        loss_cls=dict(class_weight=[1.0] * NUM_T + [0.1])),
+    panoptic_fusion_head=dict(
+        num_things_classes=NUM_T,
+        num_stuff_classes=NUM_S))
 
 train_dataloader = dict(
     batch_size=8, num_workers=8, persistent_workers=True,
@@ -105,7 +119,12 @@ print('written:', OUT, len(content), 'bytes')
 
 c = Config.fromfile(OUT)
 tp = c.train_dataloader.dataset.pipeline
-print('smoke: classes =', len(c.metainfo['classes']),
-      '| pipeline[2] =', tp[2]['type'], tp[2]['scale'],
-      '| keep_ratio =', tp[2]['keep_ratio'],
+h = c.model.panoptic_head
+assert h.num_things_classes == 34 and h.num_stuff_classes == 0, \
+    f'head 类数未覆盖: {h.num_things_classes}/{h.num_stuff_classes}'
+assert len(h.loss_cls.class_weight) == 35, 'class_weight 应为 34+1'
+assert c.model.data_preprocessor.batch_augments == [], 'batch_augments 应为空'
+print('smoke: head.num_things_classes =', h.num_things_classes,
+      '| class_weight len =', len(h.loss_cls.class_weight),
+      '| pipeline[2] =', tp[2]['type'], tp[2]['scale'], tp[2]['keep_ratio'],
       '| epochs =', c.train_cfg.max_epochs)
