@@ -386,14 +386,38 @@ export function CanvasStage() {
                   （于是 select 模式的点空白取消、refine 模式的点提示都还能用） */}
               {showMasks && instances.map((inst, i) => {
                 const isSel = inst.id === selectedId
+                const pts = pixelOf(inst)
+                // 描边分三层画（由外到内：深灰外圈 → 白色中圈 → 类别彩色芯）。
+                // 为什么必须这么做：34 类配色里有一堆绿/黄/褐，和病斑本身几乎同色，
+                // 单层彩色描边贴在病斑上会糊成一片。外圈保证在**任何背景**上都有一条
+                // 与人眼无关的边界线：亮背景靠深灰圈，暗背景靠白圈。
+                const core = (isSel ? 2.4 : 1.3) * strokeUnit
                 return (
                   <Group key={inst.id}>
                     <Line
-                      points={pixelOf(inst)}
+                      points={pts}
                       closed
-                      fill={classFill(inst.class_id, isSel ? 0.34 : 0.2)}
-                      stroke={classStroke(inst.class_id, isSel ? 1 : 0.85)}
-                      strokeWidth={(isSel ? 2.5 : 1.4) * strokeUnit}
+                      stroke="rgba(15,23,42,.55)"
+                      strokeWidth={core + 2.4 * strokeUnit}
+                      listening={false}
+                      perfectDrawEnabled={false}
+                    />
+                    <Line
+                      points={pts}
+                      closed
+                      stroke="rgba(255,255,255,.92)"
+                      strokeWidth={core + 1.1 * strokeUnit}
+                      listening={false}
+                      perfectDrawEnabled={false}
+                    />
+                    <Line
+                      points={pts}
+                      closed
+                      // 填充只当"这是哪一类"的提示，压到 0.15 以免把病灶染成一片；
+                      // 边界主要靠上面两层描边表达
+                      fill={classFill(inst.class_id, isSel ? 0.26 : 0.15)}
+                      stroke={classStroke(inst.class_id, isSel ? 1 : 0.9)}
+                      strokeWidth={core}
                       hitStrokeWidth={14 * strokeUnit}
                       perfectDrawEnabled={false}
                       onClick={(e) => {
@@ -405,13 +429,17 @@ export function CanvasStage() {
                         select(inst.id)
                       }}
                     />
-                    {/* 序号：方便对日志里的 instance 字段 */}
+                    {/* 序号：方便对日志里的 instance 字段。
+                        同样加白色描边，否则数字落在亮病斑上也看不见 */}
                     <Text
                       text={String(i + 1)}
                       x={inst.polygon.reduce((a, p) => a + p[0], 0) / inst.polygon.length * imgW}
                       y={inst.polygon.reduce((a, p) => a + p[1], 0) / inst.polygon.length * imgH}
                       fontSize={11 * strokeUnit}
                       fill={classStroke(inst.class_id)}
+                      stroke="rgba(255,255,255,.95)"
+                      strokeWidth={2.6 * strokeUnit}
+                      fillAfterStrokeEnabled
                       listening={false}
                       offsetX={3 * strokeUnit}
                       offsetY={5 * strokeUnit}
@@ -469,6 +497,14 @@ export function CanvasStage() {
               {/* 手画中的草稿：不受"显示标注"开关影响，正在画就得看得见 */}
               {draft && draft.length > 0 && (
                 <Group listening={false}>
+                  {/* 白色外圈：草稿线是蓝色虚线，落在浅绿叶片上已经能看出来，
+                      但边缘贴到亮病斑时还是会被吞掉，加一圈白底更稳 */}
+                  <Line
+                    points={draft.flatMap(([x, y]) => [x * imgW, y * imgH])}
+                    closed={draft.length >= 3}
+                    stroke="rgba(255,255,255,.9)"
+                    strokeWidth={4.2 * strokeUnit}
+                  />
                   <Line
                     points={draft.flatMap(([x, y]) => [x * imgW, y * imgH])}
                     closed={draft.length >= 3}
