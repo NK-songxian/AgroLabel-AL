@@ -1,10 +1,9 @@
-# AL 效率消融 · 队友运行说明（v1.0，2026-11-17）
+# AL 效率消融 · 队友运行说明（v1.1，2026-11-17）
 
 ## 0. 你收到什么
 
-- `AgroLabel_AL_full_dataset.zip`：7773 张 JPEG（train 5367 / val 846 / test 1560）+ YOLO labels + data.yaml/classes.json
-- `AgroLabel_B6_handoff.zip`：B6 最优权重（mask mAP50 0.416）+ 前后端启动材料
-- 本说明 + `m8_al.py`（AL 闭环脚本，仓库 `src/` 也有）
+- `AgroLabel_AL_full_dataset_v3.zip`：7773 张 JPEG（train 5367 / val 846 / test 1560）+ YOLO labels + data.yaml/classes.json + `m8_al.py` + 本说明 + **官方 COCO 冷启动权重 `weights/yolo26x-seg.pt`**
+- `AgroLabel_B6_handoff.zip`：B6 最优权重（mask mAP50 0.416）+ 前后端启动材料（**仅用于演示/人工编辑对照，不用于 AL 训练**）
 
 **注意**：原数据目录里的 `.npy` 是 JPEG 的 uint8 像素副本（13G），AL 完全不用，已从包中剔除。
 
@@ -21,10 +20,12 @@ pip install ultralytics opencv-python pyyaml numpy pillow scipy
 
 ```text
 <你的工作目录>/
-├── dataset/            ← 解压 AgroLabel_AL_full_dataset.zip（内含 images/ labels/ data.yaml）
-├── weights/yolo26x-seg.pt               ← **官方 COCO 预训练权重**（AL 起点，包内提供）
+├── dataset/            ← 解压 AgroLabel_AL_full_dataset_v3.zip（内含 images/ labels/ data.yaml）
+├── weights/yolo26x-seg.pt               ← **官方 COCO 预训练权重**（AL 起点，v3 包内已提供）
 └── m8_al.py
 ```
+
+如果你拿到的是旧的 `v2` 包（里面没有 `weights/yolo26x-seg.pt`）：首次运行 `--model yolo26x-seg.pt` 时 Ultralytics 会自动联网下载（约 136MB）；无网络则必须先把官方权重放进 `weights/` 再跑。v3 包已内置，无需这一步。
 
 **重要**：`data.yaml` 里的 `path:` 是强哥本机的绝对路径，解压后要改成你自己的 `dataset` 路径（只改这一行）：
 ```yaml
@@ -87,6 +88,6 @@ python m8_al.py \
 
 ## 6. 已知坑（已验证）
 
-- `m8_al.py` 里 `PROJECT = Path(__file__).resolve().parents[1]`，权重输出会写到脚本上一级目录的 `runs/`——保持目录结构或按报错改这一行；
+- `m8_al.py` 已做独立包适配：脚本在仓库 `src/` 下时输出到仓库根，解压在单独目录时输出到该解压目录内的 `runs/` 和 `out/`，不再写到上一级；
 - YOLO 训练时 `cache=False` 已设，别开缓存（数据 16G 会撑爆内存）；
 - 强哥云端实测冒烟：102→0.015、523→0.060、944→0.109，若你的 r0 结果差一个数量级，先检查 data.yaml 的 names 顺序是否被改动。

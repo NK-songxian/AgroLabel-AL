@@ -49,7 +49,10 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-PROJECT = Path(__file__).resolve().parents[1]
+HERE = Path(__file__).resolve().parent
+# 仓库里脚本位于 src/ 时，输出落到仓库根目录；独立交付包里脚本位于根目录，
+# 输出就落到解压目录内，避免写到队友不熟悉的上一级路径。
+PROJECT = HERE.parent if HERE.name == "src" else HERE
 sys.path.insert(0, str(PROJECT / "src"))
 
 
