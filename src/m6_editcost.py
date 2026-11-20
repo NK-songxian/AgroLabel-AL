@@ -65,6 +65,11 @@ WEIGHT_PRESETS = {
                   "拖边界": 0.3, "标为无目标": 0.15},
     "lenient": {"新画": 1.0, "删实例": 0.08, "改类别": 0.08,
                 "拖边界": 0.2, "标为无目标": 0.08},
+    # 协议 v1.0 §5 曾写过的近似等权口径，仅用于敏感性分析。
+    # 不要叫 "b0"：B0 是 experiments/matrix/B0/ 那个实验编号，
+    # 权重实际是 realistic；用 b0 指权重会造成口径混淆。
+    "proto": {"新画": 1.0, "删实例": 0.5, "改类别": 0.3,
+              "拖边界": 0.8, "标为无目标": 0.5},
 }
 
 
@@ -314,7 +319,8 @@ def main():
     ap.add_argument("--name", default="editcost")
     ap.add_argument("--weight-preset", default="realistic",
                     choices=list(WEIGHT_PRESETS),
-                    help="操作权重方案。flat 是等权计数，realistic/lenient 按实际操作耗时折算")
+                    help="操作权重方案。realistic=按界面实测耗时折算（手册 §08 与 7.63 基线用这套）；"
+                         "flat=等权计数；lenient=更宽松；proto=协议 v1.0 旧稿近似等权，仅供敏感性分析")
     ap.add_argument("--out-dir", default=None)
     ap.add_argument("--labels-dir", default=None,
                     help="按 <stem>.txt 从该目录读标签（用于 out/annotations/<arm>/）；"
