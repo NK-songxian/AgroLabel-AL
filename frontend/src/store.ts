@@ -165,6 +165,8 @@ type Store = {
 
   bootstrap: () => Promise<void>
   loadQueue: (split?: string) => Promise<void>
+  /** 重新随机：清掉本轮未完成的标注并换 seed 重抽（后端会先备份） */
+  rerollExperiment: () => Promise<void>
   /** 追加下一页（不在底部也允许点） */
   loadMoreQueue: () => Promise<void>
   /** 只更新搜索词；真正的请求由面板防抖后调 loadQueue */
@@ -333,6 +335,21 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   setQueueQuery: (q) => set({ queueQuery: q }),
+
+  rerollExperiment: async () => {
+    try {
+      const r = await api.rerollExperiment({ confirm: true })
+      get().toast(
+        `已重新随机：清掉 ${r.n_sidecars} 个标注文件、${r.n_ops_rows} 条操作记录` +
+          `（已备份到 ${r.archived_to}），新 seed=${r.seed}`,
+        'ok',
+      )
+      // 清单已换：重新载入，队列和进度一起刷新
+      await get().loadExperiment()
+    } catch (e) {
+      get().toast(`重新随机失败：${e instanceof Error ? e.message : e}`, 'err')
+    }
+  },
 
   loadGt: async (imageId) => {
     // openIndex 里 current 还没 set，所以允许显式传图号

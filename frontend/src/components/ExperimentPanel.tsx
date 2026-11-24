@@ -24,8 +24,11 @@ export function ExperimentPanel() {
   const setArm = useStore((s) => s.setArm)
   const loadExperiment = useStore((s) => s.loadExperiment)
   const exitExperiment = useStore((s) => s.exitExperiment)
+  const rerollExperiment = useStore((s) => s.rerollExperiment)
 
   const [open, setOpen] = useState(false)
+  // 重新随机要二次确认：它会清掉本轮的标注（后端会先备份）
+  const [confirmReroll, setConfirmReroll] = useState(false)
   const wrapRef = useRef<HTMLDivElement | null>(null)
 
   // 点面板外面就收起。用 mousedown 而不是 click：
@@ -189,22 +192,56 @@ export function ExperimentPanel() {
                 </p>
               )}
 
-              <div className="exp-actions">
-                {experimentOn ? (
-                  <>
-                    <button className="btn" onClick={() => void loadExperiment()}>
-                      重新载入
+              {confirmReroll ? (
+                <div className="exp-confirm">
+                  <p className="exp-note err">
+                    {doneN >= totalTasks && totalTasks > 0
+                      ? '本轮已经全部完成。重新随机仍会清掉全部标注 —— 建议先导出/备份再操作。'
+                      : `将清除本轮已有的 ${doneN} / ${totalTasks} 个任务标注，并重新抽 ${totalTasks} 个任务。`}
+                    <br />
+                    旧标注、操作记录与预测缓存会先备份到
+                    <code> out/experiment/archive/&lt;时间戳&gt;/</code>，可回退。
+                  </p>
+                  <div className="exp-actions">
+                    <button
+                      className="btn danger"
+                      onClick={() => {
+                        setConfirmReroll(false)
+                        void rerollExperiment()
+                      }}
+                    >
+                      确认重新随机
                     </button>
-                    <button className="btn" onClick={exitExperiment}>
-                      退出实验模式
+                    <button className="btn" onClick={() => setConfirmReroll(false)}>
+                      取消
                     </button>
-                  </>
-                ) : (
-                  <button className="btn primary" onClick={() => void loadExperiment()}>
-                    开启实验模式
-                  </button>
-                )}
-              </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="exp-actions">
+                  {experimentOn ? (
+                    <>
+                      <button className="btn" onClick={() => void loadExperiment()}>
+                        重新载入
+                      </button>
+                      <button
+                        className="btn danger"
+                        onClick={() => setConfirmReroll(true)}
+                        title="换一批随机图重新开始：清掉本轮已有标注（会先备份），用新 seed 重抽"
+                      >
+                        重新随机
+                      </button>
+                      <button className="btn" onClick={exitExperiment}>
+                        退出实验模式
+                      </button>
+                    </>
+                  ) : (
+                    <button className="btn primary" onClick={() => void loadExperiment()}>
+                      开启实验模式
+                    </button>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>

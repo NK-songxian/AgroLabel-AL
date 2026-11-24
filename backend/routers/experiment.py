@@ -29,14 +29,18 @@
 
 from __future__ import annotations
 
+import csv
 import json
 import os
+import shutil
+from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from .. import config
+from ..experiment_manifest import build_manifest, write_manifest
 from ..util import safe_name
 
 router = APIRouter(prefix="/api", tags=["experiment"])
@@ -216,6 +220,187 @@ def read_manifest() -> ExperimentOut:
         images=list(uniq.values()),
         tasks=eff,
         problems=problems,
+    )
+
+
+class RerollIn(BaseModel):
+    """重新随机。
+
+    `confirm=False` 只做预演（不改任何文件），用来告诉前端"会删多少"。
+    """
+
+    confirm: bool = False
+    seed: int | None = None
+
+
+class RerollOut(BaseModel):
+    dry_run: bool
+    n_tasks: int
+    n_done: int
+    n_sidecars: int
+    n_ops_rows: int
+    n_pred_cache: int
+    archived_to: str | None = None
+    seed: int | None = None
+    name: str | None = None
+    note: str = ""
+
+
+def _ops_files() -> list[Path]:
+    """操作日志按臂分文件：out/logs/ops_<arm>.csv（表头 ts,image,op,...）。"""
+    return [config.LOG_DIR / f"ops_{arm}.csv" for arm in config.VALID_ARMS]
+
+
+def _count_ops_rows(ids: set[str]) -> int:
+    n = 0
+    for f in _ops_files():
+        if not f.is_file():
+            continue
+        try:
+            with f.open(encoding="utf-8", newline="") as fh:
+                for row in csv.DictReader(fh):
+                    if (row.get("image") or "") in ids:
+                        n += 1
+        except OSError:
+            continue
+    return n
+
+
+def _filter_ops(ids: set[str], archive: Path) -> int:
+    """把属于本轮图的操作行摘掉（原文件先备份到 archive）。返回摘掉的行数。"""
+    removed = 0
+    for f in _ops_files():
+        if not f.is_file():
+            continue
+        try:
+            with f.open(encoding="utf-8", newline="") as fh:
+                reader = csv.DictReader(fh)
+                fields = reader.fieldnames or []
+                keep, drop = [], []
+                for row in reader:
+                    (drop if (row.get("image") or "") in ids else keep).append(row)
+        except OSError:
+            continue
+        if not drop:
+            continue
+        archive.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(f, archive / f.name)          # 备份原始 CSV
+        with f.open("w", encoding="utf-8", newline="") as fh:
+            w = csv.DictWriter(fh, fieldnames=fields)
+            w.writeheader()
+            w.writerows(keep)
+        removed += len(drop)
+    return removed
+
+
+def _sidecars(targets: set[tuple[str, str]]) -> list[Path]:
+    out = []
+    for iid, arm in targets:
+        for suf in (".json", ".txt"):
+            p = config.ANNOTATION_DIR / arm / f"{safe_name(iid)}{suf}"
+            if p.is_file():
+                out.append(p)
+    return out
+
+
+def _pred_caches(ids: set[str]) -> list[Path]:
+    out = []
+    for iid in ids:
+        p = config.PRED_CACHE_DIR / f"{safe_name(iid)}.json"
+        if p.is_file():
+            out.append(p)
+    return out
+
+
+@router.post("/experiment/reroll", response_model=RerollOut)
+def reroll(body: RerollIn) -> RerollOut:
+    """重新随机抽图，并清掉本轮未完成的标注。
+
+    为什么要"清"：换了一批图之后，旧图上的部分标注既不属于新清单，
+    又会污染 `out/annotations/<arm>/` 和 ops 统计。所以：
+
+    1. 先把要清的东西**备份**到 `out/experiment/archive/<时间戳>/`（可回退）
+    2. 再移走 sidecar（`.json` + `.txt`）、摘掉 ops 里这些图的行、清 pred_cache
+    3. 最后按同样的 design（x/groups/layout…）换 seed 重新抽一份清单
+
+    `confirm=false` 时只统计不落盘 —— 前端先让用户看清"会删多少"再确认。
+    """
+    path = manifest_path()
+    cur = read_manifest()
+    if not cur.loaded:
+        raise HTTPException(409, cur.note or "没有实验清单，无法重新随机")
+
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HTTPException(500, f"清单读取失败：{exc}")
+    design = raw.get("design") or {}
+
+    targets = {(t.image_id, t.arm) for t in cur.tasks}
+    ids = {iid for iid, _ in targets}
+    sidecars = _sidecars(targets)
+    preds = _pred_caches(ids)
+    ops_rows = _count_ops_rows(ids)
+    n_done = sum(1 for t in cur.tasks if t.done)
+
+    if not body.confirm:
+        return RerollOut(
+            dry_run=True, n_tasks=len(cur.tasks), n_done=n_done,
+            n_sidecars=len(sidecars), n_ops_rows=ops_rows,
+            n_pred_cache=len(preds),
+            note="预演：还没有动任何文件",
+        )
+
+    # ---- 1) 备份 + 清理
+    archive = (config.OUT_DIR / "experiment" / "archive"
+               / datetime.now().strftime("%Y%m%d-%H%M%S"))
+    for p in sidecars:
+        dest = archive / "annotations" / p.parent.name / p.name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(p), str(dest))
+    for p in preds:
+        dest = archive / "pred_cache" / p.name
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(p), str(dest))
+    _filter_ops(ids, archive)
+
+    # ---- 2) 换 seed 重新抽图
+    try:
+        base_seed = int(design.get("seed") or 20261124)
+    except (TypeError, ValueError):
+        base_seed = 20261124
+    new_seed = body.seed if body.seed is not None else base_seed + 1
+
+    root = config.DATA.root
+    data_yaml = root / "data.yaml"
+    try:
+        manifest = build_manifest(
+            root=root,
+            data_yaml=data_yaml if data_yaml.is_file() else None,
+            split=str(design.get("split") or "val"),
+            x=int(design.get("x") or 8),
+            groups=int(design.get("groups") or 4),
+            persons=int(design.get("persons") or 1),
+            person=int(design.get("person") or 1),
+            seed=new_seed,
+            layout=str(design.get("layout") or "by-arm"),
+        )
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(400, f"重新抽图失败：{exc}") from exc
+
+    write_manifest(manifest, path)
+
+    rel = archive
+    try:
+        rel = archive.relative_to(config.PROJECT)
+    except ValueError:
+        pass
+    return RerollOut(
+        dry_run=False, n_tasks=len(cur.tasks), n_done=n_done,
+        n_sidecars=len(sidecars), n_ops_rows=ops_rows, n_pred_cache=len(preds),
+        archived_to=str(rel).replace("\\", "/"),
+        seed=new_seed, name=manifest.get("name"),
+        note=f"已备份到 {rel}，并按 seed={new_seed} 重新抽图",
     )
 
 

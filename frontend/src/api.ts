@@ -7,6 +7,7 @@
 
 import type {
   GtResponse,
+  RerollOut,
   Arm,
   ClassItem,
   HealthResponse,
@@ -80,6 +81,13 @@ export const api = {
   /** 真值轮廓（开发对照；后端未开 AGROLABEL_GT_VIEW 时会 403） */
   gt: (image_id: string) =>
     request<GtResponse>(`/api/images/${encodeURIComponent(image_id)}/gt`),
+
+  /** 重新随机实验清单（confirm=false 只预演，不动文件） */
+  rerollExperiment: (body: { confirm?: boolean; seed?: number }) =>
+    request<RerollOut>('/api/experiment/reroll', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
 
   predict: (image_id: string) =>
     request<PredictResponse>('/api/predict', {

@@ -34,6 +34,7 @@
 |---|---|---|
 | `GET /api/health` | ✅ | 数据源、索引张数、设备、权重 sha256 |
 | `GET /api/classes` | ✅ | 34 类字典，源为 `configs/dataset_plantseg34.local.yaml` |
+| `POST /api/experiment/reroll` | ✅ | 重新随机：预演 / 备份并清掉本轮未完成标注 / 换 seed 重抽 |
 | `GET /api/images` | ✅ | 分页 / `ids=` 批量 / 按 split、class 过滤 / `q=` 文本搜索 |
 | `GET /api/images/{id}/file` | ✅ | ETag + 304 + Range + immutable 缓存 |
 | `POST /api/predict` | ✅ | **真模型**，GPU 单张，实测 28–48 ms |
@@ -55,6 +56,26 @@
 实测同一张甘蓝图，不传 `class_id` 会返回 **Wheat**（0.34）——放大到小 ROI 后模型
 丢掉了宿主上下文；传了正确的 `Cabbage` 才回本类。前端点提示时用"当前选中实例的类
 → 图像 gt 类"依次兜底。
+
+### 重新随机：`POST /api/experiment/reroll`
+
+实验做一半发现设计/数据有问题，要**换一批图重开**时用。前端是实验面板里的
+「重新随机」按钮（二次确认）。
+
+```json
+{"confirm": false}   // 预演：只统计会清掉多少，不动任何文件
+{"confirm": true}    // 执行：备份 → 清理 → 换 seed 重抽清单
+```
+
+执行时按顺序做三件事：
+
+1. 把本轮图的 sidecar（`.json` + `.txt`）和 `pred_cache` **移动**到
+   `out/experiment/archive/<时间戳>/`，并把涉及本轮图的 ops CSV 备份后**摘掉对应行**
+2. 用原 design（x / groups / layout / persons…）把 seed +1 重新抽图
+3. 覆写 `out/experiment/manifest.json`
+
+安全性：默认 `confirm=false` 只预演；备份目录可整体还原；清空范围严格限定在
+**当前清单里出现过的 (图, 臂)**，不碰其他数据。
 
 ### 真值对照：`/api/images/{id}/gt`（默认关闭）
 

@@ -37,6 +37,19 @@ export type PredictResponse = {
   model_version: string
 }
 
+export type RerollOut = {
+  dry_run: boolean
+  n_tasks: number
+  n_done: number
+  n_sidecars: number
+  n_ops_rows: number
+  n_pred_cache: number
+  archived_to: string | null
+  seed: number | null
+  name: string | null
+  note: string
+}
+
 export type GtPoly = {
   class_id: number
   class_name: string | null
