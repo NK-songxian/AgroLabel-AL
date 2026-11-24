@@ -445,7 +445,7 @@ button { font: inherit; color: inherit; }
 /* 队列搜索：标题下、split 切换上。窄一点，别把队列挤没 */
 /* 「加载更多」：和主题/实验按钮同款的窄胶囊 */
 .queue-more {
-  flex: none;
+  width: 100%;
   padding: 3px 8px;
   border-radius: 999px;
   border: 1px solid var(--border-2);
@@ -1036,7 +1036,15 @@ button { font: inherit; color: inherit; }
    和右栏底部的鼠标图例形成左右对称的"边角工具"。
    ------------------------------------------------------------------ */
 
+/* 左下角两行：加载更多（通栏）在上，主题/实验模式/说明在下 */
 .queue-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.queue-foot-row {
   display: flex;
   align-items: center;
   gap: 8px;

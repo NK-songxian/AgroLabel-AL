@@ -215,10 +215,12 @@ export function QueuePanel() {
         })}
       </div>
 
-      {/* 左下角：明暗切换 + 实验模式 + 加载更多 + 队列说明 */}
+      {/*
+        左下角两行：
+          第一行「加载更多」—— 通栏按钮，离列表更近，点着顺手
+          第二行 明暗切换 / 实验模式 / 已载入说明
+      */}
       <div className="pane-foot queue-foot">
-        <ThemeToggle />
-        <ExperimentPanel />
         {!experimentOn && queueHasMore && (
           <button
             type="button"
@@ -227,14 +229,18 @@ export function QueuePanel() {
             disabled={queueLoading}
             title="再载入 60 张（滚到列表底部也会自动加载）"
           >
-            加载更多
+            加载更多（还差 {queueTotal - queue.length} 张）
           </button>
         )}
-        <span className="foot-note">
-          {experimentOn
-            ? `实验任务 ${queue.length} 个`
-            : `已载入 ${queue.length} / ${queueTotal} 张`}
-        </span>
+        <div className="queue-foot-row">
+          <ThemeToggle />
+          <ExperimentPanel />
+          <span className="foot-note" title="已载入 / 总数">
+            {experimentOn
+              ? `任务 ${queue.length} 个`
+              : `${queue.length} / ${queueTotal} 张`}
+          </span>
+        </div>
       </div>
     </aside>
   )
