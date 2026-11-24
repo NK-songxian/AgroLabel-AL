@@ -269,6 +269,7 @@ class Catalog:
         split: str | None = None,
         class_id: int | None = None,
         ids: list[str] | None = None,
+        q: str | None = None,
         offset: int = 0,
         limit: int = 50,
         order: str = "path",
@@ -287,6 +288,15 @@ class Catalog:
             rows = [r for r in rows if r.split == split]
         if class_id is not None:
             rows = [r for r in rows if r.gt_class_id == class_id]
+        if q:
+            # 文本搜索：id 或文件名里包含该串（不区分大小写）。
+            # 只做子串匹配 —— 标注员是"找那张图"，不是写查询语言。
+            needle = q.strip().lower()
+            if needle:
+                rows = [
+                    r for r in rows
+                    if needle in r.image_id.lower() or needle in r.path.name.lower()
+                ]
 
         total = len(rows)
 

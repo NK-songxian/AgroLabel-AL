@@ -442,6 +442,45 @@ button { font: inherit; color: inherit; }
 .tool-eye { font-size: 10px; line-height: 1; }
 
 /* 左栏：智能选样 */
+/* 队列搜索：标题下、split 切换上。窄一点，别把队列挤没 */
+.queue-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 6px 12px 2px;
+  flex: none;
+}
+
+.queue-search input {
+  width: 100%;
+  padding: 4px 22px 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 11px;
+  outline: none;
+}
+
+.queue-search input:focus { border-color: var(--accent-dim); }
+.queue-search input::placeholder { color: var(--dim-2); }
+/* 去掉 Chrome 自带的 search 清除按钮，用我们自己的 */
+.queue-search input::-webkit-search-cancel-button { display: none; }
+
+.queue-search-clear {
+  position: absolute;
+  right: 16px;
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  color: var(--dim-2);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.queue-search-clear:hover { color: var(--text); }
+
 .sample-bar {
   display: flex;
   gap: 6px;

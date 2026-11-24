@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { classSolid } from '../colors'
 import { useStore } from '../store'
@@ -47,8 +47,23 @@ export function QueuePanel() {
   const experimentOn = useStore((s) => s.experimentOn)
   const expTasks = useStore((s) => s.expTasks)
   const expDone = useStore((s) => s.expDone)
+  const queueQuery = useStore((s) => s.queueQuery)
+  const setQueueQuery = useStore((s) => s.setQueueQuery)
   const [strategy, setStrategy] = useState<SampleStrategy>('entropy')
   const [sampleK, setSampleK] = useState(DEFAULT_SAMPLE_K)
+  // 输入框直接受控于 store（queueQuery），不在组件里镜像一份 ——
+  // 镜像就要用 effect 同步，会触发级联渲染（oxlint 的 set-state-in-effect）。
+  // 防抖只作用在**请求**上：输入停顿 250ms 才打后端，否则每敲一个字查一次 7773 张。
+  const firstQuery = useRef(true)
+  useEffect(() => {
+    if (firstQuery.current) {
+      firstQuery.current = false      // 首屏由 bootstrap 负责加载，别再查一次
+      return
+    }
+    if (experimentOn) return          // 实验模式的队列由清单决定
+    const timer = setTimeout(() => void loadQueue(), 250)
+    return () => clearTimeout(timer)
+  }, [queueQuery, experimentOn, loadQueue])
 
   const clsName = useMemo(() => {
     const m = new Map<number, string>()
@@ -67,6 +82,30 @@ export function QueuePanel() {
         </span>
         <span className="pane-count">{queueTotal}</span>
       </div>
+
+      {/* 文本搜索：只在普通标注模式出现（实验模式的队列由清单决定） */}
+      {!experimentOn && (
+        <div className="queue-search">
+          <input
+            type="search"
+            value={queueQuery}
+            placeholder="搜索图片名 / id…"
+            aria-label="搜索图片"
+            onChange={(e) => setQueueQuery(e.target.value)}
+          />
+          {queueQuery !== '' && (
+            <button
+              type="button"
+              className="queue-search-clear"
+              onClick={() => setQueueQuery('')}
+              title="清空搜索"
+              aria-label="清空搜索"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      )}
 
       {splits.length > 1 && (
         <div className="split-tabs">

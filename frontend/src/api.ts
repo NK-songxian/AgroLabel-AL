@@ -63,6 +63,7 @@ export const api = {
     offset?: number
     limit?: number
     ids?: string[]
+    q?: string
   } = {}) => {
     const sp = new URLSearchParams()
     if (params.split && params.split !== 'all') sp.set('split', params.split)
@@ -70,6 +71,7 @@ export const api = {
     if (params.offset != null) sp.set('offset', String(params.offset))
     if (params.limit != null) sp.set('limit', String(params.limit))
     if (params.ids?.length) sp.set('ids', params.ids.join(','))
+    if (params.q?.trim()) sp.set('q', params.q.trim())
     const qs = sp.toString()
     return request<ImageListResponse>(`/api/images${qs ? `?${qs}` : ''}`)
   },

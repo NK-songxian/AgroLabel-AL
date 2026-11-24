@@ -3,6 +3,7 @@
 支持两种用法：
     分页：?split=train&offset=0&limit=50&order=path
     按 id 批量取：?ids=0007,0012          （/api/sample 返回后用它落地）
+    文本搜索：?q=apple                    （id / 文件名子串，不区分大小写）
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ def list_images(
     split: str | None = None,
     class_id: int | None = None,
     ids: str | None = None,
+    q: str | None = None,
     offset: int = 0,
     limit: int = 50,
     order: str = "path",
@@ -51,7 +53,7 @@ def list_images(
         )
 
     rows, total = catalog.query(
-        split=split, class_id=class_id, ids=id_list,
+        split=split, class_id=class_id, ids=id_list, q=q,
         offset=offset, limit=limit, order=order,
     )
     return ImageListResponse(

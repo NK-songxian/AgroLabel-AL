@@ -86,6 +86,8 @@ type Store = {
   split: string
   queueLoading: boolean
   /** 队列来源，显示在左栏标题上：全部 / 智能选样 · entropy */
+  /** 队列搜索关键词（空串 = 不过滤） */
+  queueQuery: string
   queueLabel: string
   /** 智能选样时每张图的打分（image_id -> {score, criterion}）；普通队列为空对象 */
   sampleScores: Record<string, { score: number | null; criterion: string }>
@@ -154,6 +156,8 @@ type Store = {
 
   bootstrap: () => Promise<void>
   loadQueue: (split?: string) => Promise<void>
+  /** 只更新搜索词；真正的请求由面板防抖后调 loadQueue */
+  setQueueQuery: (q: string) => void
   openIndex: (i: number) => Promise<void>
   reloadPredict: () => Promise<void>
   next: () => void
@@ -234,6 +238,7 @@ export const useStore = create<Store>((set, get) => ({
   queue: [],
   queueTotal: 0,
   split: 'all',
+  queueQuery: '',
   queueLoading: false,
   queueLabel: '全部',
   sampleScores: {},
@@ -293,16 +298,25 @@ export const useStore = create<Store>((set, get) => ({
 
   loadQueue: async (split) => {
     const s = split ?? get().split
+    const kw = get().queueQuery.trim()
     set({ queueLoading: true, split: s })
     try {
-      const res = await api.images({ split: s, offset: 0, limit: PAGE })
-      set({ queue: res.items, queueTotal: res.total, queueLoading: false,
-            queueLabel: s === 'all' ? '全部' : s, sampleScores: {} })
+      const res = await api.images({
+        split: s, offset: 0, limit: PAGE,
+        ...(kw ? { q: kw } : {}),
+      })
+      set({
+        queue: res.items, queueTotal: res.total, queueLoading: false,
+        queueLabel: kw ? `搜索「${kw}」` : (s === 'all' ? '全部' : s),
+        sampleScores: {},
+      })
     } catch (e) {
       set({ queueLoading: false })
       get().toast(`队列加载失败：${e instanceof Error ? e.message : e}`, 'err')
     }
   },
+
+  setQueueQuery: (q) => set({ queueQuery: q }),
 
   // ------------------------------------------------------------ 实验模式
 
@@ -390,7 +404,8 @@ export const useStore = create<Store>((set, get) => ({
   exitExperiment: () => {
     // 退出时把臂复位成 assisted：普通标注模式下要保证"预标注 + 点提示"都能用，
     // 不能因为刚才在 noprompt 臂里就把点提示一直禁着。
-    set({ experimentOn: false, experiment: null, expDone: {}, expTasks: [], arm: 'assisted' })
+    set({ experimentOn: false, experiment: null, expDone: {}, expTasks: [],
+          arm: 'assisted', queueQuery: '' })
     void get().loadQueue('all')
     get().toast('已退出实验模式', 'ok')
   },

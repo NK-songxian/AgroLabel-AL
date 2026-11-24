@@ -34,7 +34,7 @@
 |---|---|---|
 | `GET /api/health` | ✅ | 数据源、索引张数、设备、权重 sha256 |
 | `GET /api/classes` | ✅ | 34 类字典，源为 `configs/dataset_plantseg34.local.yaml` |
-| `GET /api/images` | ✅ | 分页 / `ids=` 批量 / 按 split、class 过滤 |
+| `GET /api/images` | ✅ | 分页 / `ids=` 批量 / 按 split、class 过滤 / `q=` 文本搜索 |
 | `GET /api/images/{id}/file` | ✅ | ETag + 304 + Range + immutable 缓存 |
 | `POST /api/predict` | ✅ | **真模型**，GPU 单张，实测 28–48 ms |
 | `POST /api/annotations` | ✅ | 落 `out/annotations/<arm>/`，YOLO seg txt + 元数据 json |
@@ -55,6 +55,20 @@
 实测同一张甘蓝图，不传 `class_id` 会返回 **Wheat**（0.34）——放大到小 ROI 后模型
 丢掉了宿主上下文；传了正确的 `Cabbage` 才回本类。前端点提示时用"当前选中实例的类
 → 图像 gt 类"依次兜底。
+
+### 队列文本搜索：`/api/images?q=`
+
+标注员要"找那张图"，所以只做**子串匹配**（id 或文件名，不区分大小写），
+不做查询语言。可与 `split` / `class_id` 组合，`total` 是被过滤后的真实总数。
+
+```
+GET /api/images?q=banana            -> 354（全库）
+GET /api/images?q=banana&split=val  ->  36
+GET /api/images?q=zzz               ->   0（不是 404）
+```
+
+前端在左栏「标注队列」下面放了输入框，输入停顿 250ms 才请求（每敲一个字符查一次
+7773 张会很卡）；实验模式下不显示该框（队列由清单决定）。
 
 ### 选样：两级筛选 + 分值缓存
 
