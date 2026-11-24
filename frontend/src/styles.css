@@ -390,6 +390,20 @@ button { font: inherit; color: inherit; }
   color: var(--dim);
   backdrop-filter: blur(6px);
 }
+/* 真值叠加提示：红色描边 + 半透明底，绕不过去的那种显眼 */
+.stage-badge.gt-on {
+  left: 12px;
+  top: 12px;
+  right: auto;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  white-space: nowrap;
+  border-color: var(--err);
+  color: var(--err);
+  background: color-mix(in srgb, var(--err) 16%, var(--panel));
+  font-weight: 600;
+}
+
 .stage-badge.predicting { color: var(--accent); border-color: var(--accent-dim); }
 
 /* 徽标挪到右上，给左上角的模式切换让位 */

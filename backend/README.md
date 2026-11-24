@@ -89,6 +89,8 @@ $env:AGROLABEL_GT_VIEW = "1"     # 不开就 403
 - 返回 `{image_id, found, image_width, image_height, instances:[{class_id, class_name, polygon}]}`
 - `polygon` 是归一化坐标（0..1），和 `/api/predict` 的实例同格式
 - 只读：真值**不会**写进任何标注产物，也不参与提交
+- **每次读数都会记一行** `out/logs/gt_view.csv`（ts / image_id / source）；
+  导出工具按图回填 `gt_viewed=1`，事后能判定哪几条标注可能看过答案
 - **实验期间必须关**：否则标注员能照着真值画（`AGROLABEL_HIDE_GT` 只是不返回类别名，
   这个开关会直接给出轮廓，两者互斥使用）
 - 前端按钮是条件渲染的：后端没开时工具栏里**根本没有**「真值」按钮

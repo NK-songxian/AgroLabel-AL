@@ -557,6 +557,12 @@ export function CanvasStage() {
           <span>{current ? '加载图像…' : '从左侧选一张图'}</span>
         </div>
       )}
+      {/* 真值叠加开着时给个显眼提示：开发对照可以，正式标注必须关 */}
+      {gtOn && (
+        <div className="stage-badge gt-on" role="status">
+          真值叠加中（仅开发对照）
+        </div>
+      )}
       {status === 'predicting' && (
         <div className="stage-badge predicting">
           <div className="spinner sm" /> 预标注中…

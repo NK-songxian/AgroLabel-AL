@@ -203,6 +203,30 @@ def load_sidecar(annot_dir: Path, arm: str, image_id: str) -> dict:
         return {}
 
 
+def load_gt_views(log_dir: Path) -> dict[str, list[str]]:
+    """image_id -> [看过真值的时间戳]，来自 out/logs/gt_view.csv。
+
+    列：ts,image_id,source（source=api 实时记录；backfill 表示事后从服务日志补录）。
+    用途：事后判定哪几条标注**可能**看过真值（因此不能当独立数据用）。
+    判定按**图**而不是 (图, 臂)：同一张图看过后再标别的臂，记忆仍在，保守起见全标。
+    只要该图在提交之前被读过真值，就保守地标成 gt_viewed=1。
+    """
+    out: dict[str, list[str]] = {}
+    f = log_dir / "gt_view.csv"
+    if not f.is_file():
+        return out
+    try:
+        with f.open(encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                iid = (row.get("image_id") or "").strip()
+                ts = (row.get("ts") or "").strip()
+                if iid:
+                    out.setdefault(iid, []).append(ts)
+    except OSError:
+        pass
+    return out
+
+
 def load_ops(log_dir: Path) -> dict[str, Counter]:
     """arm -> Counter(image -> Counter(op))"""
     out: dict[str, Counter] = {}
@@ -248,6 +272,7 @@ def main() -> int:
     img_dir = data_root / "images" / args.split
 
     ops = load_ops(log_dir)
+    gt_views = load_gt_views(log_dir)
     rows: list[dict] = []
     skipped: list[str] = []
     for t in manifest["tasks"]:
@@ -289,6 +314,8 @@ def main() -> int:
             "ops_class": c[(iid, "改类别")], "ops_vertex": c[(iid, "拖边界")],
             # 只对 assisted/noprompt 有意义；manual 没有预标，留空
             "same_as_pred": ("" if arm == "manual" else int(bool(unchanged))),
+            # 该图在本次会话里被读过真值 -> 这条数据有污染风险
+            "gt_viewed": int(iid in gt_views),
         })
 
     if not rows:
@@ -334,6 +361,7 @@ def main() -> int:
             "same_as_pred": sum(
                 1 for r in rs if r["same_as_pred"] == 1
             ),
+            "gt_viewed": sum(r["gt_viewed"] for r in rs),
             "n_gt": sum(r["n_gt"] for r in rs), "n_pred": sum(r["n_pred"] for r in rs),
             "tp": sum(r["tp"] for r in rs), "fp": sum(r["fp"] for r in rs),
             "fn": sum(r["fn"] for r in rs),
@@ -406,13 +434,13 @@ def main() -> int:
         "",
         "## 每臂指标",
         "",
-        "| 臂 | 图数 | 未改动 | GT | 提交 | P(宏) | R(宏) | F1(宏) | P(微) | R(微) | F1(微) | 掩膜IoU(均) | 类别正确率 | 耗时中位(首动作) | 耗时中位(开图) | 新画 | 删 | 改类 | 拖边界 |",
-        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+        "| 臂 | 图数 | 未改动 | 看过真值 | GT | 提交 | P(宏) | R(宏) | F1(宏) | P(微) | R(微) | F1(微) | 掩膜IoU(均) | 类别正确率 | 耗时中位(首动作) | 耗时中位(开图) | 新画 | 删 | 改类 | 拖边界 |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for a in arm_rows:
         lines.append(
             f"| {a['arm_label']} | {a['n_images']} | {a['same_as_pred']}/{a['n_images']} "
-            f"| {a['n_gt']} | {a['n_pred']} "
+            f"| {a['gt_viewed']} | {a['n_gt']} | {a['n_pred']} "
             f"| {a['precision_macro']:.3f} | {a['recall_macro']:.3f} | {a['f1_macro']:.3f} "
             f"| {a['precision_micro']:.3f} | {a['recall_micro']:.3f} | {a['f1_micro']:.3f} "
             f"| {a['mask_iou_mean']:.3f} | {a['class_acc_mean'] if a['class_acc_mean'] != '' else '—'} "
@@ -446,6 +474,8 @@ def main() -> int:
         "",
         "## 局限",
         "",
+        "- 【看过真值】列 > 0 表示该图的真值在本次会话里被打开过 —— 这些条目不能当作独立数据，"
+        "  分析时应剔除或单独报告（见 out/logs/gt_view.csv）",
         "- 【未改动】列很关键：assisted/noprompt 若有大量条目未改动，说明标注员没有编辑，",
         "  这些条的精度反映的是模型本身，不能当作人机协同结果",
         "- 单组 8 图/臂，指标波动大；结论需 4 组跑完后再看组间一致性",

@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import mimetypes
+from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, Response
@@ -94,6 +95,23 @@ def get_image_gt(image_id: str, request: Request):
     rec = catalog.get(image_id)
     if rec is None:
         raise HTTPException(404, f"未知 image_id: {image_id}")
+
+    # 记一笔"这张图被人看过真值"。事后判定某轮数据是否被污染，
+    # 靠的就是这份日志（导出工具会读它并给每条打 gt_viewed）。
+    # 写日志失败绝不能影响读数本身。
+    try:
+        log = config.LOG_DIR / "gt_view.csv"
+        log.parent.mkdir(parents=True, exist_ok=True)
+        new = not log.is_file()
+        with log.open("a", encoding="utf-8", newline="") as fh:
+            if new:
+                fh.write("ts,image_id,source\n")
+            fh.write(
+                f"{datetime.now().astimezone().isoformat(timespec='seconds')}"
+                f",{image_id},api\n"
+            )
+    except OSError:
+        pass
 
     # images/<split>/<stem>.jpg -> labels/<split>/<stem>.txt
     # parents: [0]=<split> [1]=images [2]=数据集根
