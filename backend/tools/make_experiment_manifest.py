@@ -1,25 +1,32 @@
-"""生成「同图三臂 × 多组」实验任务清单。
+"""生成「同图三臂」实验任务清单。
 
-设计（为什么这样抽）
---------------------
+设计要点
+--------
 - **同图三臂**：同一张图在 assisted / manual / noprompt 各标一遍。
-  图难度被完全消掉，每张图给出一个配对差 d = cost(臂A) − cost(臂B)。
-- **多组**：把图分成 G 组，每组 x 张。组用于估计"换一批图结论还成立吗"。
-  标注量 = x × 3 × G。
-- **臂顺序轮转**：同一张图的三个任务按 (组号 + 组内序号) 旋转起始臂，
-  使三个臂在"第 1/2/3 遍"上分布均衡 —— 否则"第三遍最快"会被误读成某个臂更好。
-- **随机交错**（默认）：把所有任务打散。记忆效应与顺序效应都被打散，
-  而不是集中在某一段。
+  图难度被消掉，每张图给出一个配对差 d = cost(臂A) − cost(臂B)。
+- **多组**：x 张/组 × G 组。组用于估"换一批图结论还成不成立"。
+- **臂优先 + 臂顺序轮转**（默认 layout=by-arm）：
+  一组内先把某个臂的图全部做完，再切下一个臂 —— 符合实际标注习惯。
+  但"第几遍"会与臂绑定，所以**每组的臂顺序按组号轮转**：
+  g1: A→M→N，g2: M→N→A，g3: N→A→M，g4: A→M→N …
+  这样三个臂在"第 1/2/3 个做的臂"上分布均衡，块顺序效应可被估计并扣掉。
+  每个臂块内部的图顺序**随机打乱**，避免"先做的图更仔细"。
+- **多人互不重叠**：`--persons N --person I` 从同一份抽样里切出第 I 个人的
+  x×G 张图。两人之间**没有一张重复** —— 因为落盘路径是
+  `out/annotations/<arm>/<image_id>.json`，只按臂分目录，
+  两个人标同一张同一臂会**互相覆盖**。标注员姓名仍写进 sidecar 的 operator。
 
 用法
 ----
-    python backend/tools/make_experiment_manifest.py \
-        --data "C:/Users/1/Desktop/附件/AL_v4/dataset/data.yaml" \
-        --x 8 --groups 4 --seed 20261124 \
-        --out out/experiment/manifest.json
+    # 单人 8 图 × 4 组
+    python backend/tools/make_experiment_manifest.py --data .../data.yaml --x 8 --groups 4
 
-    # 按组内顺序执行（不想被随机跳转打扰时用）
-    ... --layout by-group
+    # 两个人，各 8×4，互不重叠
+    ... --persons 2 --person 1 --out out/experiment/p1.json
+    ... --persons 2 --person 2 --out out/experiment/p2.json
+
+    # 想抗疲劳更强（严格交错，不按臂分块）
+    ... --layout interleave
 """
 
 from __future__ import annotations
@@ -35,54 +42,88 @@ ARMS = ("assisted", "manual", "noprompt")
 PROJECT = Path(__file__).resolve().parents[2]
 
 
-def load_names(data_yaml: Path) -> list[str]:
-    """读 data.yaml 的 names（只用来给清单补 class_name，纯展示用）。"""
+def load_conf(data_yaml: Path) -> tuple[Path, list[str]]:
+    """返回 (数据集根目录, 类名列表)。类名只用于清单展示。"""
+    root = data_yaml.parent
+    names: list[str] = []
+    declared: Path | None = None
     try:
         import yaml
-    except ImportError:
-        return []
-    try:
-        d = yaml.safe_load(data_yaml.read_text(encoding="utf-8")) or {}
-    except OSError:
-        return []
-    names = d.get("names") or []
-    if isinstance(names, dict):
-        names = [names[k] for k in sorted(names)]
-    return [str(x) for x in names]
+
+        conf = yaml.safe_load(data_yaml.read_text(encoding="utf-8")) or {}
+        if conf.get("path"):
+            declared = Path(str(conf["path"]))
+        n = conf.get("names") or []
+        if isinstance(n, dict):
+            n = [n[k] for k in sorted(n)]
+        names = [str(x) for x in n]
+    except Exception:
+        pass
+    base = declared if (declared and declared.is_dir()) else root
+    return base, names
 
 
 def class_of(image_id: str, class_names: list[str], labels_dir: Path | None) -> str | None:
-    """从 labels/<split>/<stem>.txt 的第一行取类别 id，映射成类名。"""
     if labels_dir is None or not class_names:
         return None
     lbl = labels_dir / f"{image_id}.txt"
     if not lbl.is_file():
         return None
     try:
-        first = lbl.read_text(encoding="utf-8").splitlines()[0]
-        cid = int(first.split()[0])
+        cid = int(lbl.read_text(encoding="utf-8").splitlines()[0].split()[0])
     except (OSError, ValueError, IndexError):
         return None
     return class_names[cid] if 0 <= cid < len(class_names) else None
 
 
+def build_order(tasks: list[dict], layout: str, x: int, groups: int,
+                rnd: random.Random) -> list[dict]:
+    """按 layout 决定执行顺序，并写 order（1-based）。"""
+    if layout == "interleave":
+        out = list(tasks)
+        rnd.shuffle(out)
+    elif layout == "by-group":
+        out = []
+        for gi in range(groups):
+            block = [t for t in tasks if t["group"] == f"g{gi + 1}"]
+            rnd.shuffle(block)
+            out.extend(block)
+    else:  # by-arm：组内按臂分块，臂顺序按组号轮转
+        out = []
+        for gi in range(groups):
+            gid = f"g{gi + 1}"
+            for k in range(3):
+                arm = ARMS[(gi + k) % 3]
+                block = [t for t in tasks if t["group"] == gid and t["arm"] == arm]
+                rnd.shuffle(block)          # 块内图序随机
+                out.extend(block)
+    for n, t in enumerate(out, start=1):
+        t["order"] = n
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="生成同图三臂实验任务清单")
-    ap.add_argument("--data", required=True, help="data.yaml 路径（用来定位图片与类名）")
+    ap.add_argument("--data", required=True, help="data.yaml（用来定位图片与类名）")
     ap.add_argument("--split", default="val", help="从哪个 split 抽图（默认 val）")
     ap.add_argument("--x", type=int, default=8, help="每组抽多少张图")
     ap.add_argument("--groups", type=int, default=4, help="做几组")
+    ap.add_argument("--persons", type=int, default=1,
+                    help="几个标注员（>1 时每人分到互不重叠的一套图）")
+    ap.add_argument("--person", type=int, default=1, help="这是第几个标注员（1-based）")
     ap.add_argument("--seed", type=int, default=20261124, help="随机种子（可复现）")
-    ap.add_argument("--layout", choices=("interleave", "by-group"), default="interleave",
-                    help="interleave=所有任务打散（推荐）；by-group=组内打散、组间顺序")
+    ap.add_argument("--layout", choices=("by-arm", "interleave", "by-group"), default="by-arm",
+                    help="by-arm=一组内按臂分块（默认，符合标注习惯）；interleave=全随机交错")
     ap.add_argument("--out", default=str(PROJECT / "out" / "experiment" / "manifest.json"))
-    ap.add_argument("--name", default=None, help="清单名（默认自动生成）")
-    ap.add_argument("--exclude", nargs="*", default=[],
-                    help="排除这些 image_id（例如已经标过的）")
+    ap.add_argument("--name", default=None)
+    ap.add_argument("--exclude", nargs="*", default=[], help="排除这些 image_id")
     args = ap.parse_args()
 
-    if args.x < 1 or args.groups < 1:
-        print("--x 和 --groups 必须 >= 1", file=sys.stderr)
+    if args.x < 1 or args.groups < 1 or args.persons < 1:
+        print("--x / --groups / --persons 必须 >= 1", file=sys.stderr)
+        return 2
+    if not 1 <= args.person <= args.persons:
+        print(f"--person 必须在 1..{args.persons} 之间", file=sys.stderr)
         return 2
 
     data_yaml = Path(args.data).expanduser()
@@ -90,17 +131,9 @@ def main() -> int:
         print(f"找不到 data.yaml: {data_yaml}", file=sys.stderr)
         return 2
 
-    root = data_yaml.parent
-    try:
-        import yaml  # noqa: F401
-        conf = yaml.safe_load(data_yaml.read_text(encoding="utf-8")) or {}
-    except Exception:
-        conf = {}
-    declared = Path(str(conf.get("path") or root))
-    dataset_root = declared if declared.is_dir() else root
-
-    img_dir = dataset_root / "images" / args.split
-    lbl_dir = dataset_root / "labels" / args.split
+    base, names = load_conf(data_yaml)
+    img_dir = base / "images" / args.split
+    lbl_dir = base / "labels" / args.split
     if not img_dir.is_dir():
         print(f"找不到图片目录: {img_dir}", file=sys.stderr)
         return 2
@@ -108,15 +141,18 @@ def main() -> int:
     pool = sorted(p.stem for p in img_dir.glob("*.jpg"))
     skip = set(args.exclude)
     pool = [i for i in pool if i not in skip]
-    need = args.x * args.groups
+    per_person = args.x * args.groups
+    need = per_person * args.persons
     if len(pool) < need:
-        print(f"可用图 {len(pool)} 张，不够 {need} 张（x={args.x} × groups={args.groups}）",
+        print(f"可用图 {len(pool)} 张，不够 {need} 张"
+              f"（x={args.x} × groups={args.groups} × persons={args.persons}）",
               file=sys.stderr)
         return 2
 
     rnd = random.Random(args.seed)
-    picked = rnd.sample(pool, need)          # 不放回：组间也不重图
-    names = load_names(data_yaml)
+    sampled = rnd.sample(pool, need)
+    # 每人一段连续切片：同一 seed 下第 i 人拿到的图固定且互不重叠
+    picked = sampled[(args.person - 1) * per_person: args.person * per_person]
 
     groups: list[dict] = []
     tasks: list[dict] = []
@@ -124,35 +160,23 @@ def main() -> int:
         gid = f"g{gi + 1}"
         members = picked[gi * args.x:(gi + 1) * args.x]
         groups.append({"id": gid, "images": members})
-        for j, iid in enumerate(members):
-            # 起始臂按 (组号 + 组内序号) 旋转，保证三个臂在 3 个位置上均衡
-            start = (gi + j) % 3
-            order = [ARMS[(start + k) % 3] for k in range(3)]
-            for arm in order:
+        for iid in members:
+            cls = class_of(iid, names, lbl_dir)
+            for arm in ARMS:
                 tasks.append({
                     "image_id": iid,
                     "arm": arm,
                     "group": gid,
-                    "class_name": class_of(iid, names, lbl_dir),
+                    "class_name": cls,
                 })
 
-    # 执行顺序
-    idx = list(range(len(tasks)))
-    if args.layout == "by-group":
-        # 组内打散，组间按 g1,g2,...
-        ordered: list[dict] = []
-        for gi in range(args.groups):
-            block = [t for t in tasks if t["group"] == f"g{gi + 1}"]
-            rnd.shuffle(block)
-            ordered.extend(block)
-    else:
-        rnd.shuffle(idx)
-        ordered = [tasks[i] for i in idx]
-    for n, t in enumerate(ordered, start=1):
-        t["order"] = n
+    ordered = build_order(tasks, args.layout, args.x, args.groups, rnd)
 
     manifest = {
-        "name": args.name or f"同图三臂 · {args.x}图×{args.groups}组",
+        "name": args.name or (
+            f"同图三臂 · {args.x}图×{args.groups}组"
+            + (f" · 第{args.person}人" if args.persons > 1 else "")
+        ),
         "design": {
             "kind": "same-image-3arms",
             "x": args.x,
@@ -161,8 +185,11 @@ def main() -> int:
             "split": args.split,
             "seed": args.seed,
             "layout": args.layout,
+            "persons": args.persons,
+            "person": args.person,
             "total_tasks": len(ordered),
-            "note": "同一张图在三个臂各标一遍；臂顺序按(组号+组内序号)轮转",
+            "arm_order_rule": "by-arm 时每组的臂顺序按 (组号 + k) mod 3 轮转",
+            "note": "同一张图在三个臂各标一遍；不同 person 的图互不重叠（避免同臂同图覆盖）",
         },
         "groups": groups,
         "tasks": ordered,
@@ -172,28 +199,29 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # ---- 自检输出
+    # ---- 自检
     per_arm = Counter(t["arm"] for t in ordered)
-    per_pos = Counter()
-    for gi in range(args.groups):
-        for j in range(args.x):
-            start = (gi + j) % 3
-            for pos in range(3):
-                per_pos[f"第{pos + 1}遍:{ARMS[(start + pos) % 3]}"] += 1
-    cls_img = {}
+    per_group = Counter(t["group"] for t in ordered)
+    seq = []
+    for g in sorted(per_group, key=lambda s: int(s[1:])):
+        block = [t["arm"] for t in ordered if t["group"] == g]
+        # 压缩成"臂块"序列，便于肉眼检查轮转
+        blocks = [a for i, a in enumerate(block) if i == 0 or block[i - 1] != a]
+        seq.append(f"{g}:" + "→".join(b[0].upper() for b in blocks))
+    cls_img: dict[str, str] = {}
     for t in ordered:
         cls_img.setdefault(t["image_id"], t["class_name"] or "（无标签）")
 
     print(f"  清单 -> {out}")
     print(f"  {args.x} 图 × 3 臂 × {args.groups} 组 = {len(ordered)} 个任务"
-          f"（{len(set(t['image_id'] for t in ordered))} 张图）")
+          f"（{len(cls_img)} 张图）")
+    print(f"  标注员: 第 {args.person}/{args.persons} 人"
+          + (f"（本套图与他人不重叠，总抽样 {need} 张）" if args.persons > 1 else ""))
     print(f"  每臂任务数: {dict(sorted(per_arm.items()))}")
-    print(f"  位置×臂 分布: {dict(sorted(per_pos.items()))}")
+    print(f"  每组任务数: {dict(sorted(per_group.items(), key=lambda kv: int(kv[0][1:])))}")
+    print(f"  组内臂块顺序: {' '.join(seq)}")
+    print(f"  布局: {args.layout}   seed: {args.seed}")
     print(f"  覆盖类别: {len(set(cls_img.values()))} 个")
-    only_once = [c for c, n in Counter(cls_img.values()).items() if n == 1]
-    if only_once:
-        print(f"  只出现 1 张的类别: {len(only_once)} 个（{', '.join(only_once[:6])}…）")
-    print(f"  执行顺序: {args.layout}")
     return 0
 
 
