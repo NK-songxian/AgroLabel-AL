@@ -388,7 +388,9 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   exitExperiment: () => {
-    set({ experimentOn: false, experiment: null, expDone: {} })
+    // 退出时把臂复位成 assisted：普通标注模式下要保证"预标注 + 点提示"都能用，
+    // 不能因为刚才在 noprompt 臂里就把点提示一直禁着。
+    set({ experimentOn: false, experiment: null, expDone: {}, expTasks: [], arm: 'assisted' })
     void get().loadQueue('all')
     get().toast('已退出实验模式', 'ok')
   },
@@ -701,19 +703,29 @@ export const useStore = create<Store>((set, get) => ({
   setMode: (m) => set({ mode: m, draft: null }),
 
   setArm: (a) => {
-    if (a === get().arm) return
-    // 实验模式下臂由图清单决定。允许手切等于允许标错，标错的产物按臂分目录落盘，
-    // 事后没法凭数据判断对错 —— 直接拒绝。
-    if (get().experimentOn) {
-      get().toast('实验模式下臂由图清单决定，不能手动切换（退出实验模式后可改）', 'warn')
+    // 非实验模式（普通标注）：臂只决定"产物落哪个目录"，界面上不暴露这个选择，
+    // 默认 assisted（预标注 + 点提示都可用）。
+    if (!get().experimentOn) {
+      if (a === get().arm) return
+      set({ arm: a, mode: 'select', draft: null })
+      const i = get().index
+      if (i >= 0) void get().openIndex(i)
+      get().toast(`已切到「${ARM_LABEL[a]}」，当前图已重新载入`, 'ok')
       return
     }
-    set({ arm: a, mode: 'select', draft: null })
-    // 换臂等于换实验条件：当前图必须按新条件重新载入
-    // （manual 要清掉预标注，assisted 要重新跑预测）
-    const i = get().index
-    if (i >= 0) void get().openIndex(i)
-    get().toast(`已切到「${ARM_LABEL[a]}」，当前图已重新载入`, 'ok')
+    // 实验模式：在这选臂 = **跳到该臂的下一个未完成任务**，而不是直接改臂。
+    // 臂必须跟着任务走，否则产物会落到 out/annotations/<arm>/ 错误目录，
+    // 而且事后没法凭数据判断谁标错了。
+    const { expTasks, expDone, index } = get()
+    const at = expTasks.findIndex(
+      (tk, i) => tk.arm === a && i !== index && !expDone[taskKey(tk.image_id, tk.arm)],
+    )
+    if (at < 0) {
+      get().toast(`「${ARM_LABEL[a]}」已经没有未完成的任务了`, 'warn')
+      return
+    }
+    void get().openIndex(at)
+    get().toast(`跳到「${ARM_LABEL[a]}」的下一个任务（第 ${at + 1} 个）`, 'ok')
   },
 
   toggleMasks: () => set((s) => ({ showMasks: !s.showMasks })),

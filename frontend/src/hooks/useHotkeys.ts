@@ -75,7 +75,7 @@ export function useHotkeys() {
           // noprompt 臂（C 臂）禁用点提示。工具条按钮已经 disable，
           // 但快捷键不拦就等于没禁 —— 按一下 P 就能用上点提示，
           // 而且数据看起来完全正常，事后查不出来。
-          if (s.arm === 'noprompt') {
+          if (s.experimentOn && s.arm === 'noprompt') {
             s.toast('当前是「预标 · 禁用点提示」臂，点提示不可用（切到别的臂才能用）', 'warn')
             break
           }

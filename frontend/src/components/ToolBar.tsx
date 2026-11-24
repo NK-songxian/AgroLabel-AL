@@ -14,6 +14,7 @@ export function ToolBar() {
   const draft = useStore((s) => s.draft)
   const selectedId = useStore((s) => s.selectedId)
   const arm = useStore((s) => s.arm)
+  const experimentOn = useStore((s) => s.experimentOn)
   const operator = useStore((s) => s.operator)
   const setOperator = useStore((s) => s.setOperator)
   const setMode = useStore((s) => s.setMode)
@@ -51,10 +52,10 @@ export function ToolBar() {
         </button>
         <button
           className={`tool${mode === 'refine' ? ' on' : ''}`}
-          disabled={arm === 'noprompt'}
+          disabled={experimentOn && arm === 'noprompt'}
           onClick={() => setMode('refine')}
           title={
-            arm === 'noprompt'
+            experimentOn && arm === 'noprompt'
               ? '当前是「预标 · 禁用点提示」臂，点提示不可用（切到别的臂才能用）'
               : '点一下病斑，让模型在放大后的局部重新识别（P）'
           }

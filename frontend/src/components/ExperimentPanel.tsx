@@ -83,28 +83,34 @@ export function ExperimentPanel() {
           </div>
 
           {/*
-            实验臂选择器**始终渲染**。之前它只在"已载入清单"分支里，
-            结果没载清单时就完全没有切臂入口 —— 这是把下拉框从右栏搬进来时漏掉的。
+            臂选择只在**实验模式**出现。
+            普通标注模式不暴露"臂"这个概念 —— 进来就是预标注 + 点提示全可用，
+            不需要先去面板里挑一下。
           */}
-          <label className="exp-arm">
-            <span>实验臂</span>
-            <select
-              value={arm}
-              disabled={experimentOn}
-              onChange={(e) => setArm(e.target.value as Arm)}
-              title={
-                experimentOn
-                  ? '实验模式下臂由任务清单决定（一张图会在三个臂各标一遍），不能手动切换'
-                  : '切换后当前图按新条件重新载入，产物分别落到 out/annotations/<arm>/'
-              }
-            >
-              {(Object.keys(ARM_LABEL) as Arm[]).map((a) => (
-                <option key={a} value={a}>
-                  {ARM_LABEL[a]}
-                </option>
-              ))}
-            </select>
-          </label>
+          {experimentOn && (
+            <label className="exp-arm">
+              <span>切到臂</span>
+              <select
+                value={arm}
+                onChange={(e) => setArm(e.target.value as Arm)}
+                title="选臂 = 跳到这个臂的下一个未完成任务（臂始终跟着任务走，不会把产物落到错目录）"
+              >
+                {(Object.keys(ARM_LABEL) as Arm[]).map((a) => (
+                  <option key={a} value={a}>
+                    {ARM_LABEL[a]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {!experimentOn && (
+            <p className="exp-note">
+              当前是<strong>普通标注模式</strong>：预标注与点提示都可用，
+              标注结果落到 <code>out/annotations/assisted/</code>。
+              点下面的按钮才进入三臂对照实验。
+            </p>
+          )}
 
           {!loaded && (
             <>
@@ -172,7 +178,8 @@ export function ExperimentPanel() {
 
               {experimentOn && (
                 <p className="exp-note dim">
-                  臂由任务决定并锁定；同一张图会在三个臂各出现一次，这是设计（同图对照）。
+                  臂跟着任务走；选臂 = 跳到该臂的下一个任务。
+                  同一张图会在三个臂各出现一次，这是设计（同图对照）。
                 </p>
               )}
 
