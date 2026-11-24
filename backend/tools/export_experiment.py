@@ -230,6 +230,8 @@ def main() -> int:
     ap.add_argument("--iou", type=float, default=0.5, help="实例匹配的 IoU 阈值")
     ap.add_argument("--maskpx", type=int, default=512, help="光栅化长边像素")
     ap.add_argument("--group", default=None, help="只导出某一组（如 g1）")
+    ap.add_argument("--exclude-image", nargs="*", default=[],
+                    help="排除这些图（例如怀疑看过真值的那张），做敏感性分析")
     ap.add_argument("--out", default=None, help="输出目录（默认 out/report/exp_<时间戳>）")
     args = ap.parse_args()
 
@@ -252,6 +254,8 @@ def main() -> int:
         if args.group and t["group"] != args.group:
             continue
         arm, iid = t["arm"], t["image_id"]
+        if iid in set(args.exclude_image):
+            continue
         annot = read_yolo_seg(annot_dir / arm / f"{iid}.txt")
         side = load_sidecar(annot_dir, arm, iid)
         if not side and not annot:
