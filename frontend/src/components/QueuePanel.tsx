@@ -5,7 +5,11 @@ import { useStore } from '../store'
 import { ARM_LABEL, taskKey, type Arm, type SampleStrategy } from '../types'
 import { ExperimentPanel } from './ExperimentPanel'
 
-const STRATEGY_LABEL: Record<SampleStrategy, string> = {
+/** 下拉框里的选项：真实策略 + 一个"不选样"的「全部」，方便直接浏览整队列 */
+type StrategyChoice = SampleStrategy | 'all'
+
+const STRATEGY_LABEL: Record<StrategyChoice, string> = {
+  all: '全部 · 不选样',
   entropy: '熵 · 最不确定',
   tta: 'TTA · 扰动不一致',
   coreset: '核心集 · 最不像',
@@ -49,7 +53,7 @@ export function QueuePanel() {
   const expDone = useStore((s) => s.expDone)
   const queueQuery = useStore((s) => s.queueQuery)
   const setQueueQuery = useStore((s) => s.setQueueQuery)
-  const [strategy, setStrategy] = useState<SampleStrategy>('entropy')
+  const [strategy, setStrategy] = useState<StrategyChoice>('all')
   const [sampleK, setSampleK] = useState(DEFAULT_SAMPLE_K)
   // 输入框直接受控于 store（queueQuery），不在组件里镜像一份 ——
   // 镜像就要用 effect 同步，会触发级联渲染（oxlint 的 set-state-in-effect）。
@@ -124,11 +128,11 @@ export function QueuePanel() {
       <div className="sample-bar">
         <select
           value={strategy}
-          onChange={(e) => setStrategy(e.target.value as SampleStrategy)}
+          onChange={(e) => setStrategy(e.target.value as StrategyChoice)}
           disabled={queueLoading}
           title="主动学习选样策略"
         >
-          {(Object.keys(STRATEGY_LABEL) as SampleStrategy[]).map((s) => (
+          {(Object.keys(STRATEGY_LABEL) as StrategyChoice[]).map((s) => (
             <option key={s} value={s}>
               {STRATEGY_LABEL[s]}
             </option>
@@ -140,16 +144,24 @@ export function QueuePanel() {
           min={1}
           max={200}
           value={sampleK}
-          disabled={queueLoading}
+          disabled={queueLoading || strategy === 'all'}
           onChange={(e) => setSampleK(clampK(Number(e.target.value)))}
           title="取多少张。设得比池子大就取整池（按难度排好序）——三臂实验请用左下角的「实验模式」，不要用智能选样"
         />
         <button
-          onClick={() => void loadSample(strategy, sampleK)}
+          onClick={() =>
+            strategy === 'all'
+              ? void loadQueue()
+              : void loadSample(strategy, sampleK)
+          }
           disabled={queueLoading}
-          title={`调 /api/sample，把这批里最值得标的 ${sampleK} 张换进队列`}
+          title={
+            strategy === 'all'
+              ? '按路径顺序恢复整个队列（清掉选样结果与分数）'
+              : `调 /api/sample，把这批里最值得标的 ${sampleK} 张换进队列`
+          }
         >
-          智能选样
+          {strategy === 'all' ? '显示全部' : '智能选样'}
         </button>
       </div>
 
