@@ -443,6 +443,28 @@ button { font: inherit; color: inherit; }
 
 /* 左栏：智能选样 */
 /* 队列搜索：标题下、split 切换上。窄一点，别把队列挤没 */
+/* 「加载更多」：和主题/实验按钮同款的窄胶囊 */
+.queue-more {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-2);
+  background: var(--panel-2);
+  color: var(--dim);
+  font-size: 11px;
+  line-height: 1.3;
+  cursor: pointer;
+  transition: color .12s, border-color .12s, background .12s;
+}
+
+.queue-more:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--accent-dim);
+  background: var(--btn-hover);
+}
+
+.queue-more:disabled { opacity: .5; cursor: not-allowed; }
+
 .queue-search {
   position: relative;
   display: flex;

@@ -45,6 +45,8 @@ export function QueuePanel() {
   const submitted = useStore((s) => s.submitted)
   const openIndex = useStore((s) => s.openIndex)
   const loadQueue = useStore((s) => s.loadQueue)
+  const queueHasMore = useStore((s) => s.queueHasMore)
+  const loadMoreQueue = useStore((s) => s.loadMoreQueue)
   const loadSample = useStore((s) => s.loadSample)
   const classes = useStore((s) => s.classes)
   const sampleScores = useStore((s) => s.sampleScores)
@@ -213,13 +215,25 @@ export function QueuePanel() {
         })}
       </div>
 
-      {/* 左下角：明暗切换 + 实验模式 + 队列说明 */}
+      {/* 左下角：明暗切换 + 实验模式 + 加载更多 + 队列说明 */}
       <div className="pane-foot queue-foot">
         <ThemeToggle />
         <ExperimentPanel />
+        {!experimentOn && queueHasMore && (
+          <button
+            type="button"
+            className="queue-more"
+            onClick={() => void loadMoreQueue()}
+            disabled={queueLoading}
+            title="再载入 60 张（滚到列表底部也会自动加载）"
+          >
+            加载更多
+          </button>
+        )}
         <span className="foot-note">
-          {experimentOn ? '实验任务' : '仅显示前'} {queue.length} {experimentOn ? '个' : '张'}
-          （共 {queueTotal}{experimentOn ? ' 个任务' : ''}）
+          {experimentOn
+            ? `实验任务 ${queue.length} 个`
+            : `已载入 ${queue.length} / ${queueTotal} 张`}
         </span>
       </div>
     </aside>

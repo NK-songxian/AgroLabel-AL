@@ -88,6 +88,8 @@ type Store = {
   /** 队列来源，显示在左栏标题上：全部 / 智能选样 · entropy */
   /** 队列搜索关键词（空串 = 不过滤） */
   queueQuery: string
+  /** 队列是否还有下一页（已载入 < queueTotal） */
+  queueHasMore: boolean
   queueLabel: string
   /** 智能选样时每张图的打分（image_id -> {score, criterion}）；普通队列为空对象 */
   sampleScores: Record<string, { score: number | null; criterion: string }>
@@ -156,6 +158,8 @@ type Store = {
 
   bootstrap: () => Promise<void>
   loadQueue: (split?: string) => Promise<void>
+  /** 追加下一页（不在底部也允许点） */
+  loadMoreQueue: () => Promise<void>
   /** 只更新搜索词；真正的请求由面板防抖后调 loadQueue */
   setQueueQuery: (q: string) => void
   openIndex: (i: number) => Promise<void>
@@ -239,6 +243,7 @@ export const useStore = create<Store>((set, get) => ({
   queueTotal: 0,
   split: 'all',
   queueQuery: '',
+  queueHasMore: false,
   queueLoading: false,
   queueLabel: '全部',
   sampleScores: {},
@@ -307,6 +312,8 @@ export const useStore = create<Store>((set, get) => ({
       })
       set({
         queue: res.items, queueTotal: res.total, queueLoading: false,
+        // 一页装不下 7773 张：记下还有没有下一页，滚动到底时自动续
+        queueHasMore: res.items.length < res.total,
         queueLabel: kw ? `搜索「${kw}」` : (s === 'all' ? '全部' : s),
         sampleScores: {},
       })
@@ -317,6 +324,28 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   setQueueQuery: (q) => set({ queueQuery: q }),
+
+  loadMoreQueue: async () => {
+    const { queue, queueTotal, queueLoading, split, queueQuery } = get()
+    if (queueLoading || queue.length >= queueTotal) return
+    const kw = queueQuery.trim()
+    set({ queueLoading: true })
+    try {
+      // offset 用"已载入张数"，所以追加不会重复也不会漏
+      const res = await api.images({
+        split, offset: queue.length, limit: PAGE,
+        ...(kw ? { q: kw } : {}),
+      })
+      set({
+        queue: [...queue, ...res.items],
+        queueLoading: false,
+        queueHasMore: queue.length + res.items.length < res.total,
+      })
+    } catch (e) {
+      set({ queueLoading: false })
+      get().toast(`加载更多失败：${e instanceof Error ? e.message : e}`, 'err')
+    }
+  },
 
   // ------------------------------------------------------------ 实验模式
 
@@ -377,6 +406,7 @@ export const useStore = create<Store>((set, get) => ({
       queue,
       expTasks: tasks,
       queueTotal: queue.length,
+      queueHasMore: false,
       queueLabel: `实验 · ${info.n_images} 图 / ${queue.length} 任务`,
       experimentOn: true,
       expDone,
@@ -422,6 +452,12 @@ export const useStore = create<Store>((set, get) => ({
     if (get().experimentOn) {
       const want = get().expTasks[i]?.arm
       if (want && want !== get().arm) set({ arm: want, mode: 'select', draft: null })
+    }
+
+    // 快浏览到本页末尾时自动续下一页：否则按 → 到第 60 张就停了，
+    // 而总数有 7773，感觉像"没翻页"。
+    if (!get().experimentOn && get().queueHasMore && i >= queue.length - 8) {
+      void get().loadMoreQueue()
     }
 
     const seq = ++openSeq
