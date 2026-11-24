@@ -14,6 +14,7 @@ import type {
   LabelState,
   Op,
   AnnotationRead,
+  ExperimentInfo,
   PredictResponse,
   RefineResponse,
   SampleResponse,
@@ -52,6 +53,9 @@ export const api = {
   health: () => request<HealthResponse>('/api/health'),
 
   classes: () => request<{ nc: number; classes: ClassItem[] }>('/api/classes'),
+
+  /** 实验模式：图清单 + 每臂进度。没有清单时返回 loaded=false，不是错误 */
+  experiment: () => request<ExperimentInfo>('/api/experiment'),
 
   images: (params: {
     split?: string

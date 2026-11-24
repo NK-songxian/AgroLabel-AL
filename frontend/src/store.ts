@@ -20,6 +20,7 @@ import type {
   Op,
   OpName,
   SampleStrategy,
+  ExperimentInfo,
 } from './types'
 import { applyTheme, initialTheme, type Theme } from './theme'
 import { ARM_LABEL, COUNTED_OPS } from './types'
@@ -136,6 +137,15 @@ type Store = {
    * （noprompt 禁用）、产物落到 out/annotations/<arm>/ 哪个目录。
    */
   arm: Arm
+  /**
+   * 三臂实验清单（GET /api/experiment）。null = 还没载入过。
+   * 载入成功后 `experimentOn` 为真：队列换成清单里的图，臂由图决定。
+   */
+  experiment: ExperimentInfo | null
+  /** 实验模式开关。开着时 setArm 会被拒，避免臂标错把数据弄废 */
+  experimentOn: boolean
+  /** 实验模式下已提交的图。本地累加，免得每提交一张就重拉清单 */
+  expDone: Record<string, true>
 
   toasts: Toast[]
 
@@ -164,6 +174,10 @@ type Store = {
   markAction: () => void
   /** 切换实验臂；会按新条件重新载入当前图 */
   setArm: (a: Arm) => void
+  /** 读实验清单；成功后把队列换成清单里的图并开启实验模式 */
+  loadExperiment: () => Promise<void>
+  /** 退出实验模式，回到普通队列 */
+  exitExperiment: () => void
 
   // ---- 手画多边形
   /** 正在画的多边形顶点（归一化坐标）。null 表示没在画 */
@@ -252,6 +266,9 @@ export const useStore = create<Store>((set, get) => ({
   operator: readStoredOperator(),
   actionAt: null,
   arm: 'assisted',
+  experiment: null,
+  experimentOn: false,
+  expDone: {},
   draft: null,
 
   toasts: [],
@@ -283,12 +300,94 @@ export const useStore = create<Store>((set, get) => ({
     }
   },
 
+  // ------------------------------------------------------------ 实验模式
+
+  /**
+   * 读实验清单，并把队列换成清单里的图。
+   *
+   * 为什么必须这么做：实验只标清单里的 68 张，而全量数据集有 7773 张；
+   * 队列按字母序排，人根本找不到该标的那几张。更要紧的是**每张图绑定一个臂**——
+   * 靠人记、靠手切臂，标错一次这条数据就废了（产物按臂分目录落盘）。
+   */
+  loadExperiment: async () => {
+    let info: ExperimentInfo
+    try {
+      info = await api.experiment()
+    } catch (e) {
+      get().toast(`读实验清单失败：${e instanceof Error ? e.message : e}`, 'err')
+      return
+    }
+    set({ experiment: info })
+    if (!info.loaded) {
+      get().toast(info.note || '没有可用的实验清单', 'warn')
+      return
+    }
+
+    // 按清单顺序取图元信息（宽高、GT 类名）。/api/images?ids= 单次上限 200。
+    const ordered = info.images.map((x) => x.image_id)
+    const byId = new Map<string, ImageItem>()
+    try {
+      for (let i = 0; i < ordered.length; i += 200) {
+        const res = await api.images({ ids: ordered.slice(i, i + 200), limit: 200 })
+        for (const it of res.items) byId.set(it.image_id, it)
+      }
+    } catch (e) {
+      get().toast(`载入实验图失败：${e instanceof Error ? e.message : e}`, 'err')
+      return
+    }
+
+    const queue = ordered.map((id) => byId.get(id)).filter((x): x is ImageItem => !!x)
+    const missing = ordered.filter((id) => !byId.has(id))
+    const expDone: Record<string, true> = {}
+    for (const id of info.done_images) expDone[id] = true
+
+    set({
+      queue,
+      queueTotal: queue.length,
+      queueLabel: `实验 · ${info.n_images} 张`,
+      experimentOn: true,
+      expDone,
+      index: -1,
+      current: null,
+      status: 'idle',
+    })
+
+    if (missing.length) {
+      // 清单和数据集对不上时必须喊出来：否则队列静默变短，人以为标完了
+      get().toast(
+        `清单里有 ${missing.length} 张不在当前数据集（如 ${missing[0]}），已跳过`,
+        'err',
+      )
+    } else {
+      const parts = (Object.keys(ARM_LABEL) as Arm[])
+        .filter((a) => (info.arms[a] ?? 0) > 0)
+        .map((a) => `${ARM_LABEL[a]} ${info.arms[a]}`)
+        .join(' / ')
+      get().toast(`实验模式已开启：${queue.length} 张（${parts}）`, 'ok')
+    }
+    if (queue.length) await get().openIndex(0)
+  },
+
+  exitExperiment: () => {
+    set({ experimentOn: false, experiment: null, expDone: {} })
+    void get().loadQueue('all')
+    get().toast('已退出实验模式', 'ok')
+  },
+
   // ------------------------------------------------------------ 打开一张图
 
   openIndex: async (i) => {
     const { queue } = get()
     if (i < 0 || i >= queue.length) return
     const img = queue[i]
+
+    // 实验模式：臂由清单决定，进图即切换。
+    // 这里直接 set 而不走 setArm —— setArm 会重新 openIndex，递归。
+    if (get().experimentOn) {
+      const want = get().experiment?.images.find((x) => x.image_id === img.image_id)?.arm
+      if (want && want !== get().arm) set({ arm: want, mode: 'select', draft: null })
+    }
+
     const seq = ++openSeq
 
     set({
@@ -563,6 +662,8 @@ export const useStore = create<Store>((set, get) => ({
       submitted: { ...get().submitted, [current.image_id]: instances.length },
       status: 'done',
     })
+    // 实验模式下记下这张已完成，面板的每臂进度据此推进（不用重拉清单）
+    if (get().experimentOn) set({ expDone: { ...get().expDone, [current.image_id]: true } })
     // m5 靠"提交"事件确定分母，必须在上送完再翻页
     await flushOps(true)
     // 记住提交的是哪一张：这 260ms 里人可能已经手动翻页或点了别的队列项，
@@ -580,6 +681,12 @@ export const useStore = create<Store>((set, get) => ({
 
   setArm: (a) => {
     if (a === get().arm) return
+    // 实验模式下臂由图清单决定。允许手切等于允许标错，标错的产物按臂分目录落盘，
+    // 事后没法凭数据判断对错 —— 直接拒绝。
+    if (get().experimentOn) {
+      get().toast('实验模式下臂由图清单决定，不能手动切换（退出实验模式后可改）', 'warn')
+      return
+    }
     set({ arm: a, mode: 'select', draft: null })
     // 换臂等于换实验条件：当前图必须按新条件重新载入
     // （manual 要清掉预标注，assisted 要重新跑预测）
@@ -890,7 +997,16 @@ export const useStore = create<Store>((set, get) => ({
   loadSample: async (strategy, k) => {
     set({ queueLoading: true })
     try {
-      const r = await api.sample({ k, strategy }, get().arm)
+      // 实验模式下把候选池限定为清单里的图：否则默认池是"整个 catalog 减已标注"，
+      // 全量数据集 7772 张会撞上 /api/sample 的单次上限 500（返回 400），
+      // 而且"最值得标"跨到实验外的图也没有意义。
+      const expIds = get().experimentOn
+        ? (get().experiment?.images ?? []).map((x) => x.image_id)
+        : undefined
+      const r = await api.sample(
+        { k, strategy, ...(expIds?.length ? { pool: expIds } : {}) },
+        get().arm,
+      )
       if (!r.selected.length) {
         set({ queueLoading: false })
         get().toast('没选出新图：可能都已经标过了', 'warn')

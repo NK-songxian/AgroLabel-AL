@@ -120,6 +120,22 @@ def main() -> int:
     check("offset 生效", p2["items"][0]["image_id"] != first_id,
           p2["items"][0]["image_id"])
 
+    # 实验模式接口：没清单也该是 200 + loaded=false（不是 404/500）
+    st, _, body = http("GET", "/api/experiment")
+    check("GET /api/experiment -> 200", st == 200, str(st))
+    try:
+        exp = json.loads(body)
+    except Exception:
+        exp = {}
+    check("experiment 有 loaded 字段", "loaded" in exp, str(list(exp))[:80])
+    if exp.get("loaded"):
+        check("experiment 图数与 images 一致",
+              exp.get("n_images") == len(exp.get("images", [])),
+              str(exp.get("n_images")))
+        arms = exp.get("arms", {})
+        check("experiment 臂名合法",
+              set(arms) <= {"assisted", "manual", "noprompt"}, str(list(arms)))
+
     st, _, _ = http("GET", "/api/images?order=class")
     check("order=class -> 200", st == 200, str(st))
     st, _, _ = http("GET", "/api/images?order=score_desc")
@@ -430,7 +446,12 @@ def main() -> int:
 
     # ---------------------------------------------------- 主动学习选样
     print("\n[10] POST /api/sample")
-    st, _, raw = http("POST", "/api/sample", {"k": 3, "strategy": "random", "seed": 1})
+    # 显式给 pool：默认池是"整个 catalog 减已标注"，全量数据集有 7773 张，
+    # 会撞上 /api/sample 的单次上限 500（返回 400）。给一个小池子才与数据集规模无关。
+    _, _, raw_img = http("GET", "/api/images?limit=5")
+    pool_ids = [it["image_id"] for it in json.loads(raw_img.decode("utf-8"))["items"]]
+    st, _, raw = http("POST", "/api/sample",
+                      {"k": 3, "strategy": "random", "seed": 1, "pool": pool_ids})
     check("random 策略 200（不加载模型，快）", st == 200, str(st))
     if st == 200:
         r = json.loads(raw.decode("utf-8"))
@@ -511,9 +532,18 @@ def main() -> int:
 
     # ---------------------------------------------------- 编辑代价
     print("\n[12] POST /api/edit-cost")
-    if insts:
-        base = {"pred_instances": insts, "gt_instances": insts,
-                "image_width": iw, "image_height": ih}
+    # 自己造 3 个互不重叠的方块当"预测"。原来的写法直接用 /api/predict 的结果，
+    # 换模型（v8n -> B6@1280）后这张图只出 1~2 个实例，`pred[2:]` 变空，
+    # "删实例=2" 就永远测不到 —— 编辑代价的算法跟模型无关，没理由跟着模型变。
+    sq = [[0.10, 0.10], [0.30, 0.10], [0.30, 0.30], [0.10, 0.30]]
+    sq2 = [[0.40, 0.10], [0.60, 0.10], [0.60, 0.30], [0.40, 0.30]]
+    sq3 = [[0.70, 0.40], [0.90, 0.40], [0.90, 0.60], [0.70, 0.60]]
+    pred3 = [{"class_id": 0, "polygon": sq},
+             {"class_id": 0, "polygon": sq2},
+             {"class_id": 0, "polygon": sq3}]
+    if pred3:
+        base = {"pred_instances": pred3, "gt_instances": pred3,
+                "image_width": 1000, "image_height": 1000}
 
         st, _, raw = http("POST", "/api/edit-cost", base)
         check("200", st == 200, str(st))
@@ -523,9 +553,9 @@ def main() -> int:
             check("breakdown 含 5 个键",
                   set(r.get("breakdown", {})) == {"新画", "删实例", "改类别", "拖边界", "标为无目标"},
                   str(list(r.get("breakdown", {}))))
-            check("canvas 反映传入宽高", r.get("canvas") == [iw, ih], str(r.get("canvas")))
+            check("canvas 反映传入宽高", r.get("canvas") == [1000, 1000], str(r.get("canvas")))
 
-        gt_minus2 = insts[2:]
+        gt_minus2 = pred3[2:]
         st, _, raw = http("POST", "/api/edit-cost",
                           {**base, "gt_instances": gt_minus2})
         if st == 200:

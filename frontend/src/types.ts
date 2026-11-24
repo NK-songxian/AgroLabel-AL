@@ -153,6 +153,33 @@ export const ARM_LABEL: Record<Arm, string> = {
   noprompt: '预标 · 禁用点提示',
 }
 
+/** 实验清单里的一张图：id + 它属于哪个臂（由图清单决定，不由界面切换） */
+export type ExpImage = {
+  image_id: string
+  arm: Arm
+  class_name: string | null
+  done: boolean
+}
+
+/**
+ * GET /api/experiment 的返回。
+ *
+ * `loaded: false` 表示"当前没有实验清单"，不是错误 —— 界面据此提示怎么放清单，
+ * 而不是把整个应用当故障。`problems` 里的行是清单里被跳过的条目（未知臂名、重复 id 等）。
+ */
+export type ExperimentInfo = {
+  loaded: boolean
+  source: string | null
+  name: string | null
+  note: string
+  n_images: number
+  arms: Record<string, number>
+  done: Record<string, number>
+  done_images: string[]
+  images: ExpImage[]
+  problems: string[]
+}
+
 /** GET /api/annotations/{id} 的返回（续标 / 刷新恢复用） */
 export type AnnotationRead = {
   found: boolean

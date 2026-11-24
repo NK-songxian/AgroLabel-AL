@@ -226,6 +226,44 @@ python backend/tools/human_stats.py --with-editcost    # 合并 m6 的加权编�
 
 自测：`python -m pytest backend/tests/test_human_stats.py -q`（6 项，造临时数据，不碰真实 out/）。
 
+### 实验模式：`GET /api/experiment`
+
+三臂对照实验只标 **68 张 val 图**，而全量数据集有 7773 张；队列按字母序排，
+人根本找不到该标的那几张。更要紧的是**每张图绑定一个臂**——靠人记、靠手切，
+标错一次这条数据就废了（产物按臂落目录）。
+
+这个接口把图清单和臂绑定交给程序：
+
+```powershell
+# 把实验包的 manifest.json 放到这里（默认位置）
+out/experiment/manifest.json
+# 或者指到别处（不改代码）
+$env:AGROLABEL_EXPERIMENT = "D:\exp\manifest.json"
+```
+
+```json
+{
+  "loaded": true,
+  "name": "三臂标注效率对照",
+  "n_images": 68,
+  "arms": { "assisted": 23, "manual": 23, "noprompt": 22 },
+  "done":  { "assisted": 0,  "manual": 0,  "noprompt": 0  },
+  "done_images": [],
+  "images": [ { "image_id": "apple_black_rot_28", "arm": "manual", "class_name": "Apple", "done": false } ],
+  "problems": []
+}
+```
+
+- 清单格式兼容 exp60 的产物：`arm_backend` 与 `arm` 都认
+- `loaded: false` 表示**没有清单**，不是错误（前端据此提示怎么放清单）
+- 未知臂名、重复 id 会进 `problems` 并跳过，不会让接口失败
+- 只读：数一下 `out/annotations/<arm>/<id>.json` 是否存在，不写任何东西
+
+前端（左下角「实验模式」）据此把队列换成这 68 张，进图时**自动切臂并锁定选择器**，
+顶栏与右栏只显示当前臂、不提供手动切换入口。
+
+---
+
 ---
 
 ## 数据源：三种模式，自动切换

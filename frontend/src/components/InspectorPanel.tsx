@@ -5,7 +5,6 @@ import { api } from '../api'
 import { classSolid } from '../colors'
 import { useStore } from '../store'
 import { ARM_LABEL } from '../types'
-import type { Arm } from '../types'
 
 function download(name: string, text: string) {
   const blob = new Blob([text], { type: 'text/csv;charset=utf-8' })
@@ -50,28 +49,6 @@ async function downloadServerOps(arm: string) {
   }
 }
 
-/** 实验臂切换条。三臂对照的实验条件，切了会重新载入当前图。 */
-function ArmBar() {
-  const arm = useStore((s) => s.arm)
-  const setArm = useStore((s) => s.setArm)
-  return (
-    <div className="arm-bar">
-      <span className="arm-label">实验臂</span>
-      <select
-        value={arm}
-        onChange={(e) => setArm(e.target.value as Arm)}
-        title="三臂对照用：切换后当前图按新条件重新载入，产物分别落到 out/annotations/<arm>/"
-      >
-        {(Object.keys(ARM_LABEL) as Arm[]).map((a) => (
-          <option key={a} value={a}>
-            {ARM_LABEL[a]}
-          </option>
-        ))}
-      </select>
-    </div>
-  )
-}
-
 export function InspectorPanel() {
   const current = useStore((s) => s.current)
   const instances = useStore((s) => s.instances)
@@ -91,6 +68,7 @@ export function InspectorPanel() {
   const status = useStore((s) => s.status)
   const ops = useStore((s) => s.ops)
   const arm = useStore((s) => s.arm)
+  const armLabel = ARM_LABEL[arm] ?? arm
   const countedForCurrent = useStore((s) => s.countedForCurrent)
   const exportOpsCsv = useStore((s) => s.exportOpsCsv)
 
@@ -117,11 +95,14 @@ export function InspectorPanel() {
 
   return (
     <aside className="pane pane-right">
-      <ArmBar />
-
       <div className="pane-head">
         <span>详情</span>
-        <span className="pane-count">{instances.length} 实例</span>
+        <span className="pane-count">
+          <span className="arm-chip" title="当前实验臂（在左下角「实验模式」里切换）">
+            {armLabel}
+          </span>
+          {instances.length} 实例
+        </span>
       </div>
 
       <div className="imgmeta">

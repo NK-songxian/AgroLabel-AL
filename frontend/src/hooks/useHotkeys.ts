@@ -9,6 +9,9 @@ export function useHotkeys() {
       const t = e.target as HTMLElement | null
       const tag = t?.tagName?.toLowerCase()
       if (tag === 'input' || tag === 'textarea' || t?.isContentEditable) return
+      // 原生 <select>（选样策略、实验臂）里敲字是选项跳转，不能顺手切画布模式；
+      // 尤其回车 —— 换完臂习惯性按回车会触发「整张确认」。
+      if (tag === 'select') return
       // antd Select 的下拉里按键不要被我们截走
       if (t?.closest?.('.ant-select')) return
 

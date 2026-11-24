@@ -35,6 +35,7 @@ from .model_bridge.predictor import Predictor  # noqa: E402
 from .routers import (  # noqa: E402
     annotations,
     editcost,
+    experiment,
     images,
     logs,
     predict,
@@ -90,6 +91,7 @@ app.include_router(logs.router)
 app.include_router(sample.router)
 app.include_router(refine.router)
 app.include_router(editcost.router)
+app.include_router(experiment.router)
 
 
 # ---------------------------------------------------------------- 托管前端

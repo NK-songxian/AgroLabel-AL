@@ -18,7 +18,7 @@
 浏览器 ──HTTP──> FastAPI :8000 ──进程内──> ultralytics YOLO-seg
                     ├─ /            frontend/dist/index.html
                     ├─ /assets/*    打包好的 js / css
-                    ├─ /api/*       12 个接口
+                    ├─ /api/*       13 个接口
                     └─ /docs        Swagger
 ```
 

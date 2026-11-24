@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { classSolid } from '../colors'
 import { useStore } from '../store'
 import type { SampleStrategy } from '../types'
+import { ExperimentPanel } from './ExperimentPanel'
 
 const STRATEGY_LABEL: Record<SampleStrategy, string> = {
   entropy: '熵 · 最不确定',
@@ -92,7 +93,7 @@ export function QueuePanel() {
           value={sampleK}
           disabled={queueLoading}
           onChange={(e) => setSampleK(clampK(Number(e.target.value)))}
-          title="取多少张。设得比池子大就取整池（按难度排好序）——三臂实验要整池 36 张"
+          title="取多少张。设得比池子大就取整池（按难度排好序）——三臂实验请用左下角的「实验模式」，不要用智能选样"
         />
         <button
           onClick={() => void loadSample(strategy, sampleK)}
@@ -140,9 +141,10 @@ export function QueuePanel() {
         })}
       </div>
 
-      {/* 左下角：明暗切换 + 队列说明 */}
+      {/* 左下角：明暗切换 + 实验模式 + 队列说明 */}
       <div className="pane-foot queue-foot">
         <ThemeToggle />
+        <ExperimentPanel />
         <span className="foot-note">
           仅显示前 {queue.length} 张（共 {queueTotal}）
         </span>
