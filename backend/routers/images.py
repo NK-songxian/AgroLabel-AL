@@ -13,6 +13,7 @@ import mimetypes
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 
+from .. import config
 from ..schemas import ImageItem, ImageListResponse
 
 router = APIRouter(prefix="/api", tags=["images"])
@@ -58,8 +59,23 @@ def list_images(
     )
     return ImageListResponse(
         total=total, offset=offset, limit=limit,
-        items=[ImageItem(**r.public()) for r in rows],
+        items=[_public(r) for r in rows],
     )
+
+
+def _public(rec) -> ImageItem:
+    """单条记录的对外视图。
+
+    `AGROLABEL_HIDE_GT=1` 时把真值类清空 —— 实验期间队列不能显示"这张图属于哪类"，
+    否则等于把选择题答案给标注员。注意过滤/排序仍在服务端按真值做，
+    只是不再返回给浏览器。
+    """
+    d = rec.public()
+    if config.HIDE_GT:
+        d["gt_class_id"] = None
+        d["gt_class_name"] = None
+        d["disease"] = None
+    return ImageItem(**d)
 
 
 @router.get("/images/{image_id}/file")

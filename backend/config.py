@@ -159,6 +159,14 @@ DEFAULT_ARM = os.environ.get("AGROLABEL_ARM", "assisted")
 # 所以未知臂名一律 422，宁可报错也别让脏目录产生。
 VALID_ARMS = ("assisted", "manual", "noprompt")
 
+# 实验期间藏掉真值：/api/images 不再返回 gt_class_id / gt_class_name / disease。
+# 为什么需要：目录扫描会从 labels/<split>/<stem>.txt 读第一行第一个数当"这张图属于哪类"，
+# 前端把它显示在队列每行右侧 —— 等于把"该选哪个类"的答案写在脸上。
+# 坐标本身从不读（只读一个整数），所以多边形不存在泄漏风险。
+HIDE_GT = os.environ.get("AGROLABEL_HIDE_GT", "").strip().lower() not in (
+    "", "0", "false", "no",
+)
+
 
 def ensure_dirs() -> None:
     for d in (OUT_DIR, PRED_CACHE_DIR, ANNOTATION_DIR, LOG_DIR):

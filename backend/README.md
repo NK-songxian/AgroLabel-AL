@@ -339,6 +339,7 @@ $env:AGROLABEL_EXPERIMENT = "D:\exp\manifest.json"
 | `AGROLABEL_WEIGHTS` | `weights/baseline_yolov8nseg_plantseg34_best.pt` | 权重 |
 | `AGROLABEL_DEVICE` | `0` | ultralytics 的 device；无卡自动降 `cpu` |
 | `AGROLABEL_CONF` | `0.25` | 置信度阈值 |
+| `AGROLABEL_HIDE_GT` | `1` = `/api/images` 不返回真值类别（实验期间必开） |
 | `AGROLABEL_IMGSZ` | `640` | 推理尺寸 |
 
 ---

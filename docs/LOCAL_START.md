@@ -121,7 +121,8 @@ python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
 | `AGROLABEL_DATA_ROOT` | 自动探测 | 数据放别处时指过去；有 `images/`+`data.yaml` 按 YOLO 处理，否则按 COCO 清单 |
 | `AGROLABEL_ARM` | `assisted` | 三臂实验的默认臂（前端也会传，一般不用改） |
 | `AGROLABEL_DEVICE` | `0` | 无 GPU 时设 `cpu` |
-| `AGROLABEL_CONF` / `AGROLABEL_IMGSZ` | `0.25` / `640` | 一般不动 |
+| `AGROLABEL_CONF` / `AGROLABEL_HIDE_GT`  —— `1` 时 `/api/images` 不返回真值类别（实验期间必开）
+`AGROLABEL_IMGSZ` | `0.25` / `640` | 一般不动 |
 | `YOLO_OFFLINE` | `1`（`app.py` 里 setdefault） | **必须为 1**：ultralytics 有联网自检（字体/AMP/权重探测），关掉才不会卡 |
 | `KMP_DUPLICATE_LIB_OK` | `TRUE`（`app.py` 里 setdefault） | Windows + conda MKL + CUDA torch 冲突时必须 |
 | `YOLO_CONFIG_DIR` | `start_web.ps1` 设成 `.tmp/ultralytics` | 受限目录下 ultralytics 写用户配置失败时 |
