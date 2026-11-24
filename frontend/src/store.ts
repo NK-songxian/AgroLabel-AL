@@ -481,9 +481,12 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   markNoTarget: () => {
-    const { instances, undoStack, nOps } = get()
+    // 快照里必须存**操作前**的 labelState。写成 'no_target' 的话，
+    // 撤销后实例回来了但 label_state 还停在 no_target，
+    // 提交时会被后端拒（schemas.py: no_target 且 instances 非空 -> 422），人卡在这张图上。
+    const { instances, undoStack, nOps, labelState } = get()
     set({
-      undoStack: [...undoStack, { instances, nOps, labelState: 'no_target' as LabelState }].slice(-MAX_UNDO),
+      undoStack: [...undoStack, { instances, nOps, labelState }].slice(-MAX_UNDO),
       instances: [],
       selectedId: null,
       nOps: nOps + 1,
@@ -494,7 +497,14 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   confirmAll: () => {
-    const { instances, undoStack, nOps, labelState } = get()
+    const { instances, undoStack, nOps, labelState, status, current } = get()
+    // 没有图 / 预标注还没回来时不许"整张确认"：
+    // 否则空画布被确认并 persist，落盘成一条空标注（三臂实验里就是废数据）。
+    if (!current) return
+    if (status === 'predicting') {
+      get().toast('预标注还没回来，等结果出来再确认', 'warn')
+      return
+    }
     set({
       undoStack: [...undoStack, { instances, nOps, labelState }].slice(-MAX_UNDO),
       nOps: nOps + 1,
@@ -555,9 +565,12 @@ export const useStore = create<Store>((set, get) => ({
     })
     // m5 靠"提交"事件确定分母，必须在上送完再翻页
     await flushOps(true)
+    // 记住提交的是哪一张：这 260ms 里人可能已经手动翻页或点了别的队列项，
+    // 若那时还按当前 index 往前跳，就会从新位置再跳一张 —— 三臂实验里等于丢一个数据点。
+    const submittedId = current.image_id
     setTimeout(() => {
       submitting = false
-      void get().next()
+      if (get().current?.image_id === submittedId) void get().next()
     }, 260)
   },
 

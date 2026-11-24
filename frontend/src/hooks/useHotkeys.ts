@@ -34,6 +34,8 @@ export function useHotkeys() {
           }
           break
         case 'Enter':
+          // 预标注还没回来时按回车 = 把空画布「整张确认」并存盘（confirmAll 里会 persist）。
+          // 三臂实验里这就是一条废数据，所以先挡住（store 里也有同样的守卫，双保险）。
           e.preventDefault()
           s.confirmAll()
           break
@@ -67,6 +69,13 @@ export function useHotkeys() {
           break
         case 'p':
         case 'P':
+          // noprompt 臂（C 臂）禁用点提示。工具条按钮已经 disable，
+          // 但快捷键不拦就等于没禁 —— 按一下 P 就能用上点提示，
+          // 而且数据看起来完全正常，事后查不出来。
+          if (s.arm === 'noprompt') {
+            s.toast('当前是「预标 · 禁用点提示」臂，点提示不可用（切到别的臂才能用）', 'warn')
+            break
+          }
           s.setMode('refine')
           break
         case 'd':
