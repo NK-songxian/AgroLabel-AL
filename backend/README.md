@@ -193,6 +193,39 @@ python src/m5_logstats.py  -> 已提交 1 张，均值 1.00 次/张，时延 42m
 注意 m5 只把 `改类别 / 删实例 / 标为无目标` 计入修改次数，
 `整张确认` 与 `提交` 是中性 —— 上面那次的 1 次就来自 `删实例`。
 
+### 三臂人工提效统计：`backend/tools/human_stats.py`
+
+填手册 §08 那张表用的。读 `out/annotations/<arm>/*.json` 的 sidecar，**只读不写**。
+
+```powershell
+python backend/tools/human_stats.py                    # 三臂对照，打屏
+python backend/tools/human_stats.py --json out/report/human_stats.json --md out/report/human_stats.md
+python backend/tools/human_stats.py --with-editcost    # 合并 m6 的加权编辑单位/IoU/召回
+```
+
+两个计时口径都算（字段在标注时就落盘了）：
+
+| 字段 | 区间 | 用途 |
+|---|---|---|
+| `elapsed_ms` | 图上**首个标注动作** → 落盘 | 主口径，不含看图 |
+| `elapsed_from_open_ms` | 打开图 → 落盘 | 对照，含看图/熟悉 |
+
+剔除规则（默认值都可用 CLI 覆盖，**顺序固定**：预热 → 上限 → 离群）：
+
+| 规则 | 默认 | 说明 |
+|---|---|---|
+| `--drop-warmup 3` | 每臂按 `ts` 剔前 3 张 | 学习曲线。**数据量 ≤ N 时不剔**（否则 pilot 会被整臂剔空） |
+| `--exclude-above 900` | 超 15 min 视为离开 | `0` = 不设上限 |
+| `--mad-k 3` | MAD 3 倍外剔除 | 样本 < 5 或 MAD=0 时自动跳过 |
+
+报告里会同时给「剔除前 / 剔除后」中位数与逐项剔除数 —— 两个数差得远说明数据本身有问题，
+不要只贴好看的那个。
+
+**诚实性约束**：某臂的记录若全部没填 `operator`，该臂会被标成
+「⚠ 未署名/模拟口径」，不允许与有名有姓的臂混在一起当真人数据引用。
+
+自测：`python -m pytest backend/tests/test_human_stats.py -q`（6 项，造临时数据，不碰真实 out/）。
+
 ---
 
 ## 数据源：三种模式，自动切换
