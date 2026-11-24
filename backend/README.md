@@ -56,6 +56,22 @@
 丢掉了宿主上下文；传了正确的 `Cabbage` 才回本类。前端点提示时用"当前选中实例的类
 → 图像 gt 类"依次兜底。
 
+### 真值对照：`/api/images/{id}/gt`（默认关闭）
+
+给开发和 QA 对照用的：把数据集真值轮廓读出来，前端画成**琥珀色虚线**叠在画布上，
+和模型/人工的实线实例区分开。
+
+```powershell
+$env:AGROLABEL_GT_VIEW = "1"     # 不开就 403
+```
+
+- 返回 `{image_id, found, image_width, image_height, instances:[{class_id, class_name, polygon}]}`
+- `polygon` 是归一化坐标（0..1），和 `/api/predict` 的实例同格式
+- 只读：真值**不会**写进任何标注产物，也不参与提交
+- **实验期间必须关**：否则标注员能照着真值画（`AGROLABEL_HIDE_GT` 只是不返回类别名，
+  这个开关会直接给出轮廓，两者互斥使用）
+- 前端按钮是条件渲染的：后端没开时工具栏里**根本没有**「真值」按钮
+
 ### 队列文本搜索：`/api/images?q=`
 
 标注员要"找那张图"，所以只做**子串匹配**（id 或文件名，不区分大小写），
@@ -339,6 +355,7 @@ $env:AGROLABEL_EXPERIMENT = "D:\exp\manifest.json"
 | `AGROLABEL_WEIGHTS` | `weights/baseline_yolov8nseg_plantseg34_best.pt` | 权重 |
 | `AGROLABEL_DEVICE` | `0` | ultralytics 的 device；无卡自动降 `cpu` |
 | `AGROLABEL_CONF` | `0.25` | 置信度阈值 |
+| `AGROLABEL_GT_VIEW` | `1` = 允许 `GET /api/images/{id}/gt`（真值对照，仅供开发/QA；实验期间必须关） |
 | `AGROLABEL_HIDE_GT` | `1` = `/api/images` 不返回真值类别（实验期间必开） |
 | `AGROLABEL_IMGSZ` | `640` | 推理尺寸 |
 

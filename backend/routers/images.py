@@ -14,7 +14,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 
 from .. import config
-from ..schemas import ImageItem, ImageListResponse
+from ..schemas import GtInstance, GtResponse, ImageItem, ImageListResponse
 
 router = APIRouter(prefix="/api", tags=["images"])
 
@@ -76,6 +76,64 @@ def _public(rec) -> ImageItem:
         d["gt_class_name"] = None
         d["disease"] = None
     return ImageItem(**d)
+
+
+@router.get("/images/{image_id}/gt", response_model=GtResponse)
+def get_image_gt(image_id: str, request: Request):
+    """返回这张图的数据集真值轮廓（YOLO-seg → 归一化多边形）。
+
+    **仅供开发/QA 对照**：后端必须设 `AGROLABEL_GT_VIEW=1` 才开，
+    否则 403（默认就是关的，实验期间不会被误开）。
+    真值只读，不会被写进任何标注产物。
+    """
+    if not config.GT_VIEW:
+        raise HTTPException(
+            403, "真值查看未开启：设 AGROLABEL_GT_VIEW=1 后重启后端（实验期间请勿开启）"
+        )
+    catalog = request.app.state.catalog
+    rec = catalog.get(image_id)
+    if rec is None:
+        raise HTTPException(404, f"未知 image_id: {image_id}")
+
+    # images/<split>/<stem>.jpg -> labels/<split>/<stem>.txt
+    # parents: [0]=<split> [1]=images [2]=数据集根
+    root = rec.path.parents[2]
+    lbl = root / "labels" / rec.split / f"{rec.path.stem}.txt"
+    names = (getattr(catalog, "names", None)
+             or getattr(config, "CLASS_NAMES", None) or [])
+    out: list[GtInstance] = []
+    found = lbl.is_file()
+    if found:
+        try:
+            with lbl.open(encoding="utf-8") as fh:
+                for line in fh:
+                    parts = line.split()
+                    if len(parts) < 7:      # class + 至少 3 个点
+                        continue
+                    try:
+                        cid = int(parts[0])
+                        nums = [float(v) for v in parts[1:]]
+                    except ValueError:
+                        continue
+                    if len(nums) % 2:
+                        nums = nums[:-1]
+                    poly = [[nums[i], nums[i + 1]] for i in range(0, len(nums), 2)]
+                    if len(poly) < 3:
+                        continue
+                    out.append(GtInstance(
+                        class_id=cid,
+                        class_name=(str(names[cid]) if 0 <= cid < len(names) else None),
+                        polygon=poly,
+                    ))
+                    if len(out) >= 500:
+                        break
+        except OSError:
+            found = False
+
+    return GtResponse(
+        image_id=image_id, found=found,
+        image_width=rec.width, image_height=rec.height, instances=out,
+    )
 
 
 @router.get("/images/{image_id}/file")

@@ -37,10 +37,26 @@ export type PredictResponse = {
   model_version: string
 }
 
+export type GtPoly = {
+  class_id: number
+  class_name: string | null
+  polygon: [number, number][]
+}
+
+export type GtResponse = {
+  image_id: string
+  found: boolean
+  image_width: number
+  image_height: number
+  instances: GtPoly[]
+}
+
 export type HealthResponse = {
   status: 'ok'
   model: string
   classes: number
+  /** 真值对照视图是否可用（后端 AGROLABEL_GT_VIEW=1） */
+  gt_view?: boolean
   dataset: {
     mode: 'manifest' | 'yolo' | 'demo'
     note: string

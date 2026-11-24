@@ -10,6 +10,7 @@ import { create } from 'zustand'
 
 import { NotImplementedError, api } from './api'
 import type {
+  GtPoly,
   ClassItem,
   HealthResponse,
   ImageItem,
@@ -86,6 +87,12 @@ type Store = {
   split: string
   queueLoading: boolean
   /** 队列来源，显示在左栏标题上：全部 / 智能选样 · entropy */
+  /** 真值对照开关（只有后端 AGROLABEL_GT_VIEW=1 时按钮才出现） */
+  gtOn: boolean
+  /** 当前图的数据集真值轮廓（虚线叠加层用，不参与编辑/提交） */
+  gtPolys: GtPoly[]
+  loadGt: (imageId?: string) => Promise<void>
+  toggleGt: () => Promise<void>
   /** 队列搜索关键词（空串 = 不过滤） */
   queueQuery: string
   /** 队列是否还有下一页（已载入 < queueTotal） */
@@ -243,6 +250,8 @@ export const useStore = create<Store>((set, get) => ({
   queueTotal: 0,
   split: 'all',
   queueQuery: '',
+  gtOn: false,
+  gtPolys: [],
   queueHasMore: false,
   queueLoading: false,
   queueLabel: '全部',
@@ -324,6 +333,29 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   setQueueQuery: (q) => set({ queueQuery: q }),
+
+  loadGt: async (imageId) => {
+    // openIndex 里 current 还没 set，所以允许显式传图号
+    const id = imageId ?? get().current?.image_id
+    if (!id) return
+    try {
+      const r = await api.gt(id)
+      // 只有还是同一张图时才落地，避免快速翻图时把旧图的真值挂上来
+      if ((get().current?.image_id ?? imageId) !== id) return
+      set({ gtPolys: r.instances })
+      if (!r.found) get().toast('这张图没有真值文件', 'warn')
+      else if (!r.instances.length) get().toast('真值文件是空的', 'warn')
+    } catch (e) {
+      set({ gtOn: false, gtPolys: [] })
+      get().toast(`读真值失败：${e instanceof Error ? e.message : e}`, 'err')
+    }
+  },
+
+  toggleGt: async () => {
+    const on = !get().gtOn
+    set({ gtOn: on, gtPolys: [] })
+    if (on) await get().loadGt()
+  },
 
   loadMoreQueue: async () => {
     const { queue, queueTotal, queueLoading, split, queueQuery } = get()
@@ -453,6 +485,9 @@ export const useStore = create<Store>((set, get) => ({
       const want = get().expTasks[i]?.arm
       if (want && want !== get().arm) set({ arm: want, mode: 'select', draft: null })
     }
+
+    // 真值对照开着时，翻图要跟着换（显式传图号：此时 current 还没 set）
+    if (get().gtOn) void get().loadGt(img.image_id)
 
     // 快浏览到本页末尾时自动续下一页：否则按 → 到第 60 张就停了，
     // 而总数有 7773，感觉像"没翻页"。

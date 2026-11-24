@@ -27,6 +27,7 @@ def health(request: Request):
             classes_present=len(catalog.class_counts()),
         ),
         model_info=ModelInfo(**predictor.describe()),
+        gt_view=config.GT_VIEW,
     )
 
 

@@ -103,12 +103,30 @@ class ModelInfo(BaseModel):
     load_ms: float
 
 
+class GtInstance(BaseModel):
+    class_id: int
+    class_name: str | None = None
+    polygon: list[list[float]]
+
+
+class GtResponse(BaseModel):
+    """数据集真值（开发对照用）。AGROLABEL_GT_VIEW 未开时接口直接 403。"""
+
+    image_id: str
+    found: bool
+    image_width: int
+    image_height: int
+    instances: list[GtInstance] = Field(default_factory=list)
+
+
 class HealthResponse(BaseModel):
     status: Literal["ok"]
     model: str
     classes: int
     dataset: DatasetInfo
     model_info: ModelInfo
+    #: 真值对照视图是否可用（前端据此决定要不要渲染「真值」按钮）
+    gt_view: bool = False
 
 
 # ---------------------------------------------------------------- 提交标注

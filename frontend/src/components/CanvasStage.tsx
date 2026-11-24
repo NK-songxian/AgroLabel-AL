@@ -215,6 +215,9 @@ export function CanvasStage() {
     [imgW, imgH],
   )
 
+  const gtOn = useStore((s) => s.gtOn)
+  const gtPolys = useStore((s) => s.gtPolys)
+
   const selected = useMemo(
     () => instances.find((x) => x.id === selectedId) ?? null,
     [instances, selectedId],
@@ -526,6 +529,21 @@ export function CanvasStage() {
                   ))}
                 </Group>
               )}
+
+              {/* 真值对照层：虚线、不填充，和模型/人工实例（实线+填充）区分开。
+                  只画不拦事件；开关在后端 AGROLABEL_GT_VIEW=1 时才可用。 */}
+              {gtOn && gtPolys.map((g, i) => (
+                <Line
+                  key={`gt-${i}`}
+                  points={g.polygon.flatMap(([x, y]) => [x * imgW, y * imgH])}
+                  closed
+                  stroke="rgba(255,196,0,.95)"
+                  strokeWidth={1.6 * strokeUnit}
+                  dash={[6 * strokeUnit, 4 * strokeUnit]}
+                  listening={false}
+                  perfectDrawEnabled={false}
+                />
+              ))}
             </Group>
           </Layer>
         </Stage>

@@ -15,6 +15,9 @@ export function ToolBar() {
   const selectedId = useStore((s) => s.selectedId)
   const arm = useStore((s) => s.arm)
   const experimentOn = useStore((s) => s.experimentOn)
+  const health = useStore((s) => s.health)
+  const gtOn = useStore((s) => s.gtOn)
+  const toggleGt = useStore((s) => s.toggleGt)
   const operator = useStore((s) => s.operator)
   const setOperator = useStore((s) => s.setOperator)
   const setMode = useStore((s) => s.setMode)
@@ -70,6 +73,25 @@ export function ToolBar() {
           手画
         </button>
       </div>
+
+      {/*
+        真值对照：只有后端开了 AGROLABEL_GT_VIEW=1 才出现这个按钮。
+        实验期间后端默认关掉，按钮根本不会渲染 —— 不是靠人记得别点。
+      */}
+      {health?.gt_view && (
+        <>
+          <span className="tool-sep" />
+          <div className="tool-group">
+            <button
+              className={`tool toggle${gtOn ? ' on' : ''}`}
+              onClick={() => void toggleGt()}
+              title="叠加数据集真值轮廓（琥珀色虚线，只读）。开发/QA 对照用；正式标注实验请关闭后端开关"
+            >
+              真值
+            </button>
+          </div>
+        </>
+      )}
 
       <span className="tool-sep" />
 

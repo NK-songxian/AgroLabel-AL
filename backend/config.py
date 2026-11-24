@@ -163,6 +163,12 @@ VALID_ARMS = ("assisted", "manual", "noprompt")
 # 为什么需要：目录扫描会从 labels/<split>/<stem>.txt 读第一行第一个数当"这张图属于哪类"，
 # 前端把它显示在队列每行右侧 —— 等于把"该选哪个类"的答案写在脸上。
 # 坐标本身从不读（只读一个整数），所以多边形不存在泄漏风险。
+# 真值对照视图：允许 GET /api/images/{id}/gt 返回数据集真值轮廓。
+# **仅供开发/QA 对照**，实验期间必须关（否则标注员能照着真值画）。
+GT_VIEW = os.environ.get("AGROLABEL_GT_VIEW", "").strip().lower() not in (
+    "", "0", "false", "no",
+)
+
 HIDE_GT = os.environ.get("AGROLABEL_HIDE_GT", "").strip().lower() not in (
     "", "0", "false", "no",
 )

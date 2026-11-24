@@ -6,6 +6,7 @@
  */
 
 import type {
+  GtResponse,
   Arm,
   ClassItem,
   HealthResponse,
@@ -75,6 +76,10 @@ export const api = {
     const qs = sp.toString()
     return request<ImageListResponse>(`/api/images${qs ? `?${qs}` : ''}`)
   },
+
+  /** 真值轮廓（开发对照；后端未开 AGROLABEL_GT_VIEW 时会 403） */
+  gt: (image_id: string) =>
+    request<GtResponse>(`/api/images/${encodeURIComponent(image_id)}/gt`),
 
   predict: (image_id: string) =>
     request<PredictResponse>('/api/predict', {
