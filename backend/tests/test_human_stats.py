@@ -173,3 +173,76 @@ def test_markdown_renders_without_editcost(tmp_path: Path):
     assert "纯人工" in md
     assert "—" in md
     assert "None" not in md
+
+
+class _PairedArgs:
+    exclude_above = 900.0
+    manifest = None
+
+
+def test_paired_same_image(tmp_path: Path):
+    """同图配对：每张图两臂各一条，中位差 / 方向 / 百分比都要算对。"""
+    for i in range(4):
+        _write(tmp_path, "manual", f"img_{i}", 60_000, "张三", _ts(i))
+        _write(tmp_path, "assisted", f"img_{i}", 40_000, "张三", _ts(i))
+
+    data = hs.load_sidecars(tmp_path, ("manual", "assisted"))
+    rows = hs.paired_analysis(data, ("manual", "assisted"), _PairedArgs())
+    row = next(r for r in rows if r["timing"] == "看图→提交")
+
+    assert row["n_pairs"] == 4
+    assert row["median_a_ms"] == pytest.approx(60_000, rel=1e-6)
+    assert row["median_b_ms"] == pytest.approx(40_000, rel=1e-6)
+    assert row["median_diff_ms"] == pytest.approx(20_000, rel=1e-6)
+    assert row["pct_vs_b"] == pytest.approx(50.0, rel=1e-6)
+    # d = manual - assisted = +20s > 0 → 都是 A 更慢
+    assert row["n_a_faster"] == 0
+    assert row["n_a_slower"] == 4
+
+
+def test_paired_needs_overlap_and_skips_big_outlier(tmp_path: Path):
+    """只标过一个臂的图不参与配对；超上限的离开记录被剔掉。"""
+    # img_0 两臂都有；img_1 只有 manual
+    _write(tmp_path, "manual", "img_0", 50_000, "张三", _ts(0))
+    _write(tmp_path, "assisted", "img_0", 30_000, "张三", _ts(1))
+    _write(tmp_path, "manual", "img_1", 55_000, "张三", _ts(2))
+    # img_2 两臂都有，但 assisted 那条是"离开"（2 小时）
+    _write(tmp_path, "manual", "img_2", 52_000, "张三", _ts(3))
+    _write(tmp_path, "assisted", "img_2", 7_200_000, "张三", _ts(4))
+
+    data = hs.load_sidecars(tmp_path, ("manual", "assisted"))
+    rows = hs.paired_analysis(data, ("manual", "assisted"), _PairedArgs())
+    row = next(r for r in rows if r["timing"] == "看图→提交")
+
+    # img_1 没有配对；img_2 的 assisted 被上限剔掉 → 只剩 img_0 一对
+    assert row["n_pairs"] == 1
+    assert row["median_diff_ms"] == pytest.approx(20_000, rel=1e-6)
+
+
+def test_paired_by_group(tmp_path: Path):
+    """给了 manifest 就按 group 分组报配对差。"""
+    for i in range(2):
+        _write(tmp_path, "manual", f"g1_{i}", 60_000, "张三", _ts(i))
+        _write(tmp_path, "assisted", f"g1_{i}", 40_000, "张三", _ts(i))
+    for i in range(2):
+        _write(tmp_path, "manual", f"g2_{i}", 30_000, "张三", _ts(i))
+        _write(tmp_path, "assisted", f"g2_{i}", 20_000, "张三", _ts(i))
+
+    man = tmp_path / "manifest.json"
+    tasks = []
+    for i in range(2):
+        tasks.append({"image_id": f"g1_{i}", "arm": "manual", "group": "g1"})
+        tasks.append({"image_id": f"g2_{i}", "arm": "manual", "group": "g2"})
+    man.write_text(json.dumps({"tasks": tasks}), encoding="utf-8")
+
+    class A:
+        exclude_above = 900.0
+        manifest = str(man)
+
+    data = hs.load_sidecars(tmp_path, ("manual", "assisted"))
+    row = next(r for r in hs.paired_analysis(data, ("manual", "assisted"), A())
+               if r["timing"] == "看图→提交")
+
+    assert row["by_group"]["g1"]["n"] == 2
+    assert row["by_group"]["g1"]["median_diff_ms"] == pytest.approx(20_000, rel=1e-6)
+    assert row["by_group"]["g2"]["median_diff_ms"] == pytest.approx(10_000, rel=1e-6)

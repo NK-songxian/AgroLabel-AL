@@ -255,6 +255,18 @@ $env:AGROLABEL_EXPERIMENT = "D:\exp\manifest.json"
 ```
 
 - 清单格式兼容 exp60 的产物：`arm_backend` 与 `arm` 都认
+- **两种形态**：
+  - `tasks: [{image_id, arm, group?, order?}]` —— 同图三臂（一张图 3 个任务，三个臂各标一遍）
+  - `images: [{image_id, arm}]` —— 旧的"一图一臂"，后端会自动折成任务
+  - 有 `order` 就按它排，否则保持文件顺序；`group` 只用于事后按组汇总
+- **生成任务清单**：`backend/tools/make_experiment_manifest.py`
+  ```powershell
+  python backend/tools/make_experiment_manifest.py `
+      --data "AL_v4/dataset/data.yaml" --x 8 --groups 4 --seed 20261124 `
+      --out out/experiment/manifest.json
+  ```
+  同图三臂 × 4 组 = 96 个任务 / 32 张图；臂顺序按 `(组号+组内序号) mod 3` 轮转，
+  任务随机交错，seed 固定可复现。
 - `loaded: false` 表示**没有清单**，不是错误（前端据此提示怎么放清单）
 - 未知臂名、重复 id 会进 `problems` 并跳过，不会让接口失败
 - 只读：数一下 `out/annotations/<arm>/<id>.json` 是否存在，不写任何东西

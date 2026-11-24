@@ -153,30 +153,45 @@ export const ARM_LABEL: Record<Arm, string> = {
   noprompt: '预标 · 禁用点提示',
 }
 
-/** 实验清单里的一张图：id + 它属于哪个臂（由图清单决定，不由界面切换） */
-export type ExpImage = {
+/** 实验任务：一张图在某个臂上标一遍。同图三臂 → 一张图会有 3 个任务 */
+export type ExpTask = {
   image_id: string
   arm: Arm
+  /** 组号（g1/g2…）。同图三臂下，组用来估"换一批图结论还成不成立" */
+  group: string | null
+  /** 全局执行顺序（后端按它排好返回） */
+  order: number | null
   class_name: string | null
   done: boolean
 }
 
+/** 任务 key：一张图有多个任务，光靠 image_id 分不开 */
+export const taskKey = (imageId: string, arm: string) => `${imageId}|${arm}`
+
+export type ExpImage = { image_id: string; class_name: string | null }
+
 /**
  * GET /api/experiment 的返回。
  *
- * `loaded: false` 表示"当前没有实验清单"，不是错误 —— 界面据此提示怎么放清单，
- * 而不是把整个应用当故障。`problems` 里的行是清单里被跳过的条目（未知臂名、重复 id 等）。
+ * `mode`：
+ *   "tasks"  = 清单写了 tasks（同图三臂，一图三任务）
+ *   "images" = 旧形态（一图一臂），后端已自动折成任务
+ * `loaded: false` 表示"当前没有实验清单"，不是错误。
  */
 export type ExperimentInfo = {
   loaded: boolean
+  mode: 'tasks' | 'images' | 'none'
   source: string | null
   name: string | null
   note: string
+  n_tasks: number
   n_images: number
   arms: Record<string, number>
   done: Record<string, number>
-  done_images: string[]
+  done_tasks: string[]
+  groups: Record<string, { n: number; done: number }>
   images: ExpImage[]
+  tasks: ExpTask[]
   problems: string[]
 }
 

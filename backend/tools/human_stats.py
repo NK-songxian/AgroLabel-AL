@@ -46,6 +46,8 @@ import csv
 import json
 import statistics
 from collections import Counter, defaultdict
+from itertools import combinations
+from math import comb
 from datetime import datetime
 from pathlib import Path
 
@@ -294,6 +296,102 @@ def _delta(new: float | None, old: float | None) -> str:
     return f" ({(new - old) / old * 100:+.1f}%)"
 
 
+def _sign_test_p(pos: int, neg: int) -> float | None:
+    """双侧符号检验（精确二项）。配对样本少时比正态近似可靠。"""
+    n = pos + neg
+    if n == 0:
+        return None
+    tail = sum(comb(n, k) for k in range(0, min(pos, neg) + 1)) / (2 ** n)
+    return min(1.0, 2 * tail)
+
+
+def paired_analysis(side: dict, arms: tuple, args) -> list[dict]:
+    """同图配对：同一张图在多个臂上都标过时，算 (A − B) 的差。
+
+    这是"同图三臂"实验的**主分析** —— 图难度被完全消掉，差值直接可比，
+    不需要假设"不同图难度相同"。
+
+    不做 warmup 剔除：任务清单是随机交错的，"每臂前 N 张"没有意义。
+    只按 --exclude-above 去掉离开的记录（那个是硬性异常）。
+    """
+    cap = args.exclude_above * 1000 if args.exclude_above > 0 else None
+
+    def maps(field: str) -> dict:
+        out: dict[str, dict[str, float]] = {}
+        for arm in arms:
+            m: dict[str, float] = {}
+            for r in side[arm]:
+                v = r.get(field)
+                iid = str(r.get("image_id") or Path(str(r.get("_file", ""))).stem)
+                if not iid or not isinstance(v, (int, float)):
+                    continue
+                if cap and v > cap:
+                    continue
+                m[iid] = float(v)
+            out[arm] = m
+        return out
+
+    groups: dict[str, str] = {}
+    if args.manifest:
+        mp = Path(args.manifest)
+        if mp.is_file():
+            try:
+                data = json.loads(mp.read_text(encoding="utf-8"))
+                for tk in data.get("tasks") or []:
+                    if tk.get("group") and tk.get("image_id"):
+                        groups.setdefault(tk["image_id"], tk["group"])
+            except (OSError, json.JSONDecodeError):
+                pass
+
+    results: list[dict] = []
+    for field, label in (("elapsed_from_open_ms", "看图→提交"),
+                         ("elapsed_ms", "首动作→提交")):
+        m = maps(field)
+        for a, b in combinations([x for x in arms if m.get(x)], 2):
+            common = sorted(set(m[a]) & set(m[b]))
+            if not common:
+                continue  # 一对都没有才跳过；只有 1 对也照样报（试点阶段常见）
+            diffs = [m[a][i] - m[b][i] for i in common]
+            faster = sum(1 for d in diffs if d < 0)      # d<0 表示 a 更快
+            slower = sum(1 for d in diffs if d > 0)
+            med_a = statistics.median([m[a][i] for i in common])
+            med_b = statistics.median([m[b][i] for i in common])
+            med_d = statistics.median(diffs)
+            row = {
+                "timing": label,
+                "pair": f"{a} - {b}",
+                "n_pairs": len(common),
+                "median_a_ms": round(med_a, 1),
+                "median_b_ms": round(med_b, 1),
+                "median_diff_ms": round(med_d, 1),
+                "pct_vs_b": round(med_d / med_b * 100, 1) if med_b else None,
+                "n_a_faster": faster,
+                "n_a_slower": slower,
+                "p_sign": None,
+                "p_wilcoxon": None,
+                "by_group": {},
+            }
+            p = _sign_test_p(slower, faster)
+            row["p_sign"] = round(p, 4) if p is not None else None
+            try:
+                from scipy.stats import wilcoxon
+
+                if len(diffs) >= 5:
+                    row["p_wilcoxon"] = round(float(wilcoxon(diffs).pvalue), 4)
+            except Exception:
+                pass
+            if groups:
+                for g in sorted({groups.get(i, "未分组") for i in common}):
+                    ds = [m[a][i] - m[b][i] for i in common
+                          if groups.get(i, "未分组") == g]
+                    row["by_group"][g] = {
+                        "n": len(ds),
+                        "median_diff_ms": round(statistics.median(ds), 1),
+                    }
+            results.append(row)
+    return results
+
+
 def render_md(rows: list[dict], args, notes: list[str]) -> str:
     base = next((r for r in rows if r["arm"] == "manual" and r["median_ms"]), None)
     base_ms = base["median_ms"] if base else None
@@ -348,6 +446,10 @@ def main() -> None:
                     help="MAD 离群倍数（0 = 不剔）")
     ap.add_argument("--with-editcost", action="store_true",
                     help="合并 m6_editcost.py 的汇总（加权编辑单位、IoU、召回）")
+    ap.add_argument("--paired", action="store_true",
+                    help="同图配对分析（主分析）：同一张图在多个臂上的差值 + 符号检验/Wilcoxon")
+    ap.add_argument("--manifest", default=str(PROJECT / "out" / "experiment" / "manifest.json"),
+                    help="实验任务清单；给了就按 group 分组报配对差")
     ap.add_argument("--json", default=None, help="把结构化结果写到这个路径")
     ap.add_argument("--md", default=None, help="把 Markdown 表写到这个路径")
     args = ap.parse_args()
@@ -368,6 +470,8 @@ def main() -> None:
         by_op = load_op_counts(Path(args.ops) / f"ops_{arm}.csv", keep_ids)
         edit = load_editcost(Path(args.report), arm) if args.with_editcost else None
         rows.append(arm_summary(arm, cleaned, sum_ops(by_op), edit))
+
+    paired = paired_analysis(side, arms, args) if args.paired else []
 
     # ---- 打印
     print()
@@ -420,6 +524,19 @@ def main() -> None:
     for n in notes:
         print(f"注：{n}")
 
+    if paired:
+        print("\n=== 同图配对（主分析）===")
+        print("  同一张图在多个臂上都标过时，差值直接可比；d<0 表示 A 更省时间")
+        for r in paired:
+            pct = "" if r["pct_vs_b"] is None else f" ({r['pct_vs_b']:+.1f}%)"
+            print(f"  {r['pair']:26} {r['timing']:12} n={r['n_pairs']:3}"
+                  f"  A {r['median_a_ms']:7.1f}ms  B {r['median_b_ms']:7.1f}ms"
+                  f"  中位差 {r['median_diff_ms']:+8.1f}ms{pct}")
+            print(f"      A 更快 {r['n_a_faster']}/{r['n_pairs']}"
+                  f"  p(符号)={r['p_sign']}  p(Wilcoxon)={r['p_wilcoxon']}")
+            for g, v in sorted(r["by_group"].items()):
+                print(f"      {g}: n={v['n']:2}  中位差 {v['median_diff_ms']:+8.1f}ms")
+
     # ---- 落盘
     payload = {
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
@@ -427,9 +544,11 @@ def main() -> None:
             "annotations": args.annotations, "arms": list(arms),
             "timing": args.timing, "exclude_above_s": args.exclude_above,
             "drop_warmup": args.drop_warmup, "mad_k": args.mad_k,
-            "with_editcost": args.with_editcost,
+            "with_editcost": args.with_editcost, "paired": args.paired,
+            "manifest": args.manifest,
         },
         "arms": rows,
+        "paired": paired,
     }
     if args.json:
         p = Path(args.json)

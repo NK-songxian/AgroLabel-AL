@@ -87,7 +87,7 @@ def main() -> None:
     # data.yaml：path 相对本文件（m6 已按 yaml 所在目录解析）
     names = json.loads((pack / "classes.json").read_text(encoding="utf-8"))["classes"]
     lines = [
-        f"# 由 backend/tools/make_eval_split.py 生成，勿手改",
+        "# 由 backend/tools/make_eval_split.py 生成，勿手改",
         f"# ids: {ids_file.name}  split: {args.split}  张数: {copied}",
         "path: .",
         "train: images",

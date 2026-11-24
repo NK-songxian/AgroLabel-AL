@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 
 import { classSolid } from '../colors'
 import { useStore } from '../store'
-import type { SampleStrategy } from '../types'
+import { ARM_LABEL, taskKey, type Arm, type SampleStrategy } from '../types'
 import { ExperimentPanel } from './ExperimentPanel'
 
 const STRATEGY_LABEL: Record<SampleStrategy, string> = {
@@ -24,6 +24,13 @@ const DEFAULT_SAMPLE_K = 50
 
 const clampK = (v: number) => Math.max(1, Math.min(200, Math.round(v) || 1))
 
+/** 队列行里的臂简称：一行放不下全名 */
+const ARM_SHORT: Record<Arm, string> = {
+  assisted: '预',
+  manual: '手',
+  noprompt: '禁',
+}
+
 export function QueuePanel() {
   const queue = useStore((s) => s.queue)
   const index = useStore((s) => s.index)
@@ -37,6 +44,9 @@ export function QueuePanel() {
   const loadSample = useStore((s) => s.loadSample)
   const classes = useStore((s) => s.classes)
   const sampleScores = useStore((s) => s.sampleScores)
+  const experimentOn = useStore((s) => s.experimentOn)
+  const expTasks = useStore((s) => s.expTasks)
+  const expDone = useStore((s) => s.expDone)
   const [strategy, setStrategy] = useState<SampleStrategy>('entropy')
   const [sampleK, setSampleK] = useState(DEFAULT_SAMPLE_K)
 
@@ -111,13 +121,19 @@ export function QueuePanel() {
         )}
         {queue.map((it, i) => {
           const active = i === index
-          const done = it.image_id in submitted
+          // 同图三臂：同一张图在队列里出现 3 次（三个臂各一次），
+          // 所以 key 和"是否完成"都必须带上臂，否则三个任务会被当成同一个。
+          const taskArm = experimentOn ? expTasks[i]?.arm : undefined
+          const done = experimentOn
+            ? !!expDone[taskKey(it.image_id, taskArm ?? '')]
+            : it.image_id in submitted
           return (
             <button
-              key={it.image_id}
+              key={`${it.image_id}#${i}`}
               className={`queue-item${active ? ' on' : ''}${done ? ' done' : ''}`}
               onClick={() => void openIndex(i)}
-              title={`${it.image_id} · ${it.width}×${it.height}`}
+              title={`${it.image_id} · ${it.width}×${it.height}` +
+                (taskArm ? ` · ${ARM_LABEL[taskArm]}` : '')}
             >
               <span className="queue-idx">{String(i + 1).padStart(2, '0')}</span>
               {it.gt_class_id != null && (
@@ -134,6 +150,11 @@ export function QueuePanel() {
                   {sampleScores[it.image_id].score!.toFixed(2)}
                 </span>
               )}
+              {taskArm && (
+                <span className={`queue-arm arm-${taskArm}`} title={ARM_LABEL[taskArm]}>
+                  {ARM_SHORT[taskArm]}
+                </span>
+              )}
               <span className="queue-cls">{clsName.get(it.gt_class_id ?? -1) ?? '—'}</span>
               {done && <span className="queue-tick">✓</span>}
             </button>
@@ -146,7 +167,8 @@ export function QueuePanel() {
         <ThemeToggle />
         <ExperimentPanel />
         <span className="foot-note">
-          仅显示前 {queue.length} 张（共 {queueTotal}）
+          {experimentOn ? '实验任务' : '仅显示前'} {queue.length} {experimentOn ? '个' : '张'}
+          （共 {queueTotal}{experimentOn ? ' 个任务' : ''}）
         </span>
       </div>
     </aside>

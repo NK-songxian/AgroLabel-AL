@@ -21,9 +21,10 @@ import type {
   OpName,
   SampleStrategy,
   ExperimentInfo,
+  ExpTask,
 } from './types'
 import { applyTheme, initialTheme, type Theme } from './theme'
-import { ARM_LABEL, COUNTED_OPS } from './types'
+import { ARM_LABEL, COUNTED_OPS, taskKey } from './types'
 
 type Status = 'booting' | 'idle' | 'loading' | 'predicting' | 'ready' | 'error' | 'done'
 
@@ -139,12 +140,14 @@ type Store = {
   arm: Arm
   /**
    * 三臂实验清单（GET /api/experiment）。null = 还没载入过。
-   * 载入成功后 `experimentOn` 为真：队列换成清单里的图，臂由图决定。
+   * 载入成功后 `experimentOn` 为真：队列换成清单里的任务，臂由任务决定。
    */
   experiment: ExperimentInfo | null
   /** 实验模式开关。开着时 setArm 会被拒，避免臂标错把数据弄废 */
   experimentOn: boolean
-  /** 实验模式下已提交的图。本地累加，免得每提交一张就重拉清单 */
+  /** 与 queue 下标一一对应的任务（一张图可能出现 3 次，三个臂各一次） */
+  expTasks: ExpTask[]
+  /** 已完成的任务，key = `image_id|arm`。本地累加，免得每提交一次就重拉清单 */
   expDone: Record<string, true>
 
   toasts: Toast[]
@@ -268,6 +271,7 @@ export const useStore = create<Store>((set, get) => ({
   arm: 'assisted',
   experiment: null,
   experimentOn: false,
+  expTasks: [],
   expDone: {},
   draft: null,
 
@@ -323,12 +327,13 @@ export const useStore = create<Store>((set, get) => ({
       return
     }
 
-    // 按清单顺序取图元信息（宽高、GT 类名）。/api/images?ids= 单次上限 200。
-    const ordered = info.images.map((x) => x.image_id)
+    // 按任务顺序取图元信息（宽高、GT 类名）。/api/images?ids= 单次上限 200。
+    // 同图三臂时一张图会出现 3 次，去重后再取。
+    const uniqIds = [...new Set(info.tasks.map((t) => t.image_id))]
     const byId = new Map<string, ImageItem>()
     try {
-      for (let i = 0; i < ordered.length; i += 200) {
-        const res = await api.images({ ids: ordered.slice(i, i + 200), limit: 200 })
+      for (let i = 0; i < uniqIds.length; i += 200) {
+        const res = await api.images({ ids: uniqIds.slice(i, i + 200), limit: 200 })
         for (const it of res.items) byId.set(it.image_id, it)
       }
     } catch (e) {
@@ -336,15 +341,29 @@ export const useStore = create<Store>((set, get) => ({
       return
     }
 
-    const queue = ordered.map((id) => byId.get(id)).filter((x): x is ImageItem => !!x)
-    const missing = ordered.filter((id) => !byId.has(id))
+    // queue 与 expTasks 必须同下标对齐：给不存在的图建任务只会让人点开报错，
+    // 所以缺图的那些任务一起丢掉，并在下面显式报数。
+    const queue: ImageItem[] = []
+    const tasks: ExpTask[] = []
+    const missing: string[] = []
+    for (const t of info.tasks) {
+      const it = byId.get(t.image_id)
+      if (!it) {
+        if (!missing.includes(t.image_id)) missing.push(t.image_id)
+        continue
+      }
+      queue.push(it)
+      tasks.push(t)
+    }
+
     const expDone: Record<string, true> = {}
-    for (const id of info.done_images) expDone[id] = true
+    for (const k of info.done_tasks) expDone[k] = true
 
     set({
       queue,
+      expTasks: tasks,
       queueTotal: queue.length,
-      queueLabel: `实验 · ${info.n_images} 张`,
+      queueLabel: `实验 · ${info.n_images} 图 / ${queue.length} 任务`,
       experimentOn: true,
       expDone,
       index: -1,
@@ -381,10 +400,10 @@ export const useStore = create<Store>((set, get) => ({
     if (i < 0 || i >= queue.length) return
     const img = queue[i]
 
-    // 实验模式：臂由清单决定，进图即切换。
+    // 实验模式：臂由**任务**决定（同图三臂时，同一张图三个任务分别是三个臂），进图即切换。
     // 这里直接 set 而不走 setArm —— setArm 会重新 openIndex，递归。
     if (get().experimentOn) {
-      const want = get().experiment?.images.find((x) => x.image_id === img.image_id)?.arm
+      const want = get().expTasks[i]?.arm
       if (want && want !== get().arm) set({ arm: want, mode: 'select', draft: null })
     }
 
@@ -640,7 +659,7 @@ export const useStore = create<Store>((set, get) => ({
     // 结果是静默跳过一张图 —— 三臂实验里就是丢一个数据点。
     if (submitting) return
     submitting = true
-    const { current, instances, labelState } = get()
+    const { current, instances, labelState, arm } = get()
     if (!current) {
       submitting = false
       return
@@ -662,8 +681,10 @@ export const useStore = create<Store>((set, get) => ({
       submitted: { ...get().submitted, [current.image_id]: instances.length },
       status: 'done',
     })
-    // 实验模式下记下这张已完成，面板的每臂进度据此推进（不用重拉清单）
-    if (get().experimentOn) set({ expDone: { ...get().expDone, [current.image_id]: true } })
+    // 记下这个**任务**已完成（同图三臂时一张图有三个任务，不能只用 image_id 当 key）
+    if (get().experimentOn) {
+      set({ expDone: { ...get().expDone, [taskKey(current.image_id, arm)]: true } })
+    }
     // m5 靠"提交"事件确定分母，必须在上送完再翻页
     await flushOps(true)
     // 记住提交的是哪一张：这 260ms 里人可能已经手动翻页或点了别的队列项，

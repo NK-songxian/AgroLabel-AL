@@ -1,23 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useStore } from '../store'
-import { ARM_LABEL, type Arm } from '../types'
+import { ARM_LABEL, taskKey, type Arm } from '../types'
 
 /**
  * 实验模式入口。位置在左栏底部、明暗切换的右边。
  *
  * 它把"三臂对照实验"需要的东西收在一处，因为散着放一定会标错：
- *   - 读实验清单（68 张 val 图，每张绑定一个臂）
- *   - 队列换成清单里的图（否则要在 7773 张里自己找）
- *   - 每臂进度（这臂还剩几张）
- *   - 实验臂选择器（搬到这里；实验模式下锁定，由图清单决定）
+ *   - 读实验任务清单（同图三臂：一张图 3 个任务，三个臂各标一遍）
+ *   - 队列换成清单里的任务（否则要在 7773 张里自己找）
+ *   - 每臂 / 每组进度
+ *   - 实验臂选择器（**始终可见**；实验模式下锁定，因为臂由任务决定）
  *
- * 没载入清单时也能点开：里面会说清楚清单该放哪、怎么用环境变量指路。
+ * 没载入清单时也能点开：里面会说清单该放哪、怎么用环境变量指路。
  */
 export function ExperimentPanel() {
   const experiment = useStore((s) => s.experiment)
   const experimentOn = useStore((s) => s.experimentOn)
+  const expTasks = useStore((s) => s.expTasks)
   const expDone = useStore((s) => s.expDone)
+  const index = useStore((s) => s.index)
   const arm = useStore((s) => s.arm)
   const setArm = useStore((s) => s.setArm)
   const loadExperiment = useStore((s) => s.loadExperiment)
@@ -38,18 +40,22 @@ export function ExperimentPanel() {
   }, [open])
 
   const loaded = experiment?.loaded === true
+  const totalTasks = loaded ? experiment.n_tasks : 0
   const doneN = Object.keys(expDone).length
-  const totalN = loaded ? experiment.n_images : 0
 
+  // 每臂进度：分母来自清单里的任务数，分子来自本地已完成集合
   const perArm = useMemo(() => {
     const out: Record<string, { total: number; done: number }> = {}
-    for (const im of experiment?.images ?? []) {
-      if (!out[im.arm]) out[im.arm] = { total: 0, done: 0 }
-      out[im.arm].total += 1
-      if (expDone[im.image_id]) out[im.arm].done += 1
+    for (const t of experiment?.tasks ?? []) {
+      if (!out[t.arm]) out[t.arm] = { total: 0, done: 0 }
+      out[t.arm].total += 1
+      if (expDone[taskKey(t.image_id, t.arm)]) out[t.arm].done += 1
     }
     return out
   }, [experiment, expDone])
+
+  // 当前任务（同图三臂时能看到"这是哪张图的哪个臂"）
+  const curTask = experimentOn ? expTasks[index] : undefined
 
   return (
     <div className="exp-wrap" ref={wrapRef}>
@@ -58,15 +64,15 @@ export function ExperimentPanel() {
         onClick={() => setOpen((v) => !v)}
         title={
           experimentOn
-            ? `实验模式已开启：${doneN}/${totalN} 张已完成`
-            : '实验模式：载入三臂对照的图清单，按图自动绑定实验臂'
+            ? `实验模式已开启：${doneN}/${totalTasks} 个任务完成`
+            : '实验模式：载入三臂对照的任务清单，按任务自动切换实验臂'
         }
         aria-expanded={open}
       >
         <span className="glyph" aria-hidden="true">
           {experimentOn ? '●' : '◇'}
         </span>
-        {experimentOn ? `实验 ${doneN}/${totalN}` : '实验模式'}
+        {experimentOn ? `实验 ${doneN}/${totalTasks}` : '实验模式'}
       </button>
 
       {open && (
@@ -76,14 +82,37 @@ export function ExperimentPanel() {
             {loaded && <span className="exp-badge">{experiment.name ?? '已载入'}</span>}
           </div>
 
+          {/*
+            实验臂选择器**始终渲染**。之前它只在"已载入清单"分支里，
+            结果没载清单时就完全没有切臂入口 —— 这是把下拉框从右栏搬进来时漏掉的。
+          */}
+          <label className="exp-arm">
+            <span>实验臂</span>
+            <select
+              value={arm}
+              disabled={experimentOn}
+              onChange={(e) => setArm(e.target.value as Arm)}
+              title={
+                experimentOn
+                  ? '实验模式下臂由任务清单决定（一张图会在三个臂各标一遍），不能手动切换'
+                  : '切换后当前图按新条件重新载入，产物分别落到 out/annotations/<arm>/'
+              }
+            >
+              {(Object.keys(ARM_LABEL) as Arm[]).map((a) => (
+                <option key={a} value={a}>
+                  {ARM_LABEL[a]}
+                </option>
+              ))}
+            </select>
+          </label>
+
           {!loaded && (
             <>
               <p className="exp-note">
-                {experiment?.note || '还没有载入实验清单。'}
+                {experiment?.note || '还没有载入实验任务清单。'}
               </p>
               <p className="exp-note dim">
-                做法：把实验包的 <code>manifest.json</code> 放到
-                <code> out/experiment/manifest.json</code>（或用环境变量
+                做法：把清单放到 <code>out/experiment/manifest.json</code>（或用环境变量
                 <code> AGROLABEL_EXPERIMENT</code> 指到别处），然后点下面这个按钮。
               </p>
               <div className="exp-actions">
@@ -97,7 +126,8 @@ export function ExperimentPanel() {
           {loaded && (
             <>
               <div className="exp-sub">
-                清单 {totalN} 张 · 已完成 {doneN} / {totalN}
+                {experiment.mode === 'tasks' ? '同图三臂' : '一图一臂'} ·{' '}
+                {experiment.n_images} 张图 / {totalTasks} 个任务 · 已完成 {doneN}
                 <span className="exp-src" title={experiment.source ?? ''}>
                   {experiment.source}
                 </span>
@@ -123,28 +153,26 @@ export function ExperimentPanel() {
                   })}
               </div>
 
-              <label className="exp-arm">
-                <span>实验臂</span>
-                <select
-                  value={arm}
-                  disabled={experimentOn}
-                  onChange={(e) => setArm(e.target.value as Arm)}
-                  title={
-                    experimentOn
-                      ? '实验模式下臂由图清单决定，不能手动切换'
-                      : '切换后当前图按新条件重新载入，产物分别落到 out/annotations/<arm>/'
-                  }
-                >
-                  {(Object.keys(ARM_LABEL) as Arm[]).map((a) => (
-                    <option key={a} value={a}>
-                      {ARM_LABEL[a]}
-                    </option>
+              {Object.keys(experiment.groups).length > 1 && (
+                <div className="exp-groups">
+                  {Object.entries(experiment.groups).map(([g, v]) => (
+                    <span key={g} className="exp-group">
+                      {g} {v.done}/{v.n}
+                    </span>
                   ))}
-                </select>
-              </label>
+                </div>
+              )}
+
+              {curTask && (
+                <p className="exp-note dim">
+                  当前任务：{curTask.group ?? '未分组'} · 第 {index + 1}/{totalTasks} 个 ·{' '}
+                  {ARM_LABEL[curTask.arm]}
+                </p>
+              )}
+
               {experimentOn && (
                 <p className="exp-note dim">
-                  当前图所属的臂已自动切换并锁定；退出实验模式后可手动改。
+                  臂由任务决定并锁定；同一张图会在三个臂各出现一次，这是设计（同图对照）。
                 </p>
               )}
 
